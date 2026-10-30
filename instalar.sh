@@ -22,6 +22,10 @@ NOME_SERVIDOR="${NOME_SERVIDOR:-JV Baiak}"
 GM_SENHA_PASSADA="${GM_SENHA:-}"
 DOMINIO_PASSADO="${DOMINIO:-}"
 DUCKDNS_TOKEN="${DUCKDNS_TOKEN:-}"
+# Campos do script de exemplo que ficaram sem trocar sao ignorados
+case "$GM_SENHA_PASSADA" in *TROQUE*) GM_SENHA_PASSADA="" ;; esac
+case "$DOMINIO_PASSADO" in *SEUNOME* | "") DOMINIO_PASSADO="" ;; esac
+case "$DUCKDNS_TOKEN" in *COLE-O-TOKEN*) DUCKDNS_TOKEN="" ;; esac
 export HOME="${HOME:-/root}"
 
 BAIAK_REPO="https://github.com/moviebr/baiakthunder.git"

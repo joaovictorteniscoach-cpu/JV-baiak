@@ -180,7 +180,14 @@ cmd_web() { # dominio [token-duckdns]
 			|| falha "o DuckDNS recusou (confira o subdominio e o token em duckdns.org)"
 		sleep 20
 	fi
-	resolvido="$(getent ahostsv4 "$dominio" | awk 'NR==1 {print $1}')"
+	# O DNS pode levar alguns minutos para mudar (cache): espera ate ~5 min
+	local tentativa
+	for tentativa in $(seq 1 20); do
+		resolvido="$(getent ahostsv4 "$dominio" 2>/dev/null | awk 'NR==1 {print $1}' || true)"
+		if [ "$resolvido" = "$ip" ]; then break; fi
+		if [ "$tentativa" -eq 1 ]; then info "Esperando $dominio apontar para $ip (ate 5 minutos)..."; fi
+		sleep 15
+	done
 	[ "$resolvido" = "$ip" ] || falha "$dominio aponta para '${resolvido:-nada}', mas esta VPS e $ip. Ajuste o DNS e tente de novo."
 
 	[ -f "$BASE/clientes-cache/sprites860/Tibia.spr" ] || cmd_clientes
