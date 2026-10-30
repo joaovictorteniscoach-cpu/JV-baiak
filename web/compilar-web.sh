@@ -18,11 +18,24 @@ SPR="$BASE/clientes-cache/sprites860"
 DAT_SHA256="38e4e23ee550503842388e3aa3119125692316facf5adf97f4c24385735ddaee"
 SPR_SHA256="672351b1a3dd0f45da7c76bca35a1d8f7fbf1db3be65e080aeb1d8789c61a575"
 
-log() { printf '[web %s] %s\n' "$(date +%H:%M:%S)" "$*"; }
-falha() { printf '[web] ERRO: %s\n' "$*" >&2; exit 1; }
+# Andamento visivel no celular em https://<dominio>/jogar/status.txt (sem terminal)
+STATUS="$BASE/web/www/jogar/status.txt"
+anota() { [ -d "$(dirname "$STATUS")" ] && [ ! -f "$BASE/web/www/jogar/otclient.wasm" ] && printf '%s\n' "$*" >> "$STATUS" || true; }
+log() { printf '[web %s] %s\n' "$(date +%H:%M:%S)" "$*"; anota "$(date '+%d/%m %H:%M') $*"; }
+falha() {
+	trap - ERR
+	printf '[web] ERRO: %s\n' "$*" >&2
+	anota "ERRO: $*"
+	if [ -f /var/log/jvbaiak-web-build.log ]; then
+		anota "--- fim do log da compilacao ---"
+		anota "$(tail -n 40 /var/log/jvbaiak-web-build.log)"
+	fi
+	exit 1
+}
 trap 'falha "parou na linha $LINENO: $BASH_COMMAND"' ERR
 
 [[ "$DOMINIO" =~ ^[a-z0-9.-]+\.[a-z]{2,}$ ]] || falha "dominio invalido: $DOMINIO"
+[ -f "$STATUS" ] && : > "$STATUS"
 NOME="$(grep -E '^NOME_SERVIDOR=' "$BASE/.env" | tail -n1 | cut -d= -f2-)"
 NOME="${NOME:-JV Baiak}"
 

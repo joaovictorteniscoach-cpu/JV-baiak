@@ -1,0 +1,8 @@
+#!/bin/bash
+# JV Baiak - cole este texto no campo "cloud-init script" ao criar a VPS.
+# Troque as 3 linhas marcadas. A instalacao roda sozinha no primeiro boot.
+export NOME_SERVIDOR="JV Baiak"
+export GM_SENHA="TROQUE-ESTA-SENHA"          # senha da conta GM "admin" (6+ letras/numeros)
+export DOMINIO="SEUNOME.duckdns.org"         # seu dominio do duckdns.org
+export DUCKDNS_TOKEN="COLE-O-TOKEN-AQUI"     # token que aparece no duckdns.org
+curl -fsSL https://raw.githubusercontent.com/joaovictorteniscoach-cpu/JV-baiak/main/instalar.sh | bash

@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # =============================================================================
-# JV Baiak - instalador em um comando (VPS Ubuntu 22.04/24.04, x86_64)
+# JV Baiak - instalador em um comando (VPS Ubuntu 22.04/24.04, x86_64 ou arm64)
 #
-#   curl -fsSL <endereco-do-kit>/instalar.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/joaovictorteniscoach-cpu/JV-baiak/main/instalar.sh | sudo bash
 #
-# Opcional (antes do comando): NOME_SERVIDOR="Meu Baiak"  ENDERECO_SERVIDOR=1.2.3.4
+# Tambem roda sozinho no primeiro boot da VPS (script cloud-init), sem terminal.
+# Opcional (variaveis antes do comando):
+#   NOME_SERVIDOR="Meu Baiak"    ENDERECO_SERVIDOR=1.2.3.4
+#   GM_SENHA=minhasenha          senha da conta GM "admin" (senao, uma aleatoria)
+#   DOMINIO=x.duckdns.org DUCKDNS_TOKEN=...   ja liga o modo web (iPhone) no fim
 # Pode ser rodado de novo a qualquer momento: ele repara/atualiza sem apagar
 # contas, personagens, mapa ou configuracoes ja feitas.
 # =============================================================================
@@ -15,6 +19,10 @@ KIT_REF="${KIT_REF:-main}"
 BASE="${BASE:-/opt/jvbaiak}"
 NOME_PASSADO="${NOME_SERVIDOR:-}"
 NOME_SERVIDOR="${NOME_SERVIDOR:-JV Baiak}"
+GM_SENHA_PASSADA="${GM_SENHA:-}"
+DOMINIO_PASSADO="${DOMINIO:-}"
+DUCKDNS_TOKEN="${DUCKDNS_TOKEN:-}"
+export HOME="${HOME:-/root}"
 
 BAIAK_REPO="https://github.com/moviebr/baiakthunder.git"
 BAIAK_COMMIT="265d45805c5d2204262ffd55b8fc67d97b829916"
@@ -23,10 +31,39 @@ LOG="/var/log/jvbaiak-instalacao.log"
 cor() { printf '\033[%sm%s\033[0m\n' "$1" "$2"; }
 etapa() { cor "1;33" ">> $*"; }
 ok() { cor "1;32" "   $*"; }
+# Sem terminal (instalacao pelo celular): em caso de erro, mostra o fim do log
+# em http://IP-DA-VPS para dar print. Linhas com senha/token sao omitidas.
+pagina_erro() {
+	command -v python3 >/dev/null 2>&1 || return 0
+	if ss -ltn 2>/dev/null | grep -q ':80 '; then return 0; fi
+	local dir=/run/jvbaiak-erro
+	mkdir -p "$dir"
+	{
+		echo '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+		echo '<title>JV Baiak - erro</title><body style="font:14px monospace;background:#111;color:#eee;padding:12px">'
+		echo "<h2>A instalacao parou com erro ($(date '+%d/%m %H:%M'))</h2><p>Tire um print e envie no chat.</p><pre style=\"white-space:pre-wrap\">"
+		tail -n 60 "$LOG" 2>/dev/null | sed -E 's/\x1b\[[0-9;]*m//g' | grep -viE 'senha|token|password|pwd' \
+			| sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' || true
+		echo '</pre>'
+	} > "$dir/index.html"
+	iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT 2>/dev/null || true
+	systemd-run --unit=jvbaiak-erro --collect python3 -m http.server 80 --directory "$dir" >/dev/null 2>&1 || true
+}
 falha() {
+	trap - ERR
 	cor "1;31" "ERRO: $*"
 	echo "Detalhes em $LOG. Envie as ultimas linhas desse arquivo para o suporte." >&2
+	pagina_erro
 	exit 1
+}
+# Espera outros processos do apt terminarem (no primeiro boot a VPS se atualiza sozinha)
+espera_apt() {
+	local i
+	for i in $(seq 1 180); do
+		pgrep -x 'apt|apt-get|dpkg|unattended-upgr' >/dev/null 2>&1 || return 0
+		[ "$i" -eq 1 ] && echo "   aguardando a atualizacao automatica do sistema terminar..."
+		sleep 5
+	done
 }
 trap 'falha "a etapa falhou na linha $LINENO (comando: $BASH_COMMAND)"' ERR
 
@@ -34,6 +71,7 @@ trap 'falha "a etapa falhou na linha $LINENO (comando: $BASH_COMMAND)"' ERR
 # (necessario quando o instalador chega por "curl | bash").
 main() {
 	exec > >(tee -a "$LOG") 2>&1
+	systemctl stop jvbaiak-erro >/dev/null 2>&1 || true
 	echo "==== instalacao iniciada em $(date) ===="
 
 	# ----------------------------------------------------------------- verificacoes
@@ -55,13 +93,17 @@ main() {
 	[ "$LIVRE_GB" -ge 12 ] || falha "pouco espaco em disco (${LIVRE_GB} GB). Sao necessarios pelo menos 12 GB livres."
 	[ "$RAM_MB" -ge 1800 ] || falha "pouca memoria (${RAM_MB} MB). Use uma VPS com pelo menos 2 GB (recomendado 4 GB ou mais)."
 	[[ "$NOME_SERVIDOR" =~ ^[A-Za-z0-9\ ]{3,30}$ ]] || falha "NOME_SERVIDOR deve ter 3-30 letras, numeros ou espacos (sem acentos)."
+	if [ -n "$GM_SENHA_PASSADA" ] && ! [[ "$GM_SENHA_PASSADA" =~ ^[A-Za-z0-9._@#%+=-]{6,29}$ ]]; then
+		falha "GM_SENHA deve ter 6 a 29 letras, numeros ou . _ @ # % + = - (sem espacos)."
+	fi
 
 	export DEBIAN_FRONTEND=noninteractive
 
 	# ------------------------------------------------------------------- pacotes
 	etapa "Instalando pacotes do sistema"
-	apt-get update -qq
-	apt-get install -y -qq --no-install-recommends ca-certificates curl git openssl ufw fail2ban \
+	espera_apt
+	apt-get -o DPkg::Lock::Timeout=900 update -qq
+	apt-get -o DPkg::Lock::Timeout=900 install -y -qq --no-install-recommends ca-certificates curl git openssl ufw fail2ban \
 		unattended-upgrades cron gzip >/dev/null
 	systemctl enable --now fail2ban >/dev/null 2>&1 || true
 	systemctl enable --now unattended-upgrades >/dev/null 2>&1 || true
@@ -69,6 +111,7 @@ main() {
 
 	if ! command -v docker >/dev/null 2>&1; then
 		etapa "Instalando Docker (script oficial get.docker.com)"
+		espera_apt
 		curl -fsSL https://get.docker.com | sh >/dev/null
 	fi
 	systemctl enable --now docker >/dev/null 2>&1 || true
@@ -273,11 +316,10 @@ main() {
 
 	# ---------------------------------------------------------------- conta GM
 	CRED="/root/jvbaiak-credenciais.txt"
-	if [ ! -f "$CRED" ]; then
+	if [ ! -f "$CRED" ] || [ -n "$GM_SENHA_PASSADA" ]; then
 		etapa "Criando sua conta de administrador (GM)"
-		GM_SENHA="$(aleatorio 6)"
+		GM_SENHA="${GM_SENHA_PASSADA:-$(aleatorio 6)}"
 		"$BASE/jvbaiak" criar-gm admin "$GM_SENHA" "Administrador" >/dev/null
-		umask 077
 		cat > "$CRED" <<-EOF
 	JV Baiak - credenciais (guarde em lugar seguro)
 	Site:            http://$ENDERECO
@@ -286,6 +328,7 @@ main() {
 	Personagem GM:   Administrador
 	Senhas internas: $ENV
 	EOF
+		chmod 600 "$CRED"
 		ok "conta GM criada (detalhes em $CRED)"
 	fi
 
@@ -303,10 +346,26 @@ main() {
 	chmod 644 /etc/cron.d/jvbaiak
 	"$BASE/jvbaiak" backup >/dev/null && ok "primeiro backup feito em $BASE/backups"
 
+	# ------------------------------------------------- modo web (iPhone), opcional
+	if [ -n "$DOMINIO_PASSADO" ]; then
+		if [ "$(le_env DOMINIO)" != "$DOMINIO_PASSADO" ] || [ ! -f "$BASE/web/www/jogar/otclient.wasm" ]; then
+			etapa "Ligando HTTPS e o jogo no navegador em $DOMINIO_PASSADO"
+			if ! systemctl is-active --quiet jvbaiak-web; then
+				"$BASE/jvbaiak" web "$DOMINIO_PASSADO" "$DUCKDNS_TOKEN" </dev/null \
+					|| cor "1;35" "   Aviso: o modo web nao ligou agora (veja acima). O servidor do jogo esta funcionando."
+			fi
+		fi
+	fi
+
 	trap - ERR
 	echo
 	cor "1;32" "================ PRONTO! ================"
-	echo "Site (criar conta e baixar o jogo):  http://$ENDERECO"
+	if [ -n "$(le_env DOMINIO)" ]; then
+		echo "Site (criar conta e baixar o jogo):  https://$(le_env DOMINIO)"
+		echo "Jogar no iPhone (quando compilar):   https://$(le_env DOMINIO)/jogar/"
+	else
+		echo "Site (criar conta e baixar o jogo):  http://$ENDERECO"
+	fi
 	echo "Servidor no cliente:                 $ENDERECO  porta 7171  versao 8.60"
 	echo "Conta GM e senha:                    cat $CRED"
 	echo "Administrar:                         jvbaiak ajuda"
