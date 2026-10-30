@@ -18,8 +18,12 @@ le_env() { grep -E "^$1=" "$ENV" | tail -n1 | cut -d= -f2-; }
 dc() { docker compose "$@"; }
 
 # Executa SQL no banco do jogo (sem expor a senha na linha de comando)
+# (a senha vem do proprio container do banco: nunca aparece na lista de processos)
 sql() {
-	dc exec -T -e MYSQL_PWD="$(le_env DB_SENHA)" db mariadb -ujvbaiak jvbaiak --batch --skip-column-names "$@"
+	dc exec -T db sh -c 'MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb -ujvbaiak jvbaiak --batch --skip-column-names "$@"' sh "$@"
+}
+sql_root() {
+	dc exec -T db sh -c 'MYSQL_PWD="$MARIADB_ROOT_PASSWORD" exec "$@"' sh "$@"
 }
 esc() { printf '%s' "$1" | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g"; }  # escapa para string SQL
 sha1() { printf '%s' "$1" | sha1sum | awk '{print $1}'; }
@@ -66,8 +70,7 @@ cmd_backup() {
 	local data arq
 	data="$(date +%Y%m%d-%H%M)"
 	arq="$BACKUPS/banco-$data.sql.gz"
-	dc exec -T -e MYSQL_PWD="$(le_env DB_SENHA_ROOT)" db mariadb-dump -uroot --single-transaction \
-		--routines --triggers jvbaiak | gzip -9 > "$arq.tmp"
+	sql_root mariadb-dump -uroot --single-transaction --routines --triggers jvbaiak | gzip -9 > "$arq.tmp"
 	[ -s "$arq.tmp" ] || { rm -f "$arq.tmp"; falha "backup do banco saiu vazio"; }
 	mv "$arq.tmp" "$arq"
 	tar -czf "$BACKUPS/dados-$data.tar.gz" --exclude='servidor/data/logs' servidor .env clientes-cache/apk-assinatura.jks 2>/dev/null \
@@ -86,7 +89,7 @@ cmd_restaurar() {
 	[ "$resp" = "RESTAURAR" ] || falha "cancelado"
 	cmd_backup
 	dc stop servidor
-	gunzip -c "$arq" | dc exec -T -e MYSQL_PWD="$(le_env DB_SENHA_ROOT)" db mariadb -uroot jvbaiak
+	gunzip -c "$arq" | sql_root mariadb -uroot jvbaiak
 	dc start servidor
 	info "Banco restaurado de $arq"
 }
