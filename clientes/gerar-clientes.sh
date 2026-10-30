@@ -170,13 +170,20 @@ if [ ! -f "$KS" ]; then
 		-dname "CN=$NOME_SERVIDOR, O=$NOME_SERVIDOR, C=BR" >/dev/null 2>&1 \
 		|| falha "nao consegui criar a chave do APK"
 fi
+# O zipalign embutido no assinador so existe para x86_64. Em arm64 (Oracle gratis)
+# o alinhamento e pulado: o app tem targetSdk 25 e o Android nao exige alinhamento.
+ALINHAR=()
+if [ "$(uname -m)" != "x86_64" ]; then
+	ALINHAR=(--skipZipAlign)
+	log "processador $(uname -m): APK sem zipalign (nao e exigido para este app)"
+fi
 mkdir -p "$TRAB/assinado"
-java -jar "$SIGNER" --apks "$APK" --out "$TRAB/assinado" \
+java -jar "$SIGNER" --apks "$APK" --out "$TRAB/assinado" "${ALINHAR[@]}" \
 	--ks "$KS" --ksAlias jvbaiak --ksPass "$APK_SENHA" --ksKeyPass "$APK_SENHA" \
 	> "$TRAB/assinatura.log" 2>&1 || { cat "$TRAB/assinatura.log" >&2; falha "falha ao assinar o APK"; }
 APK_FINAL="$(find "$TRAB/assinado" -name '*.apk' | head -n 1)"
 [ -n "$APK_FINAL" ] || falha "APK assinado nao encontrado"
-java -jar "$SIGNER" --apks "$APK_FINAL" --onlyVerify > "$TRAB/verificacao.log" 2>&1 \
+java -jar "$SIGNER" --apks "$APK_FINAL" --onlyVerify "${ALINHAR[@]}" > "$TRAB/verificacao.log" 2>&1 \
 	|| { cat "$TRAB/verificacao.log" >&2; falha "APK nao passou na verificacao de assinatura"; }
 
 # ---- publica ---------------------------------------------------------------------

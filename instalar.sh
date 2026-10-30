@@ -39,7 +39,11 @@ main() {
 	# ----------------------------------------------------------------- verificacoes
 	etapa "Verificando a maquina"
 	[ "$(id -u)" -eq 0 ] || falha "rode como root (use sudo)."
-	[ "$(uname -m)" = "x86_64" ] || falha "a VPS precisa ser x86_64 (Intel/AMD). ARM nao e suportado."
+	case "$(uname -m)" in
+		x86_64) ok "processador x86_64" ;;
+		aarch64) ok "processador arm64 (ex.: Oracle Cloud gratis)" ;;
+		*) falha "processador $(uname -m) nao suportado (use x86_64 ou arm64)." ;;
+	esac
 	. /etc/os-release
 	case "${ID}:${VERSION_ID}" in
 		ubuntu:22.04 | ubuntu:24.04) ok "Ubuntu ${VERSION_ID}" ;;
@@ -233,6 +237,9 @@ main() {
 	ufw default allow outgoing >/dev/null
 	ufw --force enable >/dev/null
 	ok "abertas: SSH ($(echo $PORTAS_SSH)), 80 (site), 7171-7172 (jogo). Banco de dados fica fechado."
+	if [ -f /etc/iptables/rules.v4 ] && grep -q 'REJECT' /etc/iptables/rules.v4 && curl -fs --max-time 2 -H 'Authorization: Bearer Oracle' http://169.254.169.254/opc/v2/instance/ >/dev/null 2>&1; then
+		cor "1;35" "   Oracle Cloud detectada: libere TCP 80, 7171 e 7172 na Security List da VCN (painel da Oracle), senao ninguem conecta."
+	fi
 
 	# ------------------------------------------------------------ subir servicos
 	cd "$BASE"

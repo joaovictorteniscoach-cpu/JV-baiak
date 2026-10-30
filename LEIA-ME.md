@@ -2,7 +2,7 @@
 
 Servidor **Baiak 8.60** pronto para VPS, com cliente para **PC (Windows)** e **celular (Android)**.
 
-## Instalação (VPS Ubuntu 22.04/24.04, x86_64, 4 GB+ de RAM)
+## Instalação (VPS Ubuntu 22.04/24.04, x86_64 ou arm64, 4 GB+ de RAM)
 
 ```bash
 curl -fsSL <endereço-do-kit>/instalar.sh | sudo bash
@@ -15,7 +15,7 @@ O instalador pode ser rodado de novo para reparar ou atualizar: ele não apaga c
 
 | Serviço | O que faz | Porta |
 |---|---|---|
-| `servidor` | Baiak Thunder 8.60 (TFS 1.3) compilado do código-fonte | 7171, 7172 |
+| `servidor` | Baiak Thunder 8.60 (TFS 1.3) compilado do código-fonte, x86_64 ou arm64 | 7171, 7172 |
 | `db` | MariaDB 10.11 (fechado para a internet) | — |
 | `portal` | Site para criar conta e personagem, ranking e downloads | 80 |
 | `clientes` | Ferramenta que gera o cliente Windows (.zip) e o APK Android | — |
