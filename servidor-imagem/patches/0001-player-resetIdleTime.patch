@@ -1,0 +1,44 @@
+diff --git a/src/luascript.cpp b/src/luascript.cpp
+index 2c737c4..5295b0f 100644
+--- a/src/luascript.cpp
++++ b/src/luascript.cpp
+@@ -2247,6 +2247,7 @@ void LuaScriptInterface::registerFunctions()
+ 	registerMethod("Player", "setMaxMana", LuaScriptInterface::luaPlayerSetMaxMana);
+ 	registerMethod("Player", "getManaSpent", LuaScriptInterface::luaPlayerGetManaSpent);
+ 	registerMethod("Player", "addManaSpent", LuaScriptInterface::luaPlayerAddManaSpent);
++	registerMethod("Player", "resetIdleTime", LuaScriptInterface::luaPlayerResetIdleTime);
+ 
+ 	registerMethod("Player", "getBaseMaxHealth", LuaScriptInterface::luaPlayerGetBaseMaxHealth);
+ 	registerMethod("Player", "getBaseMaxMana", LuaScriptInterface::luaPlayerGetBaseMaxMana);
+@@ -8361,6 +8362,19 @@ int LuaScriptInterface::luaPlayerAddManaSpent(lua_State* L)
+ 	return 1;
+ }
+ 
++int LuaScriptInterface::luaPlayerResetIdleTime(lua_State* L)
++{
++	// player:resetIdleTime() -- JV Baiak: usado pelo treino automatico
++	Player* player = getUserdata<Player>(L, 1);
++	if (player) {
++		player->resetIdleTime();
++		pushBoolean(L, true);
++	} else {
++		lua_pushnil(L);
++	}
++	return 1;
++}
++
+ int LuaScriptInterface::luaPlayerGetBaseMaxHealth(lua_State* L)
+ {
+ 	// player:getBaseMaxHealth()
+diff --git a/src/luascript.h b/src/luascript.h
+index 0667624..8ade244 100644
+--- a/src/luascript.h
++++ b/src/luascript.h
+@@ -877,6 +877,7 @@ class LuaScriptInterface
+ 		static int luaPlayerSetMaxMana(lua_State* L);
+ 		static int luaPlayerGetManaSpent(lua_State* L);
+ 		static int luaPlayerAddManaSpent(lua_State* L);
++		static int luaPlayerResetIdleTime(lua_State* L);
+ 
+ 		static int luaPlayerGetBaseMaxHealth(lua_State* L);
+ 		static int luaPlayerGetBaseMaxMana(lua_State* L);

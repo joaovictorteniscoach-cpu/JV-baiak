@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}{{ nome_servidor }}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="{{ url_for('inicio') }}">{{ nome_servidor }}</a>
+  <nav>
+    <a href="{{ url_for('criar_conta') }}">Criar conta</a>
+    <a href="{{ url_for('baixar') }}">Baixar</a>
+    <a href="{{ url_for('ranking') }}">Ranking</a>
+  </nav>
+</header>
+<main>
+{% block conteudo %}{% endblock %}
+</main>
+<footer>Servidor 8.60 &middot; {{ endereco }}</footer>
+</body>
+</html>

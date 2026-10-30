@@ -1,0 +1,299 @@
+#!/usr/bin/env bash
+# =============================================================================
+# JV Baiak - instalador em um comando (VPS Ubuntu 22.04/24.04, x86_64)
+#
+#   curl -fsSL <endereco-do-kit>/instalar.sh | sudo bash
+#
+# Opcional (antes do comando): NOME_SERVIDOR="Meu Baiak"  ENDERECO_SERVIDOR=1.2.3.4
+# Pode ser rodado de novo a qualquer momento: ele repara/atualiza sem apagar
+# contas, personagens, mapa ou configuracoes ja feitas.
+# =============================================================================
+set -Eeuo pipefail
+
+KIT_REPO="${KIT_REPO:-__KIT_REPO__}"
+KIT_REF="${KIT_REF:-main}"
+BASE="${BASE:-/opt/jvbaiak}"
+NOME_PASSADO="${NOME_SERVIDOR:-}"
+NOME_SERVIDOR="${NOME_SERVIDOR:-JV Baiak}"
+
+BAIAK_REPO="https://github.com/moviebr/baiakthunder.git"
+BAIAK_COMMIT="265d45805c5d2204262ffd55b8fc67d97b829916"
+LOG="/var/log/jvbaiak-instalacao.log"
+
+cor() { printf '\033[%sm%s\033[0m\n' "$1" "$2"; }
+etapa() { cor "1;33" ">> $*"; }
+ok() { cor "1;32" "   $*"; }
+falha() {
+	cor "1;31" "ERRO: $*"
+	echo "Detalhes em $LOG. Envie as ultimas linhas desse arquivo para o suporte." >&2
+	exit 1
+}
+trap 'falha "a etapa falhou na linha $LINENO (comando: $BASH_COMMAND)"' ERR
+
+# Tudo dentro de main(): o bash le o script inteiro antes de executar
+# (necessario quando o instalador chega por "curl | bash").
+main() {
+	exec > >(tee -a "$LOG") 2>&1
+	echo "==== instalacao iniciada em $(date) ===="
+
+	# ----------------------------------------------------------------- verificacoes
+	etapa "Verificando a maquina"
+	[ "$(id -u)" -eq 0 ] || falha "rode como root (use sudo)."
+	[ "$(uname -m)" = "x86_64" ] || falha "a VPS precisa ser x86_64 (Intel/AMD). ARM nao e suportado."
+	. /etc/os-release
+	case "${ID}:${VERSION_ID}" in
+		ubuntu:22.04 | ubuntu:24.04) ok "Ubuntu ${VERSION_ID}" ;;
+		*) cor "1;35" "   Aviso: testado em Ubuntu 22.04/24.04; este sistema e ${PRETTY_NAME}. Continuando." ;;
+	esac
+	RAM_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
+	LIVRE_GB=$(df -Pk / | awk 'NR==2 {print int($4/1024/1024)}')
+	ok "RAM ${RAM_MB} MB, disco livre ${LIVRE_GB} GB"
+	[ "$LIVRE_GB" -ge 12 ] || falha "pouco espaco em disco (${LIVRE_GB} GB). Sao necessarios pelo menos 12 GB livres."
+	[ "$RAM_MB" -ge 1800 ] || falha "pouca memoria (${RAM_MB} MB). Use uma VPS com pelo menos 2 GB (recomendado 4 GB ou mais)."
+	[[ "$NOME_SERVIDOR" =~ ^[A-Za-z0-9\ ]{3,30}$ ]] || falha "NOME_SERVIDOR deve ter 3-30 letras, numeros ou espacos (sem acentos)."
+
+	export DEBIAN_FRONTEND=noninteractive
+
+	# ------------------------------------------------------------------- pacotes
+	etapa "Instalando pacotes do sistema"
+	apt-get update -qq
+	apt-get install -y -qq --no-install-recommends ca-certificates curl git openssl ufw fail2ban \
+		unattended-upgrades cron gzip >/dev/null
+	systemctl enable --now fail2ban >/dev/null 2>&1 || true
+	systemctl enable --now unattended-upgrades >/dev/null 2>&1 || true
+	ok "pacotes ok (fail2ban protege o SSH; atualizacoes de seguranca automaticas ligadas)"
+
+	if ! command -v docker >/dev/null 2>&1; then
+		etapa "Instalando Docker (script oficial get.docker.com)"
+		curl -fsSL https://get.docker.com | sh >/dev/null
+	fi
+	systemctl enable --now docker >/dev/null 2>&1 || true
+	docker compose version >/dev/null 2>&1 || falha "Docker Compose v2 nao encontrado."
+	ok "$(docker --version)"
+
+	# ----------------------------------------------------------------------- swap
+	if [ "$(swapon --show --noheadings | wc -l)" -eq 0 ] && [ "$RAM_MB" -lt 6000 ]; then
+		etapa "Criando 2 GB de swap (protege contra falta de memoria)"
+		fallocate -l 2G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none
+		chmod 600 /swapfile
+		mkswap /swapfile >/dev/null
+		swapon /swapfile
+		grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+		ok "swap ativo"
+	fi
+
+	# ------------------------------------------------------------------------- kit
+	etapa "Copiando o kit para $BASE"
+	ORIGEM=""
+	if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ] && [ -f "$(dirname "${BASH_SOURCE[0]}")/docker-compose.yml" ]; then
+		ORIGEM="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	else
+		case "$KIT_REPO" in __*) falha "KIT_REPO nao definido. Rode o instalador de dentro da pasta do kit." ;; esac
+		TMPKIT="$(mktemp -d)"
+		git clone -q --depth 1 --branch "$KIT_REF" "$KIT_REPO" "$TMPKIT/kit" || falha "nao consegui baixar o kit de $KIT_REPO"
+		ORIGEM="$TMPKIT/kit"
+	fi
+	mkdir -p "$BASE"
+	for item in docker-compose.yml jvbaiak servidor-imagem portal clientes LEIA-ME.md; do
+		[ -e "$ORIGEM/$item" ] || continue
+		if [ "$ORIGEM" != "$BASE" ]; then
+			rm -rf "${BASE:?}/$item.novo"
+			cp -a "$ORIGEM/$item" "$BASE/$item.novo"
+			# fonte/ (codigo baixado) e preservado entre atualizacoes
+			if [ "$item" = "servidor-imagem" ] && [ -d "$BASE/servidor-imagem/fonte" ]; then
+				mv "$BASE/servidor-imagem/fonte" "$BASE/servidor-imagem.novo/fonte"
+			fi
+			rm -rf "${BASE:?}/$item"
+			mv "$BASE/$item.novo" "$BASE/$item"
+		fi
+	done
+	chmod +x "$BASE/jvbaiak"
+	ln -sf "$BASE/jvbaiak" /usr/local/bin/jvbaiak
+	mkdir -p "$BASE/downloads" "$BASE/clientes-cache" "$BASE/backups"
+	ok "kit em $BASE (comando de administracao: jvbaiak)"
+
+	# ------------------------------------------------------------------ endereco
+	descobre_ip() {
+		local url ip
+		for url in https://api.ipify.org https://ifconfig.me/ip https://icanhazip.com; do
+			ip="$(curl -4 -fsS --max-time 8 "$url" 2>/dev/null | tr -d '[:space:]' || true)"
+			if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+				echo "$ip"
+				return 0
+			fi
+		done
+		return 1
+	}
+
+	ENV="$BASE/.env"
+	le_env() { grep -E "^$1=" "$ENV" 2>/dev/null | tail -n1 | cut -d= -f2- || true; }
+	grava_env() { # chave valor
+		local tmp
+		tmp="$(mktemp)"
+		grep -vE "^$1=" "$ENV" > "$tmp" 2>/dev/null || true
+		printf '%s=%s\n' "$1" "$2" >> "$tmp"
+		install -m 600 "$tmp" "$ENV"
+		rm -f "$tmp"
+	}
+	aleatorio() { openssl rand -hex "${1:-24}"; }
+
+	etapa "Configurando senhas e endereco"
+	touch "$ENV"
+	chmod 600 "$ENV"
+	for chave in DB_SENHA DB_SENHA_ROOT PORTAL_SEGREDO APK_SENHA; do
+		[ -n "$(le_env "$chave")" ] || grava_env "$chave" "$(aleatorio)"
+	done
+	if [ -n "${ENDERECO_SERVIDOR:-}" ]; then
+		grava_env ENDERECO_SERVIDOR "$ENDERECO_SERVIDOR"
+	elif [ -z "$(le_env ENDERECO_SERVIDOR)" ]; then
+		grava_env ENDERECO_SERVIDOR "$(descobre_ip || falha "nao consegui descobrir o IP publico. Rode de novo com ENDERECO_SERVIDOR=SEU.IP")"
+	fi
+	if [ -n "$NOME_PASSADO" ] || [ -z "$(le_env NOME_SERVIDOR)" ]; then
+		grava_env NOME_SERVIDOR "$NOME_SERVIDOR"
+	fi
+	ENDERECO="$(le_env ENDERECO_SERVIDOR)"
+	NOME="$(le_env NOME_SERVIDOR)"
+	ok "servidor \"$NOME\" no endereco $ENDERECO (senhas em $ENV, so o root le)"
+
+	# ------------------------------------------------------------ codigo do Baiak
+	etapa "Baixando o Baiak Thunder 8.60 (commit ${BAIAK_COMMIT:0:7})"
+	FONTE="$BASE/servidor-imagem/fonte"
+	if [ "$(git -C "$FONTE" rev-parse HEAD 2>/dev/null || true)" != "$BAIAK_COMMIT" ]; then
+		rm -rf "$FONTE"
+		mkdir -p "$FONTE"
+		git -C "$FONTE" init -q
+		git -C "$FONTE" remote add origin "$BAIAK_REPO"
+		for tentativa in 1 2 3; do
+			git -C "$FONTE" fetch -q --depth 1 origin "$BAIAK_COMMIT" && break
+			[ "$tentativa" -lt 3 ] || falha "nao consegui baixar o Baiak Thunder do GitHub"
+			sleep 10
+		done
+		git -C "$FONTE" -c advice.detachedHead=false checkout -q FETCH_HEAD
+	fi
+	git -C "$FONTE" checkout -q -- src
+	for patch in "$BASE"/servidor-imagem/patches/*.patch; do
+		git -C "$FONTE" apply "$patch" || falha "patch $(basename "$patch") nao aplicou"
+	done
+	ok "codigo pronto ($(ls "$BASE"/servidor-imagem/patches/*.patch | wc -l) melhoria(s) do JV Baiak aplicada(s))"
+
+	# --------------------------------------------------- dados do servidor (mapa etc)
+	etapa "Preparando mapa, scripts e config.lua"
+	SRV="$BASE/servidor"
+	if [ ! -f "$SRV/config.lua" ]; then
+		mkdir -p "$SRV"
+		cp -a "$FONTE/data" "$SRV/data"
+		cp "$FONTE/key.pem" "$FONTE/config.lua" "$SRV/"
+		mkdir -p "$SRV/data/logs"
+		ok "dados copiados (primeira instalacao)"
+	else
+		ok "dados existentes preservados"
+	fi
+	cp "$FONTE/schema.sql" "$SRV/schema.sql"
+	# Arquivos proprios do JV Baiak (sempre atualizados)
+	cp -a "$BASE/servidor-imagem/extras/." "$SRV/"
+
+	lua_define() { # chave valor_lua
+		LC_ALL=C awk -v k="$1" -v v="$2" '
+			BEGIN { feito = 0 }
+			$0 ~ "^" k "[ \t]*=" { print k " = " v; feito = 1; next }
+			{ print }
+			END { if (!feito) print k " = " v }
+		' "$SRV/config.lua" > "$SRV/config.lua.tmp" && mv "$SRV/config.lua.tmp" "$SRV/config.lua"
+	}
+	lua_define ip "\"$ENDERECO\""
+	lua_define mysqlHost '"db"'
+	lua_define mysqlUser '"jvbaiak"'
+	lua_define mysqlPass "\"$(le_env DB_SENHA)\""
+	lua_define mysqlDatabase '"jvbaiak"'
+	lua_define mysqlPort 3306
+	lua_define serverName "\"$NOME\""
+	lua_define url "\"http://$ENDERECO\""
+	if [ ! -f "$SRV/.jvbaiak-config-inicial" ]; then
+		# Ajustes de jogo, so na primeira vez (depois e voce quem manda no config.lua)
+		lua_define motd "\"Bem-vindo ao $NOME! Digite !treino para ver o treino automatico.\""
+		lua_define antiBot false          # bot liberado (sem perguntas/punicao anti-bot)
+		lua_define freePremium true       # todos com premium: libera todas as areas
+		lua_define spoofEnabled false     # nunca mostrar jogadores falsos online
+		lua_define ownerName "\"$NOME\""
+		touch "$SRV/.jvbaiak-config-inicial"
+	fi
+	chown -R 1000:1000 "$SRV"
+	chmod 640 "$SRV/config.lua"
+	ok "config.lua ajustado (ip, banco, nome, bot liberado, premium gratis)"
+
+	# ------------------------------------------------------------------- firewall
+	etapa "Configurando firewall"
+	PORTAS_SSH="$(sshd -T 2>/dev/null | awk '/^port / {print $2}' | sort -u)"
+	[ -n "$PORTAS_SSH" ] || PORTAS_SSH=22
+	for p in $PORTAS_SSH; do ufw allow "$p/tcp" >/dev/null; done
+	ufw allow 80/tcp >/dev/null
+	ufw allow 7171/tcp >/dev/null
+	ufw allow 7172/tcp >/dev/null
+	ufw default deny incoming >/dev/null
+	ufw default allow outgoing >/dev/null
+	ufw --force enable >/dev/null
+	ok "abertas: SSH ($(echo $PORTAS_SSH)), 80 (site), 7171-7172 (jogo). Banco de dados fica fechado."
+
+	# ------------------------------------------------------------ subir servicos
+	cd "$BASE"
+	etapa "Compilando o servidor (primeira vez leva de 5 a 15 minutos)"
+	docker compose build servidor portal || falha "a compilacao falhou"
+	etapa "Ligando banco, servidor e site"
+	docker compose up -d --remove-orphans db servidor portal
+
+	etapa "Aguardando o servidor abrir (carregar o mapa leva alguns minutos)"
+	for i in $(seq 1 120); do
+		if (exec 3<>/dev/tcp/127.0.0.1/7171) 2>/dev/null; then
+			ok "servidor online na porta 7171"
+			break
+		fi
+		if [ "$i" -eq 120 ]; then
+			docker compose logs --tail 80 servidor || true
+			falha "o servidor nao abriu em 10 minutos (log acima)"
+		fi
+		sleep 5
+	done
+
+	# ---------------------------------------------------------------- conta GM
+	CRED="/root/jvbaiak-credenciais.txt"
+	if [ ! -f "$CRED" ]; then
+		etapa "Criando sua conta de administrador (GM)"
+		GM_SENHA="$(aleatorio 6)"
+		"$BASE/jvbaiak" criar-gm admin "$GM_SENHA" "Administrador" >/dev/null
+		umask 077
+		cat > "$CRED" <<-EOF
+	JV Baiak - credenciais (guarde em lugar seguro)
+	Site:            http://$ENDERECO
+	Conta GM:        admin
+	Senha GM:        $GM_SENHA
+	Personagem GM:   Administrador
+	Senhas internas: $ENV
+	EOF
+		ok "conta GM criada (detalhes em $CRED)"
+	fi
+
+	# --------------------------------------------------------------- clientes
+	etapa "Gerando os clientes Windows e Android"
+	docker compose --profile ferramentas build clientes
+	docker compose --profile ferramentas run --rm -T clientes </dev/null || cor "1;35" "   Aviso: os clientes nao foram gerados agora. Rode depois: jvbaiak clientes"
+
+	# --------------------------------------------------------------- backups
+	etapa "Agendando backup diario (05:30, guarda 14 dias)"
+	cat > /etc/cron.d/jvbaiak <<-'EOF'
+	# JV Baiak: backup diario antes do server save das 05:55
+	30 5 * * * root /usr/local/bin/jvbaiak backup >> /var/log/jvbaiak-backup.log 2>&1
+	EOF
+	chmod 644 /etc/cron.d/jvbaiak
+	"$BASE/jvbaiak" backup >/dev/null && ok "primeiro backup feito em $BASE/backups"
+
+	trap - ERR
+	echo
+	cor "1;32" "================ PRONTO! ================"
+	echo "Site (criar conta e baixar o jogo):  http://$ENDERECO"
+	echo "Servidor no cliente:                 $ENDERECO  porta 7171  versao 8.60"
+	echo "Conta GM e senha:                    cat $CRED"
+	echo "Administrar:                         jvbaiak ajuda"
+	echo "========================================="
+}
+
+main "$@"

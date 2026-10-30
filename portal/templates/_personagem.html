@@ -1,0 +1,18 @@
+<label>Nome do personagem
+  <input name="personagem" required maxlength="20" autocomplete="off" value="{{ f.get('personagem', '') }}">
+</label>
+<fieldset>
+  <legend>Vocacao</legend>
+  <div class="opcoes">
+  {% for id in [4, 3, 1, 2] %}
+    <label class="opcao"><input type="radio" name="vocacao" value="{{ id }}" required {{ 'checked' if f.get('vocacao') == id|string }}> {{ vocacoes[id] }}</label>
+  {% endfor %}
+  </div>
+</fieldset>
+<fieldset>
+  <legend>Sexo</legend>
+  <div class="opcoes">
+    <label class="opcao"><input type="radio" name="sexo" value="1" required {{ 'checked' if f.get('sexo') == '1' }}> Masculino</label>
+    <label class="opcao"><input type="radio" name="sexo" value="0" {{ 'checked' if f.get('sexo') == '0' }}> Feminino</label>
+  </div>
+</fieldset>

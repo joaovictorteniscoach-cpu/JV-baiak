@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# JV Baiak - administracao do servidor. Rode "jvbaiak ajuda".
+set -Eeuo pipefail
+
+BASE="${BASE:-/opt/jvbaiak}"
+ENV="$BASE/.env"
+BACKUPS="$BASE/backups"
+MANTER_BACKUPS="${MANTER_BACKUPS:-14}"
+
+falha() { printf '\033[1;31mERRO:\033[0m %s\n' "$*" >&2; exit 1; }
+info() { printf '\033[1;32m%s\033[0m\n' "$*"; }
+
+[ "$(id -u)" -eq 0 ] || falha "rode como root (sudo jvbaiak ...)"
+[ -f "$ENV" ] || falha "instalacao nao encontrada em $BASE"
+cd "$BASE"
+
+le_env() { grep -E "^$1=" "$ENV" | tail -n1 | cut -d= -f2-; }
+dc() { docker compose "$@"; }
+
+# Executa SQL no banco do jogo (sem expor a senha na linha de comando)
+sql() {
+	dc exec -T -e MYSQL_PWD="$(le_env DB_SENHA)" db mariadb -ujvbaiak jvbaiak --batch --skip-column-names "$@"
+}
+esc() { printf '%s' "$1" | sed "s/\\\\/\\\\\\\\/g; s/'/\\\\'/g"; }  # escapa para string SQL
+sha1() { printf '%s' "$1" | sha1sum | awk '{print $1}'; }
+
+reinicia_servidor() {
+	info "Reiniciando o servidor do jogo (os jogadores sao salvos antes)..."
+	dc restart servidor
+}
+
+lua_define() { # chave valor_lua
+	local cfg="$BASE/servidor/config.lua"
+	LC_ALL=C awk -v k="$1" -v v="$2" '
+		BEGIN { feito = 0 }
+		$0 ~ "^" k "[ \t]*=" { print k " = " v; feito = 1; next }
+		{ print }
+		END { if (!feito) print k " = " v }
+	' "$cfg" > "$cfg.tmp" && cat "$cfg.tmp" > "$cfg" && rm -f "$cfg.tmp"
+}
+
+cmd_status() {
+	dc ps
+	echo
+	local online
+	online="$(sql -e 'SELECT COUNT(*) FROM players_online' 2>/dev/null || echo '?')"
+	info "Jogadores online: $online"
+	echo "Site: http://$(le_env ENDERECO_SERVIDOR)"
+	free -h | awk 'NR<=2'
+	df -h / | awk 'NR==2 {print "Disco: " $3 " usados de " $2 " (" $5 ")"}'
+}
+
+cmd_online() {
+	sql -e "SELECT p.name, p.level FROM players p JOIN players_online o ON o.player_id = p.id ORDER BY p.level DESC" \
+		| awk -F'\t' 'BEGIN {n=0} {printf "%-25s level %s\n", $1, $2; n++} END {if (n==0) print "Ninguem online."}'
+}
+
+cmd_logs() { dc logs -f --tail 200 "${1:-servidor}"; }
+cmd_reiniciar() { if [ -n "${1:-}" ]; then dc restart "$1"; else dc restart servidor portal; fi; }
+cmd_parar() { dc stop servidor portal; info "Servidor e site parados (o banco continua ligado)."; }
+cmd_iniciar() { dc up -d db servidor portal; }
+
+cmd_backup() {
+	mkdir -p "$BACKUPS"
+	chmod 700 "$BACKUPS"
+	local data arq
+	data="$(date +%Y%m%d-%H%M)"
+	arq="$BACKUPS/banco-$data.sql.gz"
+	dc exec -T -e MYSQL_PWD="$(le_env DB_SENHA_ROOT)" db mariadb-dump -uroot --single-transaction \
+		--routines --triggers jvbaiak | gzip -9 > "$arq.tmp"
+	[ -s "$arq.tmp" ] || { rm -f "$arq.tmp"; falha "backup do banco saiu vazio"; }
+	mv "$arq.tmp" "$arq"
+	tar -czf "$BACKUPS/dados-$data.tar.gz" --exclude='servidor/data/logs' servidor .env clientes-cache/apk-assinatura.jks 2>/dev/null \
+		|| tar -czf "$BACKUPS/dados-$data.tar.gz" --exclude='servidor/data/logs' servidor .env
+	chmod 600 "$BACKUPS"/*
+	# guarda so os mais recentes
+	ls -1t "$BACKUPS"/banco-*.sql.gz 2>/dev/null | tail -n +"$((MANTER_BACKUPS + 1))" | xargs -r rm -f
+	ls -1t "$BACKUPS"/dados-*.tar.gz 2>/dev/null | tail -n +"$((MANTER_BACKUPS + 1))" | xargs -r rm -f
+	info "Backup salvo: $arq"
+}
+
+cmd_restaurar() {
+	local arq="${1:-}"
+	[ -f "$arq" ] || falha "informe o arquivo: jvbaiak restaurar $BACKUPS/banco-AAAAMMDD-HHMM.sql.gz"
+	read -r -p "Isso SUBSTITUI todas as contas e personagens atuais pelo backup. Digite RESTAURAR para continuar: " resp
+	[ "$resp" = "RESTAURAR" ] || falha "cancelado"
+	cmd_backup
+	dc stop servidor
+	gunzip -c "$arq" | dc exec -T -e MYSQL_PWD="$(le_env DB_SENHA_ROOT)" db mariadb -uroot jvbaiak
+	dc start servidor
+	info "Banco restaurado de $arq"
+}
+
+cmd_criar_gm() { # conta senha personagem
+	local conta="${1:-}" senha="${2:-}" nome="${3:-}"
+	[[ "$conta" =~ ^[a-z0-9]{4,20}$ ]] || falha "uso: jvbaiak criar-gm <conta> <senha> <Nome do Personagem>"
+	[ "${#senha}" -ge 6 ] || falha "senha com pelo menos 6 caracteres"
+	[[ "$nome" =~ ^[A-Za-z\ ]{3,25}$ ]] || falha "nome do personagem: 3-25 letras e espacos"
+	sql <<-SQL
+		INSERT INTO accounts (name, password, type, premdays, email, creation)
+		  VALUES ('$(esc "$conta")', '$(sha1 "$senha")', 5, 0, '', UNIX_TIMESTAMP())
+		  ON DUPLICATE KEY UPDATE password = VALUES(password), type = 5;
+		SET @conta = (SELECT id FROM accounts WHERE name = '$(esc "$conta")');
+		INSERT INTO players (name, group_id, account_id, level, vocation, health, healthmax, experience,
+		  lookbody, lookfeet, lookhead, looklegs, looktype, mana, manamax, town_id, conditions, cap, sex)
+		  VALUES ('$(esc "$nome")', 5, @conta, 8, 0, 185, 185, 4200, 68, 76, 78, 58, 75, 35, 35, 1, '', 470, 1)
+		  ON DUPLICATE KEY UPDATE group_id = 5, account_id = @conta;
+	SQL
+	info "GM pronto: conta '$conta', personagem '$nome'."
+}
+
+cmd_gm() { # personagem
+	local nome="${1:-}"
+	[ -n "$nome" ] || falha "uso: jvbaiak gm \"Nome do Personagem\""
+	local n
+	n="$(sql -e "UPDATE players SET group_id = 5 WHERE name = '$(esc "$nome")'; SELECT ROW_COUNT();")"
+	[ "$n" = "1" ] || falha "personagem '$nome' nao encontrado"
+	sql -e "UPDATE accounts SET type = 5 WHERE id = (SELECT account_id FROM players WHERE name = '$(esc "$nome")')"
+	info "'$nome' agora e GM. Ele precisa relogar."
+}
+
+cmd_senha() { # conta nova_senha
+	local conta="${1:-}" senha="${2:-}"
+	[ -n "$conta" ] && [ "${#senha}" -ge 6 ] || falha "uso: jvbaiak senha <conta> <nova-senha (6+ caracteres)>"
+	local n
+	n="$(sql -e "UPDATE accounts SET password = '$(sha1 "$senha")' WHERE name = '$(esc "$conta")'; SELECT ROW_COUNT();")"
+	[ "$n" = "1" ] || falha "conta '$conta' nao encontrada (ou a senha ja era essa)"
+	info "Senha da conta '$conta' alterada."
+}
+
+cmd_clientes() {
+	info "Gerando os clientes Windows e Android..."
+	dc --profile ferramentas build clientes
+	dc --profile ferramentas run --rm -T clientes </dev/null
+	info "Prontos em http://$(le_env ENDERECO_SERVIDOR)/baixar"
+}
+
+cmd_endereco() { # novo ip/dominio
+	local novo="${1:-}"
+	[[ "$novo" =~ ^[A-Za-z0-9.-]+$ ]] || falha "uso: jvbaiak endereco <ip-ou-dominio>"
+	local tmp
+	tmp="$(mktemp)"
+	grep -v '^ENDERECO_SERVIDOR=' "$ENV" > "$tmp"
+	echo "ENDERECO_SERVIDOR=$novo" >> "$tmp"
+	install -m 600 "$tmp" "$ENV"
+	rm -f "$tmp"
+	lua_define ip "\"$novo\""
+	lua_define url "\"http://$novo\""
+	dc up -d portal
+	reinicia_servidor
+	cmd_clientes
+	info "Endereco trocado para $novo. Os jogadores precisam baixar o cliente de novo."
+}
+
+cmd_config() {
+	"${EDITOR:-nano}" "$BASE/servidor/config.lua"
+	read -r -p "Reiniciar o servidor agora para aplicar? [s/N] " r
+	case "$r" in s | S) reinicia_servidor ;; *) echo "Ok. Aplique depois com: jvbaiak reiniciar servidor" ;; esac
+}
+
+cmd_ajuda() {
+	cat <<-EOF
+		JV Baiak - comandos (rode como root):
+		  jvbaiak status                    estado dos servicos, online, memoria e disco
+		  jvbaiak online                    quem esta jogando agora
+		  jvbaiak logs [servidor|portal|db] acompanha o log (Ctrl+C sai)
+		  jvbaiak reiniciar [servico]       reinicia servidor e site (ou so o servico dado)
+		  jvbaiak parar | iniciar           desliga / liga servidor e site
+		  jvbaiak backup                    backup agora (tambem roda todo dia as 05:30)
+		  jvbaiak restaurar <arquivo>       volta o banco para um backup
+		  jvbaiak gm "Nome"                 transforma um personagem em GM
+		  jvbaiak criar-gm conta senha Nome cria/atualiza uma conta GM
+		  jvbaiak senha <conta> <nova>      troca a senha de uma conta
+		  jvbaiak config                    edita o config.lua (rates, pvp, etc.)
+		  jvbaiak clientes                  gera de novo os clientes Windows/Android
+		  jvbaiak endereco <ip|dominio>     troca o endereco do servidor
+	EOF
+}
+
+acao="${1:-ajuda}"
+shift || true
+case "$acao" in
+	status) cmd_status ;;
+	online) cmd_online ;;
+	logs | log) cmd_logs "$@" ;;
+	reiniciar | restart) cmd_reiniciar "$@" ;;
+	parar | stop) cmd_parar ;;
+	iniciar | start) cmd_iniciar ;;
+	backup) cmd_backup ;;
+	restaurar) cmd_restaurar "$@" ;;
+	criar-gm) cmd_criar_gm "$@" ;;
+	gm) cmd_gm "$@" ;;
+	senha) cmd_senha "$@" ;;
+	clientes) cmd_clientes ;;
+	endereco) cmd_endereco "$@" ;;
+	config) cmd_config ;;
+	ajuda | help | -h | --help) cmd_ajuda ;;
+	*) cmd_ajuda; exit 1 ;;
+esac

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block conteudo %}
+<section class="destaque">
+  <h1>{{ nome_servidor }}</h1>
+  <p class="sub">Baiak 8.60 com PvP, castle war, eventos e treino automatico.</p>
+  <p class="status {{ 'on' if no_ar else 'off' }}">
+    {{ 'Servidor online' if no_ar else 'Servidor offline' }}{% if online is not none %} &middot; {{ online }} jogando{% endif %}
+  </p>
+  <div class="botoes">
+    <a class="botao" href="{{ url_for('criar_conta') }}">Criar conta</a>
+    <a class="botao secundario" href="{{ url_for('baixar') }}">Baixar o jogo</a>
+  </div>
+</section>
+<section class="cartoes">
+  <article>
+    <h2>Treino automatico</h2>
+    <p>Entre numa sala de trainers e o servidor treina sozinho a skill da sua arma, shielding e magic level. Voce nao cai por inatividade la dentro. Digite <b>!treino</b> no jogo para ver o status.</p>
+  </article>
+  <article>
+    <h2>Bot liberado</h2>
+    <p>O cliente ja vem com o bot (vBot) para cura, ataque e magias. Nao ha punicao por usar bot.</p>
+  </article>
+  <article>
+    <h2>PC e celular</h2>
+    <p>Windows e Android usam o mesmo servidor e a mesma conta.</p>
+  </article>
+</section>
+<p class="dica">Ja tem conta? <a href="{{ url_for('novo_personagem') }}">Crie outro personagem</a>.</p>
+{% endblock %}

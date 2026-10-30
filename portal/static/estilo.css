@@ -1,0 +1,74 @@
+:root {
+  --fundo: #14110d;
+  --painel: #1f1a14;
+  --borda: #3a3024;
+  --texto: #ece3d3;
+  --suave: #b3a58d;
+  --ouro: #d9a441;
+  --ouro-escuro: #a87a22;
+  --verde: #5fbf6a;
+  --vermelho: #e0644f;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+}
+a { color: var(--ouro); }
+.topo {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 16px; background: var(--painel); border-bottom: 1px solid var(--borda);
+  position: sticky; top: 0; z-index: 1;
+}
+.marca { font-weight: 800; font-size: 1.15rem; color: var(--ouro); text-decoration: none; letter-spacing: .02em; }
+.topo nav { display: flex; gap: 14px; }
+.topo nav a { color: var(--texto); text-decoration: none; font-size: .95rem; }
+.topo nav a:hover { color: var(--ouro); }
+main { max-width: 760px; margin: 0 auto; padding: 20px 16px 40px; }
+h1 { font-size: 1.6rem; margin: .2em 0 .5em; }
+h2 { font-size: 1.1rem; margin: 0 0 .4em; color: var(--ouro); }
+.destaque { text-align: center; padding: 18px 0 8px; }
+.destaque h1 { font-size: 2rem; color: var(--ouro); }
+.sub { color: var(--suave); margin-top: 0; }
+.status { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: .9rem; }
+.status.on { background: rgba(95, 191, 106, .15); color: var(--verde); }
+.status.off { background: rgba(224, 100, 79, .15); color: var(--vermelho); }
+.botoes { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }
+.botao {
+  display: inline-block; border: 0; cursor: pointer; text-align: center; text-decoration: none;
+  padding: 12px 20px; border-radius: 10px; font-weight: 700; font-size: 1rem;
+  background: var(--ouro); color: #1a1408; min-height: 44px;
+}
+.botao:hover { background: var(--ouro-escuro); }
+.botao.secundario { background: transparent; color: var(--ouro); border: 1px solid var(--ouro); }
+.cartoes { display: grid; gap: 12px; margin-top: 24px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.cartoes article { background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; padding: 16px; }
+.cartoes article.principal { border-color: var(--ouro); }
+.cartoes p, .cartoes ol { color: var(--suave); margin: .5em 0 0; }
+.cartoes ol { padding-left: 1.2em; }
+.form { display: grid; gap: 14px; background: var(--painel); border: 1px solid var(--borda); border-radius: 12px; padding: 16px; }
+.form label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
+.form input:not([type="radio"]) {
+  width: 100%; padding: 11px 12px; font-size: 16px; color: var(--texto);
+  background: var(--fundo); border: 1px solid var(--borda); border-radius: 8px;
+}
+.form input:focus { outline: 2px solid var(--ouro); outline-offset: 1px; }
+fieldset { border: 1px solid var(--borda); border-radius: 8px; padding: 10px 12px; margin: 0; }
+legend { padding: 0 6px; font-weight: 600; font-size: .95rem; }
+.opcoes { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.form .opcao { display: flex; align-items: center; gap: 6px; font-weight: 400; min-height: 36px; }
+.opcao input { width: 18px; height: 18px; accent-color: var(--ouro); }
+.erro { background: rgba(224, 100, 79, .12); border: 1px solid var(--vermelho); color: #ffd6cf; padding: 10px 12px; border-radius: 8px; }
+.aviso { background: rgba(217, 164, 65, .1); border: 1px solid var(--ouro-escuro); padding: 10px 12px; border-radius: 8px; color: var(--texto); }
+.dica { text-align: center; color: var(--suave); margin-top: 24px; }
+.abas { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
+.abas a { white-space: nowrap; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--borda); text-decoration: none; color: var(--texto); font-size: .9rem; }
+.abas a.ativa { background: var(--ouro); color: #1a1408; border-color: var(--ouro); }
+.tabela { width: 100%; border-collapse: collapse; background: var(--painel); border-radius: 12px; overflow: hidden; font-size: .95rem; }
+.tabela th, .tabela td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--borda); }
+.tabela th { color: var(--suave); font-weight: 600; }
+.tabela td:last-child, .tabela th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+footer { text-align: center; color: var(--suave); font-size: .85rem; padding: 20px 16px 32px; }

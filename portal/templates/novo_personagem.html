@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Novo personagem - {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Novo personagem</h1>
+{% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
+<form method="post" class="form">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>Conta
+    <input name="conta" required maxlength="20" autocapitalize="none" autocomplete="username" value="{{ f.get('conta', '') }}">
+  </label>
+  <label>Senha
+    <input name="senha" type="password" required maxlength="29" autocomplete="current-password">
+  </label>
+  {% include "_personagem.html" %}
+  <button class="botao" type="submit">Criar personagem</button>
+</form>
+{% endblock %}

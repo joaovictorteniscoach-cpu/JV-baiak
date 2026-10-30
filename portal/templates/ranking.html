@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Ranking - {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Ranking de {{ titulo }}</h1>
+<nav class="abas">
+{% for chave, r in rankings.items() %}<a href="{{ url_for('ranking', tipo=chave) }}" class="{{ 'ativa' if chave == tipo }}">{{ r[0] }}</a>{% endfor %}
+</nav>
+{% if linhas %}
+<table class="tabela">
+  <thead><tr><th>#</th><th>Personagem</th><th>Vocacao</th><th>{{ titulo }}</th></tr></thead>
+  <tbody>
+  {% for nome, voc, level, valor in linhas %}
+    <tr><td>{{ loop.index }}</td><td>{{ nome }}</td><td>{{ vocacoes.get(voc, '?') }}</td><td>{{ valor }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Ninguem no ranking ainda. Seja o primeiro!</p>
+{% endif %}
+{% endblock %}

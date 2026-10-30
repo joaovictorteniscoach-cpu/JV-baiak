@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Pronto - {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<section class="destaque">
+  <h1>Tudo certo!</h1>
+  <p>Conta <b>{{ conta }}</b> com o personagem <b>{{ personagem }}</b>.</p>
+  <p>Agora baixe o jogo e entre com a sua conta e senha.</p>
+  <div class="botoes"><a class="botao" href="{{ url_for('baixar') }}">Baixar o jogo</a></div>
+</section>
+{% endblock %}

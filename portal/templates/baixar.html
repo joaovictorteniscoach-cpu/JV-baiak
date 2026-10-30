@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Baixar - {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Baixar o jogo</h1>
+{% if aparelho == 'ios' %}
+<p class="aviso">Ainda nao existe cliente 8.60 para iPhone ou iPad. Jogue pelo PC (Windows) ou por um celular Android.</p>
+{% endif %}
+<section class="cartoes">
+  <article class="{{ 'principal' if aparelho == 'android' }}">
+    <h2>Android</h2>
+    {% if disponivel.android %}
+    <a class="botao" href="{{ url_for('downloads', arquivo=arquivos.android) }}">Baixar APK</a>
+    {% else %}<p class="aviso">O APK ainda esta sendo gerado. Volte em alguns minutos.</p>{% endif %}
+    <ol>
+      <li>Abra o arquivo baixado e permita "instalar apps desconhecidos" quando o Android pedir.</li>
+      <li>Se ja tiver outro OTClientV8 instalado, desinstale antes.</li>
+      <li>Abra o app e entre com sua conta e senha. O servidor ja vem configurado.</li>
+    </ol>
+  </article>
+  <article class="{{ 'principal' if aparelho == 'pc' }}">
+    <h2>Windows</h2>
+    {% if disponivel.windows %}
+    <a class="botao" href="{{ url_for('downloads', arquivo=arquivos.windows) }}">Baixar para PC</a>
+    {% else %}<p class="aviso">O cliente ainda esta sendo gerado. Volte em alguns minutos.</p>{% endif %}
+    <ol>
+      <li>Extraia a pasta inteira do .zip.</li>
+      <li>Abra <b>otclient_dx.exe</b> (se ficar preto, use <b>otclient_gl.exe</b>).</li>
+      <li>Entre com sua conta e senha.</li>
+    </ol>
+  </article>
+</section>
+<p class="dica">Bot: no jogo, clique em <b>Bot</b> na barra lateral para ligar cura, ataque e magias automaticas.</p>
+{% endblock %}

@@ -1,0 +1,7 @@
+.env
+servidor/
+servidor-imagem/fonte/
+downloads/
+clientes-cache/
+backups/
+__pycache__/

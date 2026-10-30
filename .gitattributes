@@ -1,0 +1,4 @@
+*.sh text eol=lf
+jvbaiak text eol=lf
+*.lua text eol=lf
+*.patch text eol=lf
