@@ -5,3 +5,4 @@ downloads/
 clientes-cache/
 backups/
 __pycache__/
+dist/
