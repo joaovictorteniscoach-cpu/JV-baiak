@@ -22,6 +22,8 @@ ENDERECO = os.environ.get("ENDERECO_SERVIDOR", "127.0.0.1")
 SERVIDOR_JOGO = os.environ.get("SERVIDOR_JOGO", "servidor")
 PASTA_DOWNLOADS = os.environ.get("PASTA_DOWNLOADS", os.path.join(os.path.dirname(__file__), "downloads"))
 ARQ_BASE = re.sub(r"[^A-Za-z0-9]", "", NOME_SERVIDOR)
+URL_WEB = os.environ.get("URL_WEB", "")  # cliente web (modo HTTPS), se ativado
+ATRAS_DE_PROXY = os.environ.get("ATRAS_DE_PROXY") == "1"
 
 VOCACOES = {
     0: "Sem vocacao", 1: "Sorcerer", 2: "Druid", 3: "Paladin", 4: "Knight",
@@ -49,6 +51,12 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("PORTAL_SEGREDO") or secrets.token_hex(32)
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
                   MAX_CONTENT_LENGTH=64 * 1024)
+if ATRAS_DE_PROXY:
+    # Atras do Caddy (HTTPS): o IP real do jogador vem no X-Forwarded-For
+    from werkzeug.middleware.proxy_fix import ProxyFix
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    app.config["SESSION_COOKIE_SECURE"] = True
 
 
 # --------------------------------------------------------------------------- banco
@@ -232,7 +240,7 @@ def _cabecalhos(resp):
 @app.context_processor
 def _globais():
     return {"nome_servidor": NOME_SERVIDOR, "endereco": ENDERECO, "csrf": session.get("csrf", ""),
-            "vocacoes": VOCACOES}
+            "vocacoes": VOCACOES, "url_web": URL_WEB}
 
 
 # --------------------------------------------------------------------- paginas

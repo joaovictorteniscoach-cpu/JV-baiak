@@ -5,7 +5,7 @@ Servidor **Baiak 8.60** pronto para VPS, com cliente para **PC (Windows)** e **c
 ## Instalação (VPS Ubuntu 22.04/24.04, x86_64 ou arm64, 4 GB+ de RAM)
 
 ```bash
-curl -fsSL <endereço-do-kit>/instalar.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/joaovictorteniscoach-cpu/jv-baiak/main/instalar.sh | sudo bash
 ```
 
 Opcional, antes do comando: `NOME_SERVIDOR="Meu Baiak"` e `ENDERECO_SERVIDOR=1.2.3.4`.
@@ -36,6 +36,15 @@ Tudo fica em `/opt/jvbaiak`. Senhas aleatórias em `/opt/jvbaiak/.env`; conta GM
 - **Treino automático** (`servidor-imagem/extras/data/scripts/custom/treino_automatico.lua`): dentro das salas de trainers o servidor treina sozinho a skill da arma, shielding e magic level, sem bot e sem queda por inatividade. Comando `!treino`. Ajustes no topo do arquivo.
 - **Patch C++** `patches/0001-player-resetIdleTime.patch`: adiciona `player:resetIdleTime()` ao Lua (usado pelo treino).
 - **config.lua inicial**: `antiBot = false` (bot liberado), `freePremium = true`, `spoofEnabled = false`, IP, banco e nome.
+
+## Jogar no iPhone (beta)
+
+Não existe cliente 8.60 nativo para iOS. O kit tem um modo web experimental: HTTPS com Caddy, ponte WebSocket para as portas do jogo e o OTClient Redemption compilado em WebAssembly, servido em `https://<dominio>/jogar/`.
+
+```bash
+jvbaiak web meubaiak.duckdns.org SEU-TOKEN-DUCKDNS   # domínio grátis do duckdns.org
+jvbaiak web-status                                   # acompanha a compilação (1 a 2 horas)
+```
 
 ## Administração
 

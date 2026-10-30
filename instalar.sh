@@ -10,7 +10,7 @@
 # =============================================================================
 set -Eeuo pipefail
 
-KIT_REPO="${KIT_REPO:-__KIT_REPO__}"
+KIT_REPO="${KIT_REPO:-https://github.com/joaovictorteniscoach-cpu/jv-baiak.git}"
 KIT_REF="${KIT_REF:-main}"
 BASE="${BASE:-/opt/jvbaiak}"
 NOME_PASSADO="${NOME_SERVIDOR:-}"
@@ -98,7 +98,7 @@ main() {
 		ORIGEM="$TMPKIT/kit"
 	fi
 	mkdir -p "$BASE"
-	for item in docker-compose.yml jvbaiak servidor-imagem portal clientes LEIA-ME.md; do
+	for item in docker-compose.yml docker-compose.web.yml jvbaiak servidor-imagem portal clientes web LEIA-ME.md; do
 		[ -e "$ORIGEM/$item" ] || continue
 		if [ "$ORIGEM" != "$BASE" ]; then
 			rm -rf "${BASE:?}/$item.novo"
@@ -106,6 +106,12 @@ main() {
 			# fonte/ (codigo baixado) e preservado entre atualizacoes
 			if [ "$item" = "servidor-imagem" ] && [ -d "$BASE/servidor-imagem/fonte" ]; then
 				mv "$BASE/servidor-imagem/fonte" "$BASE/servidor-imagem.novo/fonte"
+			fi
+			# no modo web, preserva o codigo e o site ja compilados
+			if [ "$item" = "web" ]; then
+				for sub in fonte www; do
+					if [ -d "$BASE/web/$sub" ]; then mv "$BASE/web/$sub" "$BASE/web.novo/$sub"; fi
+				done
 			fi
 			rm -rf "${BASE:?}/$item"
 			mv "$BASE/$item.novo" "$BASE/$item"
@@ -233,6 +239,10 @@ main() {
 	ufw allow 80/tcp >/dev/null
 	ufw allow 7171/tcp >/dev/null
 	ufw allow 7172/tcp >/dev/null
+	if [ -n "$(le_env DOMINIO)" ]; then
+		ufw allow 443/tcp >/dev/null
+		ufw allow 443/udp >/dev/null
+	fi
 	ufw default deny incoming >/dev/null
 	ufw default allow outgoing >/dev/null
 	ufw --force enable >/dev/null

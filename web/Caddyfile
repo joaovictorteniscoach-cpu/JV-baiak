@@ -1,0 +1,30 @@
+# JV Baiak - HTTPS automatico (Let's Encrypt) para o site e o cliente web.
+{$DOMINIO} {
+	encode zstd gzip
+
+	# Ponte WebSocket -> portas do jogo (o cliente web conecta em wss://dominio/ws/<porta>)
+	handle /ws/7171 {
+		reverse_proxy ponte-login:8080
+	}
+	handle /ws/7172 {
+		reverse_proxy ponte-jogo:8080
+	}
+
+	# Cliente web (WebAssembly). Precisa de isolamento de origem para usar threads.
+	redir /jogar /jogar/ 308
+	handle_path /jogar/* {
+		root * /srv/www/jogar
+		header {
+			Cross-Origin-Opener-Policy "same-origin"
+			Cross-Origin-Embedder-Policy "require-corp"
+			Cross-Origin-Resource-Policy "same-origin"
+			Cache-Control "no-cache"
+		}
+		file_server
+	}
+
+	# Todo o resto: o portal (contas, ranking, downloads)
+	handle {
+		reverse_proxy portal:8000
+	}
+}

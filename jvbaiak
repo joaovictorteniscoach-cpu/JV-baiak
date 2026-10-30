@@ -15,6 +15,14 @@ info() { printf '\033[1;32m%s\033[0m\n' "$*"; }
 cd "$BASE"
 
 le_env() { grep -E "^$1=" "$ENV" | tail -n1 | cut -d= -f2-; }
+define_env() { # chave valor
+	local tmp
+	tmp="$(mktemp)"
+	grep -vE "^$1=" "$ENV" > "$tmp" || true
+	printf '%s=%s\n' "$1" "$2" >> "$tmp"
+	install -m 600 "$tmp" "$ENV"
+	rm -f "$tmp"
+}
 dc() { docker compose "$@"; }
 
 # Executa SQL no banco do jogo (sem expor a senha na linha de comando)
@@ -141,18 +149,66 @@ cmd_clientes() {
 cmd_endereco() { # novo ip/dominio
 	local novo="${1:-}"
 	[[ "$novo" =~ ^[A-Za-z0-9.-]+$ ]] || falha "uso: jvbaiak endereco <ip-ou-dominio>"
-	local tmp
-	tmp="$(mktemp)"
-	grep -v '^ENDERECO_SERVIDOR=' "$ENV" > "$tmp"
-	echo "ENDERECO_SERVIDOR=$novo" >> "$tmp"
-	install -m 600 "$tmp" "$ENV"
-	rm -f "$tmp"
+	define_env ENDERECO_SERVIDOR "$novo"
 	lua_define ip "\"$novo\""
 	lua_define url "\"http://$novo\""
 	dc up -d portal
 	reinicia_servidor
 	cmd_clientes
 	info "Endereco trocado para $novo. Os jogadores precisam baixar o cliente de novo."
+}
+
+ip_publico() {
+	local url ip
+	for url in https://api.ipify.org https://ifconfig.me/ip https://icanhazip.com; do
+		ip="$(curl -4 -fsS --max-time 8 "$url" 2>/dev/null | tr -d '[:space:]' || true)"
+		if [[ "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then echo "$ip"; return 0; fi
+	done
+	return 1
+}
+
+# Modo web (EXPERIMENTAL): HTTPS no site + cliente no navegador para iPhone.
+cmd_web() { # dominio [token-duckdns]
+	local dominio="${1:-}" token="${2:-}"
+	[[ "$dominio" =~ ^[a-z0-9.-]+\.[a-z]{2,}$ ]] \
+		|| falha "uso: jvbaiak web <dominio> [token-do-duckdns]   ex.: jvbaiak web meubaiak.duckdns.org 1234abcd-..."
+	local ip resolvido
+	ip="$(ip_publico)" || falha "nao consegui descobrir o IP publico desta VPS"
+	if [ -n "$token" ] && [[ "$dominio" == *.duckdns.org ]]; then
+		info "Apontando $dominio para $ip no DuckDNS..."
+		[ "$(curl -fsS --max-time 15 "https://www.duckdns.org/update?domains=${dominio%.duckdns.org}&token=$token&ip=$ip")" = "OK" ] \
+			|| falha "o DuckDNS recusou (confira o subdominio e o token em duckdns.org)"
+		sleep 20
+	fi
+	resolvido="$(getent ahostsv4 "$dominio" | awk 'NR==1 {print $1}')"
+	[ "$resolvido" = "$ip" ] || falha "$dominio aponta para '${resolvido:-nada}', mas esta VPS e $ip. Ajuste o DNS e tente de novo."
+
+	[ -f "$BASE/clientes-cache/sprites860/Tibia.spr" ] || cmd_clientes
+	ufw allow 443/tcp >/dev/null 2>&1 || true
+	ufw allow 443/udp >/dev/null 2>&1 || true
+	define_env DOMINIO "$dominio"
+	define_env COMPOSE_FILE "docker-compose.yml:docker-compose.web.yml"
+	mkdir -p "$BASE/web/www"
+	[ -d "$BASE/web/www/jogar" ] || cp -a "$BASE/web/www-inicial/jogar" "$BASE/web/www/jogar"
+
+	info "Ligando HTTPS (Caddy) e a ponte WebSocket..."
+	dc up -d --build --remove-orphans
+	info "Site agora em https://$dominio (o certificado sai em 1 ou 2 minutos)."
+
+	info "Compilando o cliente web em segundo plano (1 a 2 horas)..."
+	systemctl reset-failed jvbaiak-web >/dev/null 2>&1 || true
+	systemd-run --unit=jvbaiak-web --description="JV Baiak: compilar cliente web" \
+		--setenv=BASE="$BASE" /bin/bash "$BASE/web/compilar-web.sh" "$dominio" >/dev/null
+	echo "Acompanhe com: jvbaiak web-status   (pode fechar o terminal)"
+	echo "Quando terminar, o iPhone joga em: https://$dominio/jogar/"
+}
+
+cmd_web_status() {
+	systemctl status jvbaiak-web --no-pager 2>/dev/null | sed -n 1,4p || true
+	journalctl -u jvbaiak-web -n 25 --no-pager 2>/dev/null || true
+	if [ -f "$BASE/web/www/jogar/otclient.wasm" ]; then
+		info "Cliente web pronto: https://$(le_env DOMINIO)/jogar/"
+	fi
 }
 
 cmd_config() {
@@ -177,6 +233,8 @@ cmd_ajuda() {
 		  jvbaiak config                    edita o config.lua (rates, pvp, etc.)
 		  jvbaiak clientes                  gera de novo os clientes Windows/Android
 		  jvbaiak endereco <ip|dominio>     troca o endereco do servidor
+		  jvbaiak web <dominio> [token]     (beta) HTTPS + jogar no navegador/iPhone
+		  jvbaiak web-status                acompanha a compilacao do cliente web
 	EOF
 }
 
@@ -197,6 +255,8 @@ case "$acao" in
 	clientes) cmd_clientes ;;
 	endereco) cmd_endereco "$@" ;;
 	config) cmd_config ;;
+	web) cmd_web "$@" ;;
+	web-status) cmd_web_status ;;
 	ajuda | help | -h | --help) cmd_ajuda ;;
 	*) cmd_ajuda; exit 1 ;;
 esac

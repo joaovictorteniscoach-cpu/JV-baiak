@@ -1,0 +1,27 @@
+diff --git a/src/framework/net/webconnection.cpp b/src/framework/net/webconnection.cpp
+index 5cf5df7..a3cd44c 100644
+--- a/src/framework/net/webconnection.cpp
++++ b/src/framework/net/webconnection.cpp
+@@ -23,6 +23,7 @@
+ #ifdef __EMSCRIPTEN__
+ 
+ #include "webconnection.h"
++#include "jv_web_config.h" // JV Baiak: endereco da ponte WebSocket (gerado na instalacao)
+ 
+ #include <framework/core/application.h>
+ #include <client/game.h>
+@@ -100,7 +101,14 @@ void WebConnection::connect(const std::string_view host, uint16_t port, const st
+ 
+     m_pthread = pthread_self();
+ 
++#ifdef JV_WS_BASE
++    // JV Baiak: o servidor 8.60 fala TCP puro; a ponte no mesmo dominio do site
++    // recebe /ws/<porta> e repassa para a porta do jogo.
++    (void)prefix;
++    const std::string url = std::string(JV_WS_BASE) + std::to_string(port);
++#else
+     const std::string url = prefix + ip + ":" + std::to_string(port);
++#endif
+     EmscriptenWebSocketCreateAttributes attributes =
+     {
+         url.c_str(),

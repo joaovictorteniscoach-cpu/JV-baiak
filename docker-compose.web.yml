@@ -1,0 +1,43 @@
+# JV Baiak - modo web (HTTPS + jogar pelo navegador/iPhone). EXPERIMENTAL.
+# Ativado pelo comando "jvbaiak web <dominio>", que coloca este arquivo em COMPOSE_FILE no .env.
+services:
+  portal:
+    ports: !reset []
+    environment:
+      URL_WEB: https://${DOMINIO}/jogar/
+      ATRAS_DE_PROXY: "1"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [portal, ponte-login, ponte-jogo]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMINIO: ${DOMINIO:?defina DOMINIO no .env}
+    volumes:
+      - ./web/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web/www:/srv/www:ro
+      - caddy-dados:/data
+      - caddy-config:/config
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  ponte-login:
+    build: ./web/ponte
+    image: jvbaiak/ponte:local
+    restart: unless-stopped
+    command: ["8080", "servidor:7171"]
+
+  ponte-jogo:
+    build: ./web/ponte
+    image: jvbaiak/ponte:local
+    restart: unless-stopped
+    command: ["8080", "servidor:7172"]
+
+volumes:
+  caddy-dados:
+  caddy-config:

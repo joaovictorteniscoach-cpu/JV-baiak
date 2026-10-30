@@ -2,10 +2,22 @@
 {% block titulo %}Baixar - {{ nome_servidor }}{% endblock %}
 {% block conteudo %}
 <h1>Baixar o jogo</h1>
-{% if aparelho == 'ios' %}
+{% if aparelho == 'ios' and not url_web %}
 <p class="aviso">Ainda nao existe cliente 8.60 para iPhone ou iPad. Jogue pelo PC (Windows) ou por um celular Android.</p>
 {% endif %}
 <section class="cartoes">
+  {% if url_web %}
+  <article class="{{ 'principal' if aparelho == 'ios' }}">
+    <h2>iPhone e navegador <small>(beta)</small></h2>
+    <a class="botao" href="{{ url_web }}">Jogar no navegador</a>
+    <ol>
+      <li>Abra no <b>Safari</b> e deixe o celular <b>deitado</b>.</li>
+      <li>Toque em Compartilhar e depois em <b>Adicionar a Tela de Inicio</b>: o jogo abre em tela cheia, como um app.</li>
+      <li>Na primeira vez ele baixa uns 60 MB; use Wi-Fi.</li>
+      <li>Toque para andar e clicar; segure o dedo para o menu (botao direito).</li>
+    </ol>
+  </article>
+  {% endif %}
   <article class="{{ 'principal' if aparelho == 'android' }}">
     <h2>Android</h2>
     {% if disponivel.android %}

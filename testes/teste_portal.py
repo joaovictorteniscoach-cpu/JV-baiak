@@ -149,5 +149,32 @@ class TestePortal(unittest.TestCase):
         self.assertIn("O cliente ainda esta sendo gerado", andr)
 
 
+class TesteModoWeb(unittest.TestCase):
+    def test_botao_iphone_e_ip_real(self):
+        import importlib
+        os.environ.update(URL_WEB="https://meubaiak.duckdns.org/jogar/", ATRAS_DE_PROXY="1")
+        try:
+            web = importlib.reload(portal)
+            vistos = []
+
+            @web.app.get("/_ip")
+            def _ip():
+                vistos.append(web.ip_cliente())
+                return "ok"
+
+            c = web.app.test_client()
+            html = c.get("/baixar", headers={"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0)"}).get_data(as_text=True)
+            self.assertIn("Jogar no navegador", html)
+            self.assertIn("https://meubaiak.duckdns.org/jogar/", html)
+            self.assertNotIn("Ainda nao existe cliente 8.60", html)
+            c.get("/_ip", headers={"X-Forwarded-For": "198.51.100.7"}, environ_base={"REMOTE_ADDR": "172.18.0.5"})
+            self.assertEqual(vistos, ["198.51.100.7"])
+            self.assertTrue(web.app.config["SESSION_COOKIE_SECURE"])
+        finally:
+            os.environ.pop("URL_WEB")
+            os.environ.pop("ATRAS_DE_PROXY")
+            importlib.reload(portal)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)
