@@ -64,7 +64,12 @@ falha() {
 espera_apt() {
 	local i
 	for i in $(seq 1 180); do
-		pgrep -x 'apt|apt-get|dpkg|unattended-upgr' >/dev/null 2>&1 || return 0
+		# so processos que seguram o apt/dpkg (o servico unattended-upgrades fica
+		# rodando para sempre esperando o desligamento e nao conta)
+		if ! pgrep -x 'apt|apt-get|dpkg' >/dev/null 2>&1 \
+			&& ! pgrep -f '/usr/bin/unattended-upgrade( |$)' >/dev/null 2>&1; then
+			return 0
+		fi
 		[ "$i" -eq 1 ] && echo "   aguardando a atualizacao automatica do sistema terminar..."
 		sleep 5
 	done
@@ -116,7 +121,12 @@ main() {
 	if ! command -v docker >/dev/null 2>&1; then
 		etapa "Instalando Docker (script oficial get.docker.com)"
 		espera_apt
-		curl -fsSL https://get.docker.com | sh >/dev/null
+		for tentativa in 1 2 3; do
+			if curl -fsSL https://get.docker.com | sh >/dev/null; then break; fi
+			[ "$tentativa" -lt 3 ] || falha "nao consegui instalar o Docker"
+			sleep 30
+			espera_apt
+		done
 	fi
 	systemctl enable --now docker >/dev/null 2>&1 || true
 	docker compose version >/dev/null 2>&1 || falha "Docker Compose v2 nao encontrado."
