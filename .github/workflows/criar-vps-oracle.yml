@@ -1,0 +1,49 @@
+# JV Baiak - robo que tenta criar a VPS gratis da Oracle a cada 10 minutos.
+# So faz algo depois que o segredo OCI_JVBAIAK for cadastrado no repositorio.
+# Quando consegue, avisa na issue "Robô da Oracle" e se desliga sozinho.
+name: Criar VPS Oracle (robô)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+concurrency:
+  group: criar-vps-oracle
+  cancel-in-progress: false
+
+jobs:
+  tentar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verificar segredo
+        id: segredo
+        env:
+          OCI_JVBAIAK: ${{ secrets.OCI_JVBAIAK }}
+        run: |
+          if [ -n "$OCI_JVBAIAK" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "Segredo OCI_JVBAIAK ainda nao cadastrado."; fi
+
+      - uses: actions/checkout@v4
+        if: steps.segredo.outputs.ok == '1'
+
+      - uses: actions/setup-python@v5
+        if: steps.segredo.outputs.ok == '1'
+        with:
+          python-version: "3.12"
+
+      - name: Instalar SDK da Oracle
+        if: steps.segredo.outputs.ok == '1'
+        run: pip install --quiet "oci>=2.120,<3"
+
+      - name: Tentar criar a VPS
+        if: steps.segredo.outputs.ok == '1'
+        env:
+          OCI_JVBAIAK: ${{ secrets.OCI_JVBAIAK }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python oracle/criar_vps.py
