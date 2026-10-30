@@ -5,7 +5,7 @@ Servidor **Baiak 8.60** pronto para VPS, com cliente para **PC (Windows)** e **c
 ## Instalação (VPS Ubuntu 22.04/24.04, x86_64 ou arm64, 4 GB+ de RAM)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/joaovictorteniscoach-cpu/jv-baiak/main/instalar.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/joaovictorteniscoach-cpu/JV-baiak/main/instalar.sh | sudo bash
 ```
 
 Opcional, antes do comando: `NOME_SERVIDOR="Meu Baiak"` e `ENDERECO_SERVIDOR=1.2.3.4`.

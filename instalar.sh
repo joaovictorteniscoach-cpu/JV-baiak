@@ -10,7 +10,7 @@
 # =============================================================================
 set -Eeuo pipefail
 
-KIT_REPO="${KIT_REPO:-https://github.com/joaovictorteniscoach-cpu/jv-baiak.git}"
+KIT_REPO="${KIT_REPO:-https://github.com/joaovictorteniscoach-cpu/JV-baiak.git}"
 KIT_REF="${KIT_REF:-main}"
 BASE="${BASE:-/opt/jvbaiak}"
 NOME_PASSADO="${NOME_SERVIDOR:-}"
