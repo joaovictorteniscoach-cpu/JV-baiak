@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """JV Baiak - robo que tenta criar a VPS gratis (Ampere A1) na Oracle ate conseguir.
 
-Roda no GitHub Actions a cada 10 minutos. Precisa do segredo OCI_JVBAIAK
+Roda no GitHub Actions: cada execucao tenta a cada 2 minutos por ~45 minutos e
+depois dispara a proxima (nao depende do agendamento do GitHub). Precisa do segredo OCI_JVBAIAK
 (base64 de um JSON com a chave de API da Oracle e o script de instalacao).
 O andamento aparece numa issue do repositorio; quando a maquina e criada,
 o robo comenta na issue (o dono recebe e-mail) e se desliga sozinho.
@@ -24,6 +25,7 @@ SHAPE = "VM.Standard.A1.Flex"
 FORMATOS = [(2, 12), (1, 6)]  # (OCPUs, GB) - dentro do Always Free
 PORTAS = [(80, 80), (443, 443), (7171, 7172)]
 DISCO_GB = 50
+PRONTO, ESPERAR, ERRO = "pronto", "esperar", "erro"
 TITULO_ISSUE = "Robô da Oracle: criação da VPS"
 WORKFLOW = "criar-vps-oracle.yml"
 MARCA_PRONTO = "<!-- jvbaiak:pronto -->"
@@ -90,7 +92,7 @@ class GitHub:
 
 def texto_tentando(detalhe: str) -> str:
     return (f"**Status: procurando vaga** ({agora()}: {detalhe})\n\n"
-            "O robô tenta criar a máquina grátis na Oracle a cada 10 minutos, dia e noite. "
+            "O robô tenta criar a máquina grátis na Oracle a cada 2 minutos, dia e noite. "
             "Não precisa fazer nada: quando conseguir, este aviso muda e você recebe um e-mail.")
 
 
@@ -191,20 +193,20 @@ def anunciar_pronto(gh, ip, formato):
     gh.desligar_robo()
 
 
-def tentar(oci, cfg, compute, rede, identidade, gh) -> int:
+def tentar(oci, cfg, compute, rede, identidade, gh) -> str:
     comp = cfg["tenancy"]
 
     existente = instancia_existente(compute, comp)
     if existente:
         ip = ip_publico(compute, rede, comp, existente.id)
         anunciar_pronto(gh, ip, f"{existente.display_name} ({existente.lifecycle_state})")
-        return 0
+        return PRONTO
 
     subnet = escolher_subnet(rede, comp)
     if not subnet:
         gh.status(f"**Status: erro** ({agora()})\n\nNão achei uma sub-rede pública. Crie a rede pelo "
                   "*Start VCN Wizard → Create VCN with Internet Connectivity* com o nome `jvbaiak`.")
-        return 1
+        return ERRO
     abertas = abrir_portas(oci, rede, subnet)
     if abertas:
         print("portas liberadas:", ", ".join(abertas))
@@ -212,7 +214,7 @@ def tentar(oci, cfg, compute, rede, identidade, gh) -> int:
     imagem = imagem_ubuntu(compute, comp)
     if not imagem:
         gh.status(f"**Status: erro** ({agora()})\n\nNão achei a imagem Ubuntu para ARM nesta região.")
-        return 1
+        return ERRO
 
     m = oci.core.models
     ads = [ad.name for ad in identidade.list_availability_domains(comp).data]
@@ -232,7 +234,7 @@ def tentar(oci, cfg, compute, rede, identidade, gh) -> int:
             except oci.exceptions.ServiceError as e:
                 if e.status == 429:
                     gh.status(texto_tentando("Oracle pediu para esperar; tento de novo daqui a pouco"))
-                    return 0
+                    return ESPERAR
                 if sem_capacidade(e):
                     print(f"sem capacidade: {ocpus} OCPU/{gb} GB em {ad}")
                     continue
@@ -242,17 +244,17 @@ def tentar(oci, cfg, compute, rede, identidade, gh) -> int:
                     continue
                 gh.status(f"**Status: erro** ({agora()})\n\nA Oracle respondeu: `{e.status} {e.code}` "
                           f"{(e.message or '')[:300]}")
-                return 1
+                return ERRO
             print(f"criada: {ocpus} OCPU/{gb} GB")
             try:
                 oci.wait_until(compute, compute.get_instance(inst.id), "lifecycle_state", "RUNNING", max_wait_seconds=420)
             except Exception as e:  # nao conseguiu esperar: anuncia mesmo assim
                 print(f"aviso: {type(e).__name__} esperando a maquina ligar")
             anunciar_pronto(gh, ip_publico(compute, rede, comp, inst.id), f"{ocpus} núcleo(s), {gb} GB")
-            return 0
+            return PRONTO
 
     gh.status(texto_tentando(motivo))
-    return 0
+    return ESPERAR
 
 
 def main() -> int:
@@ -275,14 +277,43 @@ def main() -> int:
     compute = oci.core.ComputeClient(config)
     rede = oci.core.VirtualNetworkClient(config)
     identidade = oci.identity.IdentityClient(config)
-    try:
-        return tentar(oci, cfg, compute, rede, identidade, gh)
-    except oci.exceptions.ServiceError as e:
-        if e.status in (401, 404) and e.code in ("NotAuthenticated", "NotAuthorizedOrNotFound"):
-            gh.status(f"**Status: erro** ({agora()})\n\nA Oracle não aceitou a chave de API ({e.code}). "
-                      "Confira se a chave pública foi adicionada em *My profile → API keys*.")
+    return repetir(oci, cfg, compute, rede, identidade, gh,
+                   duracao_s=float(os.environ.get("DURACAO_MIN", "0")) * 60,
+                   intervalo_s=float(os.environ.get("INTERVALO_S", "120")))
+
+
+def repetir(oci, cfg, compute, rede, identidade, gh, duracao_s=0.0, intervalo_s=120.0,
+            dormir=time.sleep, relogio=time.monotonic) -> int:
+    """Tenta varias vezes ate acabar o tempo. Diz ao workflow se deve disparar a proxima execucao."""
+    fim = relogio() + duracao_s
+    tentativas = 0
+    while True:
+        tentativas += 1
+        try:
+            resultado = tentar(oci, cfg, compute, rede, identidade, gh)
+        except oci.exceptions.ServiceError as e:
+            if e.status in (401, 404) and e.code in ("NotAuthenticated", "NotAuthorizedOrNotFound"):
+                gh.status(f"**Status: erro** ({agora()})\n\nA Oracle não aceitou a chave de API ({e.code}). "
+                          "Confira se a chave pública foi adicionada em *My profile → API keys*.")
+                return 1
+            print(f"aviso: erro temporario da Oracle ({e.status} {e.code}); tento de novo")
+            resultado = ESPERAR
+        except Exception as e:  # rede instavel, GitHub fora do ar etc.: tenta de novo
+            print(f"aviso: {type(e).__name__} nesta tentativa; tento de novo")
+            resultado = ESPERAR
+        if resultado == PRONTO:
+            return 0
+        if resultado == ERRO:
             return 1
-        raise
+        if relogio() + intervalo_s > fim:
+            break
+        dormir(intervalo_s)
+    print(f"{tentativas} tentativa(s) sem vaga; a proxima execucao continua")
+    saida = os.environ.get("GITHUB_OUTPUT")
+    if saida:
+        with open(saida, "a", encoding="utf-8") as f:
+            f.write("continuar=1\n")
+    return 0
 
 
 if __name__ == "__main__":

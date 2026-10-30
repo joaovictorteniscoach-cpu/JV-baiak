@@ -124,7 +124,7 @@ class TesteRobo(unittest.TestCase):
 
     def test_sem_vaga_tenta_dois_tamanhos_e_continua(self):
         c = Compute(falhas=[SEM_VAGA, SEM_VAGA])
-        self.assertEqual(self.rodar(c), 0)
+        self.assertEqual(self.rodar(c), robo.ESPERAR)
         self.assertEqual([(d.shape_config.ocpus, d.shape_config.memory_in_gbs) for d in c.lancadas], [(2.0, 12.0), (1.0, 6.0)])
         self.assertIn("procurando vaga", self.gh.corpo)
         self.assertFalse(self.gh.desligado)
@@ -132,7 +132,7 @@ class TesteRobo(unittest.TestCase):
 
     def test_consegue_no_segundo_tamanho_e_desliga(self):
         c = Compute(falhas=[SEM_VAGA, None])
-        self.assertEqual(self.rodar(c), 0)
+        self.assertEqual(self.rodar(c), robo.PRONTO)
         d = c.lancadas[-1]
         self.assertEqual((d.shape, d.display_name, d.create_vnic_details.subnet_id), ("VM.Standard.A1.Flex", "jvbaiak", "sub-pub"))
         self.assertTrue(d.create_vnic_details.assign_public_ip)
@@ -148,7 +148,7 @@ class TesteRobo(unittest.TestCase):
     def test_maquina_ja_existe_nao_cria_outra(self):
         viva = Modelo(id="inst-9", display_name="instance-20261030-1622", shape="VM.Standard.A1.Flex", lifecycle_state="RUNNING")
         c = Compute(existentes=[viva])
-        self.assertEqual(self.rodar(c), 0)
+        self.assertEqual(self.rodar(c), robo.PRONTO)
         self.assertEqual(c.lancadas, [])
         self.assertTrue(self.gh.desligado)
         self.assertIn("instance-20261030-1622", self.gh.corpo)
@@ -176,22 +176,97 @@ class TesteRobo(unittest.TestCase):
 
     def test_sem_subnet_publica(self):
         rede = Rede(subnets=[])
-        self.assertEqual(self.rodar(Compute(), rede=rede), 1)
+        self.assertEqual(self.rodar(Compute(), rede=rede), robo.ERRO)
         self.assertIn("sub-rede pública", self.gh.corpo)
 
     def test_limite_e_erro_desconhecido(self):
         lim = ServiceError(400, "LimitExceeded", "limit")
-        self.assertEqual(self.rodar(Compute(falhas=[lim, lim])), 0)
+        self.assertEqual(self.rodar(Compute(falhas=[lim, lim])), robo.ESPERAR)
         self.assertIn("limite grátis", self.gh.corpo)
         outro = ServiceError(400, "InvalidParameter", "segredo=nao-vaza " + "x" * 500)
-        self.assertEqual(self.rodar(Compute(falhas=[outro])), 1)
+        self.assertEqual(self.rodar(Compute(falhas=[outro])), robo.ERRO)
         self.assertIn("InvalidParameter", self.gh.corpo)
         self.assertLess(len(self.gh.corpo), 500)
 
     def test_muitas_requisicoes_para(self):
         c = Compute(falhas=[ServiceError(429, "TooManyRequests", "slow down")])
-        self.assertEqual(self.rodar(c), 0)
+        self.assertEqual(self.rodar(c), robo.ESPERAR)
         self.assertEqual(len(c.lancadas), 1)
+
+
+class Relogio:
+    def __init__(self):
+        self.t = 0.0
+        self.sonos = []
+
+    def agora(self):
+        return self.t
+
+    def dormir(self, s):
+        self.sonos.append(s)
+        self.t += s
+
+
+class TesteRepetir(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        fd, self.saida = tempfile.mkstemp()
+        os.close(fd)
+        os.environ["GITHUB_OUTPUT"] = self.saida
+
+    def tearDown(self):
+        os.environ.pop("GITHUB_OUTPUT", None)
+        os.remove(self.saida)
+
+    def repetir(self, compute, duracao=600, intervalo=120, gh=None):
+        self.rel, self.gh = Relogio(), gh or GH()
+        return robo.repetir(fake_oci(), CFG, compute, Rede(), Identidade(), self.gh, duracao_s=duracao,
+                            intervalo_s=intervalo, dormir=self.rel.dormir, relogio=self.rel.agora)
+
+    def saida_txt(self):
+        return open(self.saida).read()
+
+    def test_tenta_ate_acabar_o_tempo_e_pede_proxima(self):
+        c = Compute(falhas=[SEM_VAGA] * 100)
+        self.assertEqual(self.repetir(c, duracao=600, intervalo=120), 0)
+        self.assertEqual(len(c.lancadas), 2 * 6)  # 6 rodadas (0,120,...,600), 2 tamanhos cada
+        self.assertEqual(self.rel.sonos, [120] * 5)
+        self.assertIn("continuar=1", self.saida_txt())
+
+    def test_para_quando_consegue_sem_pedir_proxima(self):
+        c = Compute(falhas=[SEM_VAGA, SEM_VAGA, SEM_VAGA, None])
+        self.assertEqual(self.repetir(c), 0)
+        self.assertTrue(self.gh.desligado)
+        self.assertEqual(self.saida_txt(), "")
+
+    def test_erro_de_chave_para_tudo(self):
+        class Quebrado(Compute):
+            def list_instances(self, comp):
+                raise ServiceError(401, "NotAuthenticated", "no")
+        self.assertEqual(self.repetir(Quebrado()), 1)
+        self.assertIn("não aceitou a chave", self.gh.corpo)
+        self.assertEqual(self.saida_txt(), "")
+
+    def test_falha_temporaria_nao_derruba(self):
+        class Instavel(Compute):
+            vezes = 0
+
+            def list_instances(self, comp):
+                Instavel.vezes += 1
+                if Instavel.vezes == 1:
+                    raise ConnectionError("rede")
+                if Instavel.vezes == 2:
+                    raise ServiceError(503, "ServiceUnavailable", "x")
+                return resp(self.existentes)
+        c = Instavel(falhas=[SEM_VAGA] * 10)
+        self.assertEqual(self.repetir(c, duracao=240, intervalo=120), 0)
+        self.assertEqual(Instavel.vezes, 3)
+        self.assertIn("continuar=1", self.saida_txt())
+
+    def test_execucao_unica(self):
+        c = Compute(falhas=[SEM_VAGA, SEM_VAGA])
+        self.assertEqual(self.repetir(c, duracao=0), 0)
+        self.assertEqual(self.rel.sonos, [])
 
 
 class TesteSegredo(unittest.TestCase):
