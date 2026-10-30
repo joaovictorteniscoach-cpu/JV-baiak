@@ -208,6 +208,17 @@ main() {
 	if [ -n "$NOME_PASSADO" ] || [ -z "$(le_env NOME_SERVIDOR)" ]; then
 		grava_env NOME_SERVIDOR "$NOME_SERVIDOR"
 	fi
+	# Com dominio do DuckDNS: aponta para esta maquina ja agora e usa o dominio como
+	# endereco do jogo (se o IP mudar um dia, basta atualizar o DNS).
+	if [ -n "$DOMINIO_PASSADO" ] && [ -n "$DUCKDNS_TOKEN" ] && [[ "$DOMINIO_PASSADO" == *.duckdns.org ]]; then
+		grava_env DUCKDNS_TOKEN "$DUCKDNS_TOKEN"
+		etapa "Apontando $DOMINIO_PASSADO para esta maquina (DuckDNS)"
+		if "$BASE/jvbaiak" atualizar-ip "$DOMINIO_PASSADO" </dev/null; then
+			[ -n "${ENDERECO_SERVIDOR:-}" ] || grava_env ENDERECO_SERVIDOR "$DOMINIO_PASSADO"
+		else
+			cor "1;35" "   Aviso: nao consegui usar o DuckDNS agora; o jogo fica pelo IP."
+		fi
+	fi
 	ENDERECO="$(le_env ENDERECO_SERVIDOR)"
 	NOME="$(le_env NOME_SERVIDOR)"
 	ok "servidor \"$NOME\" no endereco $ENDERECO (senhas em $ENV, so o root le)"
@@ -347,6 +358,9 @@ main() {
 	# JV Baiak: backup diario antes do server save das 05:55
 	30 5 * * * root /usr/local/bin/jvbaiak backup >> /var/log/jvbaiak-backup.log 2>&1
 	EOF
+	if [ -n "$(le_env DUCKDNS_TOKEN)" ]; then
+		echo '@reboot root sleep 90 && /usr/local/bin/jvbaiak atualizar-ip >> /var/log/jvbaiak-ip.log 2>&1' >> /etc/cron.d/jvbaiak
+	fi
 	chmod 644 /etc/cron.d/jvbaiak
 	"$BASE/jvbaiak" backup >/dev/null && ok "primeiro backup feito em $BASE/backups"
 
@@ -361,6 +375,7 @@ main() {
 		fi
 	fi
 
+	touch "$BASE/.instalado"
 	trap - ERR
 	echo
 	cor "1;32" "================ PRONTO! ================"

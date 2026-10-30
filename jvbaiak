@@ -14,7 +14,7 @@ info() { printf '\033[1;32m%s\033[0m\n' "$*"; }
 [ -f "$ENV" ] || falha "instalacao nao encontrada em $BASE"
 cd "$BASE"
 
-le_env() { grep -E "^$1=" "$ENV" | tail -n1 | cut -d= -f2-; }
+le_env() { grep -E "^$1=" "$ENV" 2>/dev/null | tail -n1 | cut -d= -f2- || true; }
 define_env() { # chave valor
 	local tmp
 	tmp="$(mktemp)"
@@ -167,28 +167,55 @@ ip_publico() {
 	return 1
 }
 
+# Espera o dominio apontar para o IP (cache de DNS): ate ~5 minutos
+espera_dns() { # dominio ip
+	local dominio="$1" ip="$2" resolvido="" tentativa
+	for tentativa in $(seq 1 20); do
+		resolvido="$(getent ahostsv4 "$dominio" 2>/dev/null | awk 'NR==1 {print $1}' || true)"
+		if [ "$resolvido" = "$ip" ]; then return 0; fi
+		if [ "$tentativa" -eq 1 ]; then info "Esperando $dominio apontar para $ip (ate 5 minutos)..."; fi
+		sleep 15
+	done
+	echo "$dominio aponta para '${resolvido:-nada}', mas esta VPS e $ip." >&2
+	return 1
+}
+
+# Aponta o dominio do DuckDNS para o IP atual. Se o IP mudou (maquina religada),
+# reinicia o servidor do jogo para ele anunciar o IP novo.
+cmd_atualizar_ip() { # [dominio]
+	local dominio="${1:-$(le_env DOMINIO_DNS)}" token ip antigo
+	token="$(le_env DUCKDNS_TOKEN)"
+	if [[ "$dominio" != *.duckdns.org ]] || [ -z "$token" ]; then
+		echo "Sem dominio DuckDNS configurado: nada a fazer."
+		return 0
+	fi
+	ip="$(ip_publico)" || falha "nao consegui descobrir o IP publico desta VPS"
+	antigo="$(le_env IP_ATUAL)"
+	info "Apontando $dominio para $ip no DuckDNS..."
+	[ "$(curl -fsS --max-time 15 "https://www.duckdns.org/update?domains=${dominio%.duckdns.org}&token=$token&ip=$ip" || true)" = "OK" ] \
+		|| falha "o DuckDNS recusou (confira o subdominio e o token em duckdns.org)"
+	define_env DOMINIO_DNS "$dominio"
+	define_env IP_ATUAL "$ip"
+	espera_dns "$dominio" "$ip" || falha "o DNS de $dominio ainda nao atualizou; tente de novo em alguns minutos"
+	if [ -n "$antigo" ] && [ "$antigo" != "$ip" ] && dc ps --status running --services 2>/dev/null | grep -qx servidor; then
+		info "IP mudou ($antigo -> $ip): reiniciando o servidor do jogo"
+		dc restart servidor
+	fi
+}
+
 # Modo web (EXPERIMENTAL): HTTPS no site + cliente no navegador para iPhone.
 cmd_web() { # dominio [token-duckdns]
 	local dominio="${1:-}" token="${2:-}"
 	[[ "$dominio" =~ ^[a-z0-9.-]+\.[a-z]{2,}$ ]] \
 		|| falha "uso: jvbaiak web <dominio> [token-do-duckdns]   ex.: jvbaiak web meubaiak.duckdns.org 1234abcd-..."
-	local ip resolvido
-	ip="$(ip_publico)" || falha "nao consegui descobrir o IP publico desta VPS"
-	if [ -n "$token" ] && [[ "$dominio" == *.duckdns.org ]]; then
-		info "Apontando $dominio para $ip no DuckDNS..."
-		[ "$(curl -fsS --max-time 15 "https://www.duckdns.org/update?domains=${dominio%.duckdns.org}&token=$token&ip=$ip")" = "OK" ] \
-			|| falha "o DuckDNS recusou (confira o subdominio e o token em duckdns.org)"
-		sleep 20
+	if [ -n "$token" ]; then define_env DUCKDNS_TOKEN "$token"; fi
+	if [[ "$dominio" == *.duckdns.org ]] && [ -n "$(le_env DUCKDNS_TOKEN)" ]; then
+		cmd_atualizar_ip "$dominio"
+	else
+		local ip
+		ip="$(ip_publico)" || falha "nao consegui descobrir o IP publico desta VPS"
+		espera_dns "$dominio" "$ip" || falha "Ajuste o DNS de $dominio para $ip e tente de novo."
 	fi
-	# O DNS pode levar alguns minutos para mudar (cache): espera ate ~5 min
-	local tentativa
-	for tentativa in $(seq 1 20); do
-		resolvido="$(getent ahostsv4 "$dominio" 2>/dev/null | awk 'NR==1 {print $1}' || true)"
-		if [ "$resolvido" = "$ip" ]; then break; fi
-		if [ "$tentativa" -eq 1 ]; then info "Esperando $dominio apontar para $ip (ate 5 minutos)..."; fi
-		sleep 15
-	done
-	[ "$resolvido" = "$ip" ] || falha "$dominio aponta para '${resolvido:-nada}', mas esta VPS e $ip. Ajuste o DNS e tente de novo."
 
 	[ -f "$BASE/clientes-cache/sprites860/Tibia.spr" ] || cmd_clientes
 	ufw allow 443/tcp >/dev/null 2>&1 || true
@@ -242,6 +269,7 @@ cmd_ajuda() {
 		  jvbaiak endereco <ip|dominio>     troca o endereco do servidor
 		  jvbaiak web <dominio> [token]     (beta) HTTPS + jogar no navegador/iPhone
 		  jvbaiak web-status                acompanha a compilacao do cliente web
+		  jvbaiak atualizar-ip              aponta o dominio DuckDNS para o IP atual
 	EOF
 }
 
@@ -264,6 +292,7 @@ case "$acao" in
 	config) cmd_config ;;
 	web) cmd_web "$@" ;;
 	web-status) cmd_web_status ;;
+	atualizar-ip) cmd_atualizar_ip "$@" ;;
 	ajuda | help | -h | --help) cmd_ajuda ;;
 	*) cmd_ajuda; exit 1 ;;
 esac

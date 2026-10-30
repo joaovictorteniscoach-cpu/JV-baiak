@@ -175,6 +175,16 @@ def imagem_ubuntu(compute, compartimento):
     return imagens[0] if imagens else None
 
 
+def preparar_user_data(texto: str, sem_dominio: bool) -> str:
+    """Com sem_dominio, a maquina da Oracle sobe so pelo IP e nao mexe no DuckDNS
+    (o dominio esta em uso por outro servidor, ex.: Google Cloud)."""
+    if not sem_dominio:
+        return texto
+    linhas = [l for l in texto.splitlines(keepends=True)
+              if not l.lstrip().startswith(("export DOMINIO=", "export DUCKDNS_TOKEN="))]
+    return "".join(linhas)
+
+
 def sem_capacidade(erro) -> bool:
     msg = (getattr(erro, "message", "") or "").lower()
     return "capacity" in msg or getattr(erro, "code", "") == "OutOfHostCapacity"
@@ -226,7 +236,8 @@ def tentar(oci, cfg, compute, rede, identidade, gh) -> str:
                 shape_config=m.LaunchInstanceShapeConfigDetails(ocpus=float(ocpus), memory_in_gbs=float(gb)),
                 source_details=m.InstanceSourceViaImageDetails(image_id=imagem.id, boot_volume_size_in_gbs=DISCO_GB),
                 create_vnic_details=m.CreateVnicDetails(subnet_id=subnet.id, assign_public_ip=True),
-                metadata={"user_data": base64.b64encode(cfg["user_data"].encode()).decode(),
+                metadata={"user_data": base64.b64encode(
+                              preparar_user_data(cfg["user_data"], os.environ.get("SEM_DOMINIO") == "1").encode()).decode(),
                           **({"ssh_authorized_keys": cfg["ssh_pub"]} if cfg.get("ssh_pub") else {})},
                 instance_options=m.InstanceOptions(are_legacy_imds_endpoints_disabled=True))
             try:

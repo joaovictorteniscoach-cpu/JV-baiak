@@ -194,6 +194,29 @@ class TesteRobo(unittest.TestCase):
         self.assertEqual(len(c.lancadas), 1)
 
 
+class TesteUserData(unittest.TestCase):
+    TEXTO = ("#!/bin/bash\nexport NOME_SERVIDOR=\"JV Baiak\"\nexport DOMINIO=\"x.duckdns.org\"\n"
+             "export DUCKDNS_TOKEN=\"abc\"\nbash /root/instalar.sh\n")
+
+    def test_sem_dominio_tira_so_as_duas_linhas(self):
+        out = robo.preparar_user_data(self.TEXTO, True)
+        self.assertNotIn("DOMINIO=", out)
+        self.assertNotIn("DUCKDNS_TOKEN", out)
+        self.assertIn('export NOME_SERVIDOR="JV Baiak"', out)
+        self.assertTrue(out.endswith("bash /root/instalar.sh\n"))
+        self.assertEqual(robo.preparar_user_data(self.TEXTO, False), self.TEXTO)
+
+    def test_launch_usa_variavel(self):
+        os.environ["SEM_DOMINIO"] = "1"
+        try:
+            c = Compute(falhas=[None])
+            robo.tentar(fake_oci(), dict(CFG, user_data=self.TEXTO), c, Rede(), Identidade(), GH())
+            enviado = base64.b64decode(c.lancadas[0].metadata["user_data"]).decode()
+            self.assertNotIn("duckdns", enviado)
+        finally:
+            os.environ.pop("SEM_DOMINIO")
+
+
 class Relogio:
     def __init__(self):
         self.t = 0.0

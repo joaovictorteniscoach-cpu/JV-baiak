@@ -1,0 +1,15 @@
+#!/bin/bash
+# JV Baiak - Google Cloud: cole em "Automation > Startup script" ao criar a VM.
+# Roda a cada vez que a maquina liga: instala na primeira vez; depois so
+# atualiza o DuckDNS (o IP do Google pode mudar se a maquina for desligada).
+if [ -f /opt/jvbaiak/.instalado ]; then
+  /usr/local/bin/jvbaiak atualizar-ip >> /var/log/jvbaiak-ip.log 2>&1
+  exit 0
+fi
+export NOME_SERVIDOR="JV Baiak"
+export GM_SENHA="TROQUE-ESTA-SENHA"          # senha da conta GM "admin" (6+ letras/numeros)
+export DOMINIO="SEUNOME.duckdns.org"         # seu dominio do duckdns.org
+export DUCKDNS_TOKEN="COLE-O-TOKEN-AQUI"     # token que aparece no duckdns.org
+URL=https://raw.githubusercontent.com/joaovictorteniscoach-cpu/JV-baiak/main/instalar.sh
+for i in $(seq 1 720); do curl -fsSL -o /root/instalar.sh "$URL" && break; sleep 30; done
+bash /root/instalar.sh

@@ -55,6 +55,7 @@ jobs:
           OCI_JVBAIAK: ${{ secrets.OCI_JVBAIAK }}
           GITHUB_TOKEN: ${{ github.token }}
           DURACAO_MIN: "45"
+          SEM_DOMINIO: "1"   # o dominio bayakjh fica com o Google Cloud
           INTERVALO_S: "120"
         run: python oracle/criar_vps.py
 
