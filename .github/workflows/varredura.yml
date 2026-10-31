@@ -1,0 +1,212 @@
+name: Varredura completa (iPhone, Android, PC, servidor e site)
+
+# Robo de testes: instala o servidor do zero numa maquina limpa e testa tudo nela
+# (inclusive comandos de administrador), e joga no servidor de verdade como iPhone,
+# Android e PC. Fotos e resultados vao para o ramo "varredura".
+on:
+  push:
+    branches: [main]
+    paths:
+      - testes/varredura*.py
+      - testes/protocolo_860.py
+      - testes/windows_cliente.ps1
+      - testes/android_emulador.sh
+      - testes/esperar_atualizacao.sh
+      - .github/workflows/varredura.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: varredura
+  cancel-in-progress: true
+
+env:
+  SITE: https://bayakjh.duckdns.org
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  estatico:
+    name: Codigo (scripts, Lua, XML, site)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir
+        run: |
+          F="$RUNNER_TEMP/r/estatico"; mkdir -p "$F"; R="$F/resultado.txt"
+          sudo apt-get install -y -qq lua5.1 libxml2-utils shellcheck >/dev/null
+          falhas=0
+          { echo "== shellcheck (erros) =="; shellcheck -S error instalar.sh jvbaiak empacotar.sh web/*.sh clientes/*.sh testes/*.sh && echo ok || falhas=1
+            echo "== shellcheck (avisos) =="; shellcheck -S warning instalar.sh jvbaiak web/*.sh testes/*.sh | head -n 80 || true
+            echo "== Lua =="; for f in $(find servidor-imagem/extras -name '*.lua') web/otclientrc-extra.lua; do luac5.1 -p "$f" && echo "ok $f" || { echo "ERRO $f"; falhas=1; }; done
+            echo "== XML =="; for f in $(find servidor-imagem/extras -name '*.xml'); do xmllint --noout "$f" && echo "ok $f" || { echo "ERRO $f"; falhas=1; }; done
+            echo "== contas-admin.txt so com hash =="; if grep -vE '^#|^[a-z0-9]*;[a-z0-9]{4,20};[0-9a-f]{40};[A-Za-z ]{3,25}$' servidor-imagem/contas-admin.txt; then falhas=1; else echo ok; fi
+            echo "== testes do site =="; pip install -q -r portal/requirements.txt && python -m unittest discover -s testes -p 'teste_portal.py' 2>&1 | tail -n 5
+          } > "$R" 2>&1
+          python -m unittest discover -s testes -p 'teste_portal.py' >/dev/null 2>&1 || falhas=1
+          echo "falhas=$falhas" >> "$R"; cat "$R"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: estatico, path: "${{ runner.temp }}/r" }
+
+  servidor-local:
+    name: Servidor instalado do zero (inclui admin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Liberar espaco
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+      - name: Instalar como na VPS (instalar.sh)
+        run: |
+          F="$RUNNER_TEMP/r/servidor-local"; mkdir -p "$F"
+          inicio=$(date +%s)
+          sudo ENDERECO_SERVIDOR=127.0.0.1 GM_SENHA=Teste12345 bash instalar.sh > "$F/instalar.txt" 2>&1; st=$?
+          echo "instalacao: codigo $st em $(( $(date +%s) - inicio )) s" | tee -a "$F/resultado.txt"
+          exit $st
+      - name: Testar servidor, admin e site
+        if: always()
+        run: |
+          F="$RUNNER_TEMP/r/servidor-local"; mkdir -p "$F"; R="$F/resultado.txt"
+          cd /opt/jvbaiak
+          sudo docker compose ps >> "$R" 2>&1 || true
+          sudo jvbaiak criar-gm robogm Robo12345 "Robo Gm" >> "$R" 2>&1
+          echo "== contas de administrador ==" >> "$R"
+          sudo docker compose exec -T db sh -c 'MYSQL_PWD="$MARIADB_PASSWORD" mariadb -ujvbaiak jvbaiak -e "SELECT a.name, a.type, p.name, p.group_id FROM accounts a JOIN players p ON p.account_id=a.id WHERE a.type>=5"' >> "$R" 2>&1
+          cd "$GITHUB_WORKSPACE"
+          python3 testes/varredura_site.py http://127.0.0.1 "$F/site" > "$F/site.txt" 2>&1 || true
+          C="$F/site/conta.json"
+          python3 testes/protocolo_860.py 127.0.0.1 robogm Robo12345 --gm --saida "$F/protocolo-admin.json" > "$F/protocolo-admin.txt" 2>&1 || true
+          if [ -f "$C" ]; then
+            python3 testes/protocolo_860.py 127.0.0.1 "$(jq -r .conta "$C")" "$(jq -r .senha "$C")" --saida "$F/protocolo-jogador.json" > "$F/protocolo-jogador.txt" 2>&1 || true
+          fi
+          rm -f "$F"/site/*.apk "$F"/site/*.zip
+          cd /opt/jvbaiak
+          sudo docker compose logs --no-color servidor > "$F/log-servidor.txt" 2>&1 || true
+          sudo docker compose logs --no-color portal > "$F/log-site.txt" 2>&1 || true
+          grep -inE "error|erro|warning|aviso|failed|nil value|attempt to" "$F/log-servidor.txt" | grep -viE "errors = 0" | head -n 200 > "$F/log-servidor-problemas.txt" || true
+          cat "$F"/protocolo-*.txt "$F/site.txt" | grep -E "^(OK|FALHA)" >> "$R" || true
+          echo "linhas suspeitas no log do servidor: $(wc -l < "$F/log-servidor-problemas.txt")" >> "$R"
+          cat "$R"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: servidor-local, path: "${{ runner.temp }}/r" }
+
+  ao-vivo:
+    name: Servidor de verdade (site, downloads e protocolo do PC/Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - name: Esperar a atualizacao da VPS terminar
+        run: bash testes/esperar_atualizacao.sh "$SITE"
+      - name: Testar
+        run: |
+          F="$RUNNER_TEMP/r/ao-vivo"; mkdir -p "$F"
+          python3 testes/varredura_site.py "$SITE" "$F/site" --com-jogar > "$F/site.txt" 2>&1 || true
+          C="$F/site/conta.json"
+          host="${SITE#https://}"
+          python3 testes/protocolo_860.py "$host" "$(jq -r .conta "$C")" "$(jq -r .senha "$C")" --saida "$F/protocolo.json" > "$F/protocolo.txt" 2>&1 || true
+          rm -f "$F"/site/*.apk "$F"/site/*.zip
+          cat "$F/site.txt" "$F/protocolo.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ao-vivo, path: "${{ runner.temp }}/r" }
+
+  navegador:
+    name: Navegador ${{ matrix.perfil }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        perfil: [iphone-safari, iphone, android, pc, pc-firefox]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Preparar navegador
+        run: |
+          pip install -q playwright
+          case "${{ matrix.perfil }}" in iphone-safari) b=webkit ;; pc-firefox) b=firefox ;; *) b=chromium ;; esac
+          python -m playwright install --with-deps "$b" > /dev/null
+      - name: Esperar a atualizacao da VPS terminar
+        run: bash testes/esperar_atualizacao.sh "$SITE"
+      - name: Jogar
+        run: |
+          F="$RUNNER_TEMP/r/navegador-${{ matrix.perfil }}"; mkdir -p "$F"
+          python testes/varredura_navegador.py "${{ matrix.perfil }}" "$SITE" "$F" > "$F/teste.txt" 2>&1 || true
+          cat "$F/teste.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: "navegador-${{ matrix.perfil }}", path: "${{ runner.temp }}/r" }
+
+  windows:
+    name: Cliente do PC (Windows de verdade)
+    runs-on: windows-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Esperar a atualizacao da VPS terminar
+        shell: bash
+        run: bash testes/esperar_atualizacao.sh "$SITE"
+      - name: Baixar o cliente e criar conta pelo site
+        shell: bash
+        run: python testes/varredura_site.py "$SITE" "$RUNNER_TEMP/baixado" > "$RUNNER_TEMP/site.txt" 2>&1 || true
+      - name: Jogar no cliente do Windows
+        shell: pwsh
+        run: ./testes/windows_cliente.ps1 -Pasta "$env:RUNNER_TEMP\baixado" -Fotos "$env:RUNNER_TEMP\r\windows"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: windows, path: "${{ runner.temp }}/r" }
+
+  android:
+    name: App Android (celular virtual)
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ligar aceleracao (KVM)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Esperar a atualizacao da VPS terminar
+        run: bash testes/esperar_atualizacao.sh "$SITE"
+      - name: Baixar o APK e criar conta pelo site
+        run: python3 testes/varredura_site.py "$SITE" "$RUNNER_TEMP/baixado" > "$RUNNER_TEMP/site.txt" 2>&1 || true
+      - name: Jogar no celular Android virtual
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          profile: pixel_4
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash testes/android_emulador.sh "${{ runner.temp }}/baixado" "${{ runner.temp }}/r/android"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: android, path: "${{ runner.temp }}/r" }
+
+  publicar:
+    name: Publicar fotos e resultados
+    needs: [estatico, servidor-local, ao-vivo, navegador, windows, android]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: "${{ runner.temp }}/tudo", merge-multiple: true }
+      - name: Enviar para o ramo varredura
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/tudo"
+          echo "${GITHUB_SHA} $(date -u)" > rodada.txt
+          find . -name '*.apk' -o -name '*.zip' | xargs -r rm -f
+          git init -q && git checkout -q -b varredura
+          git config user.name "jv-robo" && git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -qm "Varredura (${GITHUB_SHA::7})"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" varredura
