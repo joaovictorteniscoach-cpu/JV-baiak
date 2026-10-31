@@ -172,6 +172,23 @@
         border-radius: 6px;
         padding: 8px 16px;
       }
+
+      /* Acabamento da capa e controles; comportamento e canvas preservados. */
+      #capa {
+        background: linear-gradient(90deg,rgba(5,14,19,.92),rgba(5,14,19,.55)),
+          url('/static/arte/mundo-tibia.jpg') center / cover no-repeat, #101b21;
+        gap: 18px;
+      }
+      #capa h1 { font-size: clamp(2rem,6vw,3.8rem); color: #f0d6a0; letter-spacing: .025em; text-shadow: 0 3px 8px #000; }
+      #capa p { font-size: 15px; color: #eadcc1; }
+      #progresso { height: 12px; border-radius: 1px; border: 1px solid #ad8c54; padding: 2px; background: #161913; box-shadow: 0 0 0 3px #121514; }
+      #progresso div { background: linear-gradient(90deg,#91612d,#e7c77b); }
+      #start { border-radius: 2px; border: 1px solid #c5a369; color: #fff1d3; text-shadow: 0 1px 2px #210a08;
+        background: linear-gradient(#9c3f30,#601d19 55%,#7a2d23); box-shadow: inset 0 0 0 2px #35130f,inset 0 0 0 3px #e3ac5c55,0 3px 0 #201812; }
+      #start:hover { filter: brightness(1.15); cursor: pointer; }
+      #start:focus-visible { outline: 3px solid #f0d6a0; outline-offset: 5px; }
+      #menu-painel { border-radius: 3px; border-color: #a48b60; box-shadow: inset 0 0 0 3px #ab8d5622,0 6px 18px #0008; }
+      .jv-botao-teclado { border-radius: 3px; color: #f3dfb3; background: linear-gradient(#4d4335,#302a23); border-color: #a48b60; }
     </style>
   </head>
   <body>

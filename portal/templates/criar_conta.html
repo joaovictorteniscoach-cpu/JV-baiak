@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}Criar conta - {{ nome_servidor }}{% endblock %}
 {% block conteudo %}
+<section class="ficha-aventureiro">
 <h1>Criar conta</h1>
 {% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
 {% if google_ativo %}
@@ -27,4 +28,5 @@
   {% include "_personagem.html" %}
   <button class="botao" type="submit">Criar conta</button>
 </form>
+</section>
 {% endblock %}

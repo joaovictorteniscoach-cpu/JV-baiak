@@ -2,7 +2,7 @@
   <input name="personagem" required maxlength="20" autocomplete="off" value="{{ f.get('personagem', '') }}">
 </label>
 <fieldset>
-  <legend>Vocacao</legend>
+  <legend>Vocação</legend>
   <div class="opcoes">
   {% for id in [4, 3, 1, 2] %}
     <label class="opcao"><input type="radio" name="vocacao" value="{{ id }}" required {{ 'checked' if f.get('vocacao') == id|string }}> {{ vocacoes[id] }}</label>
