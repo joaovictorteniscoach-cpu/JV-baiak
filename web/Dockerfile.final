@@ -16,6 +16,7 @@ RUN cd /workspace \
     done \
  && cp /tmp/jv/shell.html browser/shell.html \
  && cat /tmp/jv/otclientrc-extra.lua >> otclientrc.lua \
+ && cat /tmp/jv/jv_autoataque.lua >> otclientrc.lua && echo 'JVAutoAtaque.iniciar()' >> otclientrc.lua \
  && if [ -f /tmp/jv/fundo-login.png ]; then cp /tmp/jv/fundo-login.png data/images/background.png; fi \
  && if [ -f /tmp/jv/fundo-login-em-pe.png ]; then cp /tmp/jv/fundo-login-em-pe.png data/images/background-em-pe.png; fi \
  && if [ -d /tmp/jv/imagens ]; then cp /tmp/jv/imagens/*.png data/images/options/; fi \

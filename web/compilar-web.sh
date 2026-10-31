@@ -156,6 +156,7 @@ NOME_HTML="${NOME//&/&amp;}"; NOME_HTML="${NOME_HTML//</&lt;}"; NOME_HTML="${NOM
 pagina="$(cat "$WEB/shell.html")"
 printf '%s\n' "${pagina//__JV_NOME__/$NOME_HTML}" > "$CTX/jv/shell.html"
 cp "$WEB/otclientrc-extra.lua" "$CTX/jv/"
+cp "$WEB/jv_autoataque.lua" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login.png" ] && cp "$WEB/visual/fundo-login.png" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login-em-pe.png" ] && cp "$WEB/visual/fundo-login-em-pe.png" "$CTX/jv/"
 if ls "$WEB"/imagens-jogo/*.png >/dev/null 2>&1; then

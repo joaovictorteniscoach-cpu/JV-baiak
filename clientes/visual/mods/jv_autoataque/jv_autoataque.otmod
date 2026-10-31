@@ -1,0 +1,10 @@
+Module
+  name: jv_autoataque
+  description: JV Baiak - auto ataque no monstro mais perto (liga/desliga no menu)
+  author: JV Baiak
+  scripts: [ jv_autoataque, jv_iniciar ]
+  autoload: true
+  autoload-priority: 1000
+  sandboxed: true
+  @onLoad: init()
+  @onUnload: terminate()

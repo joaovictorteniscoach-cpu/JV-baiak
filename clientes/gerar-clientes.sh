@@ -103,6 +103,8 @@ if [ -f /opt/jv/fundo.png ]; then
 		[ -f "$fundo" ] && cp /opt/jv/fundo.png "$fundo"
 	done
 fi
+# Mods do JV Baiak (auto ataque)
+if [ -d /opt/jv/mods ]; then mkdir -p "$CLI/mods" && cp -a /opt/jv/mods/. "$CLI/mods/"; fi
 sed -i "s/^local defaultLocaleName = 'en'/local defaultLocaleName = 'pt'/" "$CLI/modules/client_locales/locales.lua"
 # Visual classico do Tibia tambem no Android: mesmo layout "retro" do PC (em vez do
 # layout de celular) e o joystick comeca escondido (anda tocando no mapa, como no

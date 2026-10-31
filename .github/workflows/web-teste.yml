@@ -11,6 +11,7 @@ on:
       - web/patches-final/**
       - web/shell.html
       - web/otclientrc-extra.lua
+      - web/jv_autoataque.lua
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py
