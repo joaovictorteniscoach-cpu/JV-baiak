@@ -1,0 +1,12 @@
+--- a/modules/client_locales/locales.lua
++++ b/modules/client_locales/locales.lua
+@@ -71,7 +71,8 @@
+ 
+     installLocales('/locales')
+ 
+-    local userLocaleName = g_settings.get('locale', 'false')
++    -- JV Baiak: portugues por padrao (sem a janela de escolher idioma na primeira vez)
++    local userLocaleName = g_settings.get('locale', 'pt')
+     if userLocaleName ~= 'false' and setLocale(userLocaleName) then
+         pdebug('Using configured locale: ' .. userLocaleName)
+     else
