@@ -2,16 +2,13 @@
 {% from "_macros.html" import char, morte %}
 {% block conteudo %}
 <section class="destaque">
-  {% with classe='grande', id='heroi' %}{% include "_brasao.html" %}{% endwith %}
-  <h1>{{ nome_servidor }}</h1>
-  <p class="sub">Baiak 8.60 com PvP, castle war, eventos todo dia e treino automático. No PC, no Android e no iPhone.</p>
-  <p class="status {{ 'on' if no_ar else 'off' }}">
-    <span class="chama" aria-hidden="true"></span>
-    {% if no_ar %}Servidor online{% if online is not none %}, {{ online }} jogando{% endif %}{% else %}Servidor offline{% endif %}
-  </p>
-  <div class="botoes">
-    <a class="botao" href="{{ url_for('criar_conta') }}">Criar conta</a>
-    <a class="botao secundario" href="{{ url_for('baixar') }}">Baixar o jogo</a>
+  <img class="arte-boas-vindas" src="{{ url_for('static', filename='arte/mundo-tibia.jpg') }}" alt="Cavaleiro e feiticeira enfrentando um dragão no mundo de Tibia" width="1200" height="600" fetchpriority="high">
+  <div class="boas-vindas">
+    <h1>Bem-vindo ao {{ nome_servidor }}</h1>
+    <p>Baiak 8.60 · PvP · Castle War</p>
+    <p class="status {{ 'on' if no_ar else 'off' }}"><span class="chama" aria-hidden="true"></span>
+    {% if no_ar %}Servidor online{% if online is not none %}, {{ online }} jogando{% endif %}{% else %}Servidor offline{% endif %}</p>
+    <div class="botoes"><a class="botao" href="{{ url_for('criar_conta') }}">Criar conta</a><a class="botao secundario" href="{{ url_for('baixar') }}">Baixar o jogo</a></div>
   </div>
 </section>
 
@@ -52,26 +49,10 @@
   </section>
 </div>
 
-<section class="cartoes">
-  <article>
-    <h2>Treino automático</h2>
-    <p>Entre numa sala de trainers e o servidor treina sua arma, shielding e magic level sem você cair por inatividade. No jogo, digite <b>!treino</b>.</p>
-  </article>
-  <article>
-    <h2>Bot liberado</h2>
-    <p>O cliente já vem com o vBot para cura, ataque e magias. Usar bot não dá punição.</p>
-  </article>
-  <article>
-    <h2>Mesma conta em tudo</h2>
-    <p>Windows e Android pelo app, iPhone pelo navegador. Você entra com a mesma conta em qualquer um.</p>
-  </article>
+<section class="vocacoes" aria-label="Vocações de Tibia">
+ {% for nome, arte in [('Knight','knight'),('Paladin','paladin'),('Sorcerer','sorcerer'),('Druid','druid')] %}
+ <figure><img src="{{ url_for('static', filename='arte/' + arte + '.png') }}" alt="" loading="lazy" width="180" height="190"><figcaption>{{ nome }}</figcaption></figure>
+ {% endfor %}
 </section>
-
-<section class="fundadores">
-  {% with classe='medio', id='fund' %}{% include "_brasao.html" %}{% endwith %}
-  <div>
-    <h2>Os fundadores</h2>
-    <p>{{ nome_servidor }} nasceu para {{ fundadores }}, da família {{ familia }}, jogarem juntos como nos velhos tempos de OT. O escudo é dos dois: uma metade para cada irmão.</p>
-  </div>
-</section>
+<p class="nota-jogo">Treino automático: <b>!treino</b> · Bot liberado · <a href="{{ url_for('servidor') }}">Regras e eventos</a></p>
 {% endblock %}

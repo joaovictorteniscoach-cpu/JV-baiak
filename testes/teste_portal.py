@@ -7,6 +7,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(AQUI, "..", "portal"))
@@ -161,6 +162,32 @@ class TestePortal(unittest.TestCase):
             self.assertEqual(self.criar(conta=f"conta{i}x", personagem=f"Heroi {'abcde'[i]}x").status_code, 200)
         r = self.criar(conta="conta9x", personagem="Heroi Zz")
         self.assertIn("Muitas contas", r.get_data(as_text=True))
+        self.assertEqual(r.status_code, 429)
+        self.assertGreater(int(r.headers["Retry-After"]), 0)
+
+    def test_limite_informa_tempo_restante_e_expira(self):
+        limite = portal.LimiteDeTaxa(1, 900)
+        with patch.object(portal.time, "monotonic", return_value=100):
+            self.assertTrue(limite.permite("ip"))
+        with patch.object(portal.time, "monotonic", return_value=941):
+            self.assertEqual(limite.espera("ip"), 59)
+            self.assertFalse(limite.permite("ip"))
+        with patch.object(portal.time, "monotonic", return_value=1000):
+            self.assertEqual(limite.espera("ip"), 0)
+            self.assertTrue(limite.permite("ip"))
+
+    def test_bloqueio_personagem_sem_perder_dados(self):
+        self.criar()
+        portal.limite_login = portal.LimiteDeTaxa(1, 900)
+        portal.limite_login.permite("127.0.0.1")
+        dados = dict(csrf=self.csrf("/novo-personagem"), conta="joao123", senha="segredo1",
+                     personagem="Druida Boa", vocacao="2", sexo="0")
+        r = self.c.post("/novo-personagem", data=dados)
+        self.assertEqual(r.status_code, 429)
+        self.assertIn("Druida Boa", r.get_data(as_text=True))
+        self.assertIn("Tente novamente em", r.get_data(as_text=True))
+        self.assertLessEqual(int(r.headers["Retry-After"]), 900)
+        self.assertEqual(self.sql("SELECT COUNT(*) FROM players")[0][0], 1)
 
     def test_ranking_e_status(self):
         self.criar()
@@ -224,7 +251,7 @@ class TestePortal(unittest.TestCase):
     def test_identidade_e_inicio(self):
         self.popular()
         html = self.c.get("/").get_data(as_text=True)
-        for trecho in ("Família Carnicini Soubhi", "João Victor e Henrique", "Sir Joao Victor", "recorde online",
+        for trecho in ("Família Carnicini Soubihe", "João Victor e Henrique", "Sir Joao Victor", "recorde online",
                        "Últimas mortes", "brasao-letra", ">J<", ">H<", ">CS<", "400x"):
             self.assertIn(trecho, html)
 
