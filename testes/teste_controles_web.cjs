@@ -18,15 +18,16 @@ function fixture() {
   for(const m of html.matchAll(/id="([^"]+)"/g)) nodes.set(m[1],new Element());
   const storage = new Map();
   let calls=0;
+  const dispatched=[];
   const context = {console, navigator:{}, Number, Math, JSON, FS:{}, IDBFS:{}, setTimeout:()=>1,clearTimeout:()=>{}, callMain:()=>calls++,
     Event:class {constructor(type){this.type=type;}},KeyboardEvent:class{constructor(type,opts){this.type=type;Object.assign(this,opts);}},
     innerWidth:844,innerHeight:390,devicePixelRatio:3,
     localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)},
     document:{getElementById:id=>nodes.get(id),querySelector:()=>new Element(),body:new Element(),documentElement:{},visibilityState:'visible',addEventListener:()=>{}},
-    addEventListener:(n,f)=>(listeners[n] ||= []).push(f),dispatchEvent:()=>{}};
+    addEventListener:(n,f)=>(listeners[n] ||= []).push(f),dispatchEvent:e=>{dispatched.push(e);}};
   context.window=context;
   vm.createContext(context);vm.runInContext(script,context);
-  return {c:context,nodes,storage,listeners,calls:()=>calls,click:id=>nodes.get(id).dispatchEvent({type:'click',preventDefault(){},stopPropagation(){}})};
+  return {c:context,nodes,storage,listeners,dispatched,calls:()=>calls,click:id=>nodes.get(id).dispatchEvent({type:'click',preventDefault(){},stopPropagation(){}})};
 }
 {
  const {c,storage,click}=fixture();
@@ -59,5 +60,21 @@ function fixture() {
  const f=fixture();let stopped=false;
  f.listeners.keydown[0]({target:{closest:()=>true},stopImmediatePropagation:()=>{stopped=true;}});
  assert.equal(stopped,true);
+}
+{
+ const f=fixture();
+ f.c.localStorage.getItem=()=>{throw Error('bloqueado');};
+ f.c.localStorage.setItem=()=>{throw Error('bloqueado');};
+ assert.equal(f.c.lerZoom(),1);f.click('zoom-restaurar');
+ assert.ok(Number.isFinite(f.c.jvPixelRatio()));
+}
+{
+ const f=fixture();let stopped=0,prevented=0;
+ f.listeners.keydown[0]({target:f.nodes.get('teclado'),key:'Backspace',stopImmediatePropagation:()=>stopped++,preventDefault:()=>prevented++});
+ assert.equal(stopped,1);assert.equal(prevented,1);
+ assert.deepEqual(f.dispatched.map(e=>e.type),['keydown','keyup']);
+ assert.ok(f.dispatched.every(e=>e.key==='Backspace'));
+ f.c.Module.onAbort('teste');assert.equal(f.nodes.get('start').style.display,'none');
+ assert.equal(f.nodes.get('capa').style.display,'flex');
 }
 console.log('OK: zoom bounds/steps/reset, orientation, single start, menu, keyboard focus, unsupported fullscreen and pinch cancellation');

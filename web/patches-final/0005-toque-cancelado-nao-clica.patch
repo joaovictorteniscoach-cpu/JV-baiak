@@ -1,0 +1,24 @@
+--- a/src/framework/platform/browserwindow.cpp
++++ b/src/framework/platform/browserwindow.cpp
+@@ -415,6 +415,21 @@
+ 
+ void BrowserWindow::handleTouchCallback(int eventType, const EmscriptenTouchEvent* event) {
+     m_usingTouch = true;
++    // Cancelar não é clicar: solte fora do mapa, mesmo sem pontos de toque.
++    if (eventType == EMSCRIPTEN_EVENT_TOUCHCANCEL) {
++        m_clickTimer.stop();
++        s_pinca = false;
++        g_dispatcher.addEvent([this] {
++            m_inputEvent.reset();
++            m_inputEvent.mousePos = Point(-10000, -10000);
++            m_inputEvent.mouseButton = Fw::MouseLeftButton;
++            m_inputEvent.type = Fw::MouseReleaseInputEvent;
++            m_mouseButtonStates &= ~(1 << Fw::MouseLeftButton);
++            if (m_onInputEvent)
++                m_onInputEvent(m_inputEvent);
++        });
++        return;
++    }
+     if (!event || event->numTouches <= 0)
+         return;
+     // JV Baiak: copia os valores agora. O evento e liberado logo depois deste
