@@ -172,7 +172,6 @@
         border-radius: 6px;
         padding: 8px 16px;
       }
-
       /* Acabamento da capa e controles; comportamento e canvas preservados. */
       #capa {
         background: linear-gradient(90deg,rgba(5,14,19,.92),rgba(5,14,19,.55)),
@@ -189,6 +188,12 @@
       #start:focus-visible { outline: 3px solid #f0d6a0; outline-offset: 5px; }
       #menu-painel { border-radius: 3px; border-color: #a48b60; box-shadow: inset 0 0 0 3px #ab8d5622,0 6px 18px #0008; }
       .jv-botao-teclado { border-radius: 3px; color: #f3dfb3; background: linear-gradient(#4d4335,#302a23); border-color: #a48b60; }
+      /* Controles acessíveis sem invadir a área central do mapa. */
+      #tela-cheia[hidden] { display: none; }
+      #menu-botao { cursor: pointer; opacity: .85; }
+      .jv-botao-teclado { cursor: pointer; min-height: 44px; }
+      #menu-painel { max-height: calc(100dvh - 76px); overflow-y: auto; box-sizing: border-box; max-width: calc(100vw - 16px); }
+      #menu-botao:focus-visible,.jv-botao-teclado:focus-visible { outline: 3px solid #fff0c9; outline-offset: 2px; }
     </style>
   </head>
   <body>
@@ -207,19 +212,21 @@
       <button onclick="document.body.classList.add('retrato-ok')">Continuar assim</button>
     </div>
     <input id="teclado" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-hidden="true" tabindex="-1" />
-    <div id="digitar" class="jv-botao-teclado" role="button">&#9000; Toque para digitar</div>
-    <div id="fechar-teclado" class="jv-botao-teclado" role="button">Fechar teclado</div>
-    <div id="menu-botao" role="button" aria-label="Opcoes da tela">&#9776;</div>
-    <div id="menu-painel">
+    <button type="button" id="digitar" class="jv-botao-teclado">&#9000; Toque para digitar</button>
+    <button type="button" id="fechar-teclado" class="jv-botao-teclado">Fechar teclado</button>
+    <button type="button" id="menu-botao" aria-label="Opções da tela" aria-controls="menu-painel" aria-expanded="false">&#9776;</button>
+    <div id="menu-painel" aria-label="Ajustes da tela">
       <div class="linha"><span>Tamanho (ou pinça com 2 dedos)</span></div>
       <div class="linha">
-        <div id="zoom-menos" class="jv-botao-teclado" role="button" aria-label="Diminuir">A&minus;</div>
+        <button type="button" id="zoom-menos" class="jv-botao-teclado" aria-label="Diminuir">A&minus;</button>
         <span id="zoom-valor">100%</span>
-        <div id="zoom-mais" class="jv-botao-teclado" role="button" aria-label="Aumentar">A+</div>
+        <button type="button" id="zoom-mais" class="jv-botao-teclado" aria-label="Aumentar">A+</button>
       </div>
-      <div id="abrir-teclado" class="jv-botao-teclado" role="button">&#9000; Teclado</div>
+      <button type="button" id="abrir-teclado" class="jv-botao-teclado">&#9000; Teclado</button>
+      <button type="button" id="zoom-restaurar" class="jv-botao-teclado">Restaurar tamanho</button>
+      <button type="button" id="tela-cheia" class="jv-botao-teclado">Tela cheia</button>
     </div>
-    <div id="zoom-aviso">100%</div>
+    <div id="zoom-aviso" role="status" aria-live="polite">100%</div>
     <canvas class="backbuffer" id="canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
     <script type="text/javascript">
       var canvas = document.getElementById("canvas");
@@ -261,6 +268,7 @@
         if (ev) { ev.preventDefault(); ev.stopPropagation(); }
         botaoDigitar.style.display = "none";
         teclado.value = "";
+        fecharPainel();
         teclado.focus();
         tecladoAberto = true;
         botaoFechar.style.display = "flex";
@@ -277,14 +285,13 @@
       };
       [botaoDigitar, botaoAbrir].forEach(function (b) {
         if (!b) return;
-        b.addEventListener("touchend", abrirTeclado, { passive: false });
         b.addEventListener("click", abrirTeclado);
       });
-      botaoFechar.addEventListener("touchend", fecharTeclado, { passive: false });
       botaoFechar.addEventListener("click", fecharTeclado);
       teclado.addEventListener("blur", function () {
         tecladoAberto = false;
         botaoFechar.style.display = "none";
+        canvas.focus({ preventScroll: true });
       });
       teclado.addEventListener("input", function (ev) {
         var t = teclado.value;
@@ -302,6 +309,11 @@
       // "input" (senao cada letra entrava duas vezes). Registrado antes do jogo iniciar.
       ["keydown", "keypress", "keyup"].forEach(function (tipo) {
         window.addEventListener(tipo, function (ev) {
+          // Botões HTML recebem Enter/Espaço sem enviar essas teclas ao jogo.
+          if (ev.target && ev.target.closest && ev.target.closest("button")) {
+            ev.stopImmediatePropagation();
+            return;
+          }
           if (ev.target === teclado) {
             ev.stopImmediatePropagation();
             if (tipo === "keydown") tratarTeclaEspecial(ev);
@@ -315,7 +327,7 @@
       function orientacao() { return window.innerHeight > window.innerWidth ? "em-pe" : "deitado"; }
       function lerZoom() {
         var padrao = orientacao() === "em-pe" ? 0.8 : 1;
-        try { var v = parseFloat(localStorage.getItem("jvZoom-" + orientacao())); return v > 0 ? v : padrao; }
+        try { var v = Number(localStorage.getItem("jvZoom-" + orientacao())); return Number.isFinite(v) && v > 0 ? Math.max(0.6, Math.min(2, v)) : padrao; }
         catch (e) { return padrao; }
       }
       function gravarZoom(v) { try { localStorage.setItem("jvZoom-" + orientacao(), String(v)); } catch (e) {} }
@@ -326,32 +338,61 @@
       var zoomPainel = document.getElementById("menu-painel");
       var zoomValor = document.getElementById("zoom-valor");
       var zoomTimer = null;
+      function fecharPainel() {
+        zoomPainel.style.display = "none";
+        document.getElementById("menu-botao").setAttribute("aria-expanded", "false");
+        clearTimeout(zoomTimer);
+      }
       function mostrarZoom() {
         zoomValor.textContent = Math.round(lerZoom() * 100) + "%";
         zoomPainel.style.display = "flex";
+        document.getElementById("menu-botao").setAttribute("aria-expanded", "true");
         clearTimeout(zoomTimer);
-        zoomTimer = setTimeout(function () { zoomPainel.style.display = "none"; }, 5000);
+        zoomTimer = setTimeout(fecharPainel, 8000);
       }
       function mudarZoom(dir, ev) {
         if (ev) { ev.preventDefault(); ev.stopPropagation(); }
-        var atual = lerZoom(), i = 0;
-        while (i < ZOOM_PASSOS.length - 1 && ZOOM_PASSOS[i] < atual - 0.001) i++;
-        i = Math.max(0, Math.min(ZOOM_PASSOS.length - 1, i + dir));
-        gravarZoom(ZOOM_PASSOS[i]);
+        var atual = lerZoom();
+        var candidatos = ZOOM_PASSOS.filter(function (v) { return dir > 0 ? v > atual + 0.001 : v < atual - 0.001; });
+        if (candidatos.length) gravarZoom(dir > 0 ? candidatos[0] : candidatos[candidatos.length - 1]);
         window.dispatchEvent(new Event("resize"));  // o jogo recalcula o tamanho na hora
         mostrarZoom();
       }
       function ligar(id, fn) {
         var el = document.getElementById(id);
-        el.addEventListener("touchend", fn, { passive: false });
         el.addEventListener("click", fn);
       }
       ligar("menu-botao", function (ev) {
         ev.preventDefault(); ev.stopPropagation();
-        if (zoomPainel.style.display === "flex") zoomPainel.style.display = "none"; else mostrarZoom();
+        if (zoomPainel.style.display === "flex") fecharPainel(); else mostrarZoom();
       });
       ligar("zoom-menos", function (ev) { mudarZoom(-1, ev); });
       ligar("zoom-mais", function (ev) { mudarZoom(1, ev); });
+      ligar("zoom-restaurar", function (ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        gravarZoom(orientacao() === "em-pe" ? 0.8 : 1);
+        window.dispatchEvent(new Event("resize"));
+        mostrarZoom();
+      });
+      var botaoTelaCheia = document.getElementById("tela-cheia");
+      if (!document.documentElement.requestFullscreen) botaoTelaCheia.hidden = true;
+      ligar("tela-cheia", function (ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        var acao = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+        if (acao && acao.catch) acao.catch(function () {
+          avisoZoom.textContent = "Use Adicionar à Tela de Início no navegador.";
+          avisoZoom.style.display = "block";
+          clearTimeout(timerAviso);
+          timerAviso = setTimeout(function () { avisoZoom.style.display = "none"; }, 3500);
+        });
+        fecharPainel();
+      });
+      document.addEventListener("fullscreenchange", function () {
+        botaoTelaCheia.textContent = document.fullscreenElement ? "Sair da tela cheia" : "Tela cheia";
+        avisarTamanho();
+      });
+      canvas.addEventListener("pointerdown", fecharPainel);
+      zoomPainel.addEventListener("click", function () { if (zoomPainel.style.display === "flex") mostrarZoom(); });
       // Ao girar o celular o iPhone muda o tamanho da tela aos poucos; avisa o jogo
       // algumas vezes para ele refazer a imagem no tamanho certo (sem esticar nem cortar).
       function avisarTamanho() {
@@ -381,12 +422,13 @@
         timerPinca = setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 120);
       }
       window.addEventListener("touchstart", function (ev) {
-        if (ev.touches.length === 2) pinca = { d: distancia(ev.touches), z: lerZoom() };
+        if (ev.target === canvas && ev.touches.length === 2 && distancia(ev.touches) > 0) pinca = { d: distancia(ev.touches), z: lerZoom() };
       }, { capture: true, passive: true });
       window.addEventListener("touchmove", function (ev) {
         if (pinca && ev.touches.length === 2) aplicarPinca(pinca.z * distancia(ev.touches) / pinca.d);
       }, { capture: true, passive: true });
       window.addEventListener("touchend", function (ev) { if (ev.touches.length < 2) pinca = null; }, { capture: true, passive: true });
+      window.addEventListener("touchcancel", function () { pinca = null; }, { capture: true, passive: true });
       // Tela acesa enquanto joga (o iPhone nao apaga a tela sozinho e a conexao nao cai)
       var travaTela = null;
       function manterTelaAcesa() {
@@ -399,14 +441,19 @@
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "visible" && document.body.classList.contains("jv-jogando")) manterTelaAcesa();
       });
+      var jogoIniciado = false;
       function startGame() {
+        if (jogoIniciado) return;
+        jogoIniciado = true;
+        document.getElementById("start").disabled = true;
         document.getElementById("capa").style.display = "none";
         document.body.classList.add("jv-jogando");
         manterTelaAcesa();
         callMain();
+        canvas.focus({ preventScroll: true });
         ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (tipo) {
           document.addEventListener(tipo, function (ev) {
-            if (ev.target && ev.target.classList && ev.target.classList.contains("jv-botao-teclado")) return;
+            if (ev.target && ev.target.closest && ev.target.closest("button")) return;
             ev.preventDefault();
             ev.stopPropagation();
           }, { passive: false });
@@ -464,6 +511,7 @@
         canvas: canvas,
         onAbort: function (reason) {
           reportRuntimeError("abort", reason || "unknown reason");
+          document.getElementById("start").style.display = "none";
           capaTexto.textContent = "O jogo travou. Recarregue a pagina.";
           document.getElementById("capa").style.display = "flex";
         },

@@ -1,0 +1,36 @@
+name: Controles web (sem conta ou rede de jogo)
+on:
+  pull_request:
+    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'web/patches-final/**', '.github/workflows/controles-web.yml']
+  push:
+    branches: [main, codex/jogabilidade-mobile]
+    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'web/patches-final/**', '.github/workflows/controles-web.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  controles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node testes/teste_controles_web.cjs
+      - name: Conferir patches e testar tradução de toque
+        shell: bash
+        run: |
+          set -euo pipefail
+          fonte="$RUNNER_TEMP/otclient-toque"
+          mkdir -p "$fonte"
+          git -C "$fonte" init -q
+          for arquivo in src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua; do
+            mkdir -p "$fonte/$(dirname "$arquivo")"
+            curl --fail --silent --show-error --retry 2 "https://raw.githubusercontent.com/opentibiabr/otclient/1fcea26f23ef1d1857103ef446c0190955523ca8/$arquivo" -o "$fonte/$arquivo"
+          done
+          for patch in "$GITHUB_WORKSPACE"/web/patches-final/*.patch; do
+            git -C "$fonte" apply --check "$patch"
+            git -C "$fonte" apply "$patch"
+          done
+          python testes/teste_toque_web.py "$fonte"
