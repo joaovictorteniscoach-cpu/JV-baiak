@@ -33,7 +33,10 @@ BAIAK_COMMIT="265d45805c5d2204262ffd55b8fc67d97b829916"
 LOG="/var/log/jvbaiak-instalacao.log"
 
 cor() { printf '\033[%sm%s\033[0m\n' "$1" "$2"; }
-etapa() { cor "1;33" ">> $*"; }
+etapa() {
+	cor "1;33" ">> $*"
+	if [ -d "$BASE/web/www/jogar" ]; then printf '%s %s\n' "$(date '+%d/%m %H:%M')" "$*" >> "$BASE/web/www/jogar/atualizacao.txt" 2>/dev/null || true; fi
+}
 ok() { cor "1;32" "   $*"; }
 # Sem terminal (instalacao pelo celular): em caso de erro, mostra o fim do log
 # em http://IP-DA-VPS para dar print. Linhas com senha/token sao omitidas.
@@ -56,6 +59,7 @@ pagina_erro() {
 falha() {
 	trap - ERR
 	cor "1;31" "ERRO: $*"
+	if [ -d "$BASE/web/www/jogar" ]; then printf 'ERRO: %s\n' "$*" >> "$BASE/web/www/jogar/atualizacao.txt" 2>/dev/null || true; fi
 	echo "Detalhes em $LOG. Envie as ultimas linhas desse arquivo para o suporte." >&2
 	pagina_erro
 	exit 1
@@ -79,7 +83,30 @@ trap 'falha "a etapa falhou na linha $LINENO (comando: $BASH_COMMAND)"' ERR
 # Tudo dentro de main(): o bash le o script inteiro antes de executar
 # (necessario quando o instalador chega por "curl | bash").
 main() {
+	# Pelo SSH do celular: roda em segundo plano (o celular pode dormir ou fechar o SSH
+	# no meio sem estragar a atualizacao). O andamento aparece em https://<dominio>/jogar/atualizacao.txt
+	if [ -z "${JV_PLANO:-}" ] && [ -t 1 ] && command -v systemd-run >/dev/null \
+		&& [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ] && [ "$(id -u)" -eq 0 ]; then
+		local eu
+		eu="$(readlink -f "${BASH_SOURCE[0]}")"
+		if systemctl is-active --quiet jvbaiak-atualizar; then
+			echo "Ja existe uma atualizacao rodando. Mostrando o andamento (Ctrl+C sai; ela continua):"
+		else
+			systemctl reset-failed jvbaiak-atualizar >/dev/null 2>&1 || true
+			local vars=() v
+			for v in NOME_SERVIDOR ENDERECO_SERVIDOR GM_SENHA DOMINIO DUCKDNS_TOKEN KIT_REPO KIT_REF; do
+				[ -n "${!v:-}" ] && vars+=("--setenv=$v=${!v}")
+			done
+			systemd-run --unit=jvbaiak-atualizar --description="JV Baiak: atualizacao" \
+				--setenv=JV_PLANO=1 "${vars[@]}" /bin/bash "$eu" >/dev/null
+			echo "Atualizacao rodando em segundo plano. PODE FECHAR o SSH ou bloquear o celular."
+			echo "Andamento no celular: https://$(grep -E '^DOMINIO=' "$BASE/.env" 2>/dev/null | cut -d= -f2- | tail -n1)/jogar/atualizacao.txt"
+			echo "Mostrando aqui tambem (Ctrl+C sai; a atualizacao continua):"
+		fi
+		exec journalctl -u jvbaiak-atualizar -f -n 50 -o cat
+	fi
 	exec > >(tee -a "$LOG") 2>&1
+	if [ -d "$BASE/web/www/jogar" ]; then echo "== atualizacao iniciada ==" > "$BASE/web/www/jogar/atualizacao.txt" 2>/dev/null || true; fi
 	systemctl stop jvbaiak-erro >/dev/null 2>&1 || true
 	echo "==== instalacao iniciada em $(date) ===="
 
@@ -485,6 +512,7 @@ main() {
 	trap - ERR
 	echo
 	cor "1;32" "================ PRONTO! ================"
+	if [ -d "$BASE/web/www/jogar" ]; then printf '%s PRONTO: servidor e site atualizados (o jogo do navegador termina em ~10 min)\n' "$(date '+%d/%m %H:%M')" >> "$BASE/web/www/jogar/atualizacao.txt" 2>/dev/null || true; fi
 	if [ -n "$(le_env DOMINIO)" ]; then
 		echo "Site (criar conta e baixar o jogo):  https://$(le_env DOMINIO)"
 		echo "Jogar no iPhone (quando compilar):   https://$(le_env DOMINIO)/jogar/"

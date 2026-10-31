@@ -71,3 +71,8 @@ pcall(function()
         end
     end, 1000)
 end)
+
+-- Celular: se a conexao cair (tela bloqueada, troca de Wi-Fi/4G), entra de novo sozinho
+if g_platform.isMobile() and g_settings.get('autoReconnect', 'nunca-definido') == 'nunca-definido' then
+    g_settings.set('autoReconnect', true)
+end

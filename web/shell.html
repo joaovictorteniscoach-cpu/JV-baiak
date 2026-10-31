@@ -370,9 +370,22 @@
         if (pinca && ev.touches.length === 2) aplicarPinca(pinca.z * distancia(ev.touches) / pinca.d);
       }, { capture: true, passive: true });
       window.addEventListener("touchend", function (ev) { if (ev.touches.length < 2) pinca = null; }, { capture: true, passive: true });
+      // Tela acesa enquanto joga (o iPhone nao apaga a tela sozinho e a conexao nao cai)
+      var travaTela = null;
+      function manterTelaAcesa() {
+        try {
+          if (navigator.wakeLock && document.visibilityState === "visible") {
+            navigator.wakeLock.request("screen").then(function (t) { travaTela = t; }).catch(function () {});
+          }
+        } catch (e) {}
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && document.body.classList.contains("jv-jogando")) manterTelaAcesa();
+      });
       function startGame() {
         document.getElementById("capa").style.display = "none";
         document.body.classList.add("jv-jogando");
+        manterTelaAcesa();
         callMain();
         ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (tipo) {
           document.addEventListener(tipo, function (ev) {

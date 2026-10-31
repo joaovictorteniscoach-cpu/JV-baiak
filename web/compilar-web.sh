@@ -30,7 +30,11 @@ LOG=/var/log/jvbaiak-web-build.log
 # Andamento visivel no celular em https://<dominio>/jogar/status.txt (sem terminal)
 STATUS="$SITE/status.txt"
 anota() { [ -d "$(dirname "$STATUS")" ] && [ ! -f "$SITE/otclient.wasm" ] && printf '%s\n' "$*" >> "$STATUS" || true; }
-log() { printf '[web %s] %s\n' "$(date +%H:%M:%S)" "$*"; anota "$(date '+%d/%m %H:%M') $*"; }
+log() {
+	printf '[web %s] %s\n' "$(date +%H:%M:%S)" "$*"
+	anota "$(date '+%d/%m %H:%M') $*"
+	printf '%s jogo do navegador: %s\n' "$(date '+%d/%m %H:%M')" "$*" >> "$SITE/atualizacao.txt" 2>/dev/null || true
+}
 falha() {
 	trap - ERR
 	printf '[web] ERRO: %s\n' "$*" >&2
@@ -184,6 +188,7 @@ rm -rf "$SITE.novo"
 mv "$TMP" "$SITE.novo"
 chmod -R a+rX "$SITE.novo"
 rm -rf "$SITE.antigo"
+[ -f "$SITE/atualizacao.txt" ] && cp "$SITE/atualizacao.txt" "$SITE.novo/atualizacao.txt"
 [ -d "$SITE" ] && mv "$SITE" "$SITE.antigo"
 mv "$SITE.novo" "$SITE"
 rm -rf "$SITE.antigo"
