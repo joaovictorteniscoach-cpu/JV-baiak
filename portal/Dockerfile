@@ -1,11 +1,13 @@
-# JV Baiak - portal (criar conta, personagens, ranking, downloads)
+# JV Baiak - portal (site: contas, personagens, online, ranking, guilds, casas, eventos, downloads)
 FROM python:3.12-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PASTA_DOWNLOADS=/app/downloads
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PASTA_DOWNLOADS=/app/downloads \
+    CONFIG_LUA=/jogo/config.lua PASTA_DATA=/jogo/data TZ=America/Sao_Paulo
 WORKDIR /app
 COPY requirements.txt .
+# uid 1000 = mesmo dono dos arquivos do servidor (para ler rates e eventos do config.lua, somente leitura)
 RUN pip install --no-cache-dir -r requirements.txt \
- && useradd --uid 1001 --no-create-home --shell /usr/sbin/nologin portal
-COPY app.py .
+ && useradd --uid 1000 --no-create-home --shell /usr/sbin/nologin portal
+COPY app.py infos.py ./
 COPY templates templates
 COPY static static
 USER portal

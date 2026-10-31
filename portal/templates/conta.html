@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_macros.html" import char %}
+{% block titulo %}Minha conta — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+{% set cid, cnome, email, criada = c %}
+<div class="titulo-linha">
+  <h1>Olá, {{ cnome }}</h1>
+  <form method="post" action="{{ url_for('sair') }}"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="botao secundario pequeno" type="submit">Sair</button></form>
+</div>
+{% if msg %}<p class="ok" role="status">{{ msg }}</p>{% endif %}
+{% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
+
+<section class="cartao">
+  <h2>Seus personagens</h2>
+  {% if personagens %}
+  <table class="tabela">
+    <thead><tr><th>Personagem</th><th>Level</th><th>Último login</th></tr></thead>
+    <tbody>{% for pn, lvl, voc, ultimo, on in personagens %}
+      <tr><td>{{ char(pn) }}{% if on %} <span class="selo on">on</span>{% endif %}<br><span class="suave">{{ vocacoes.get(voc, '?') }}</span></td><td>{{ lvl }}</td><td>{{ ultimo|ha }}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}<p class="suave">Nenhum personagem nesta conta.</p>{% endif %}
+</section>
+
+{% if personagens|length < max_personagens %}
+<section class="cartao">
+  <h2>Novo personagem</h2>
+  <form method="post" class="form sem-borda" action="{{ url_for('criar_personagem_logado') }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% include "_personagem.html" %}
+    <button class="botao" type="submit">Criar personagem</button>
+  </form>
+</section>
+{% endif %}
+
+<section class="cartao">
+  <h2>Trocar senha</h2>
+  <form method="post" class="form sem-borda" action="{{ url_for('trocar_senha') }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label>Senha atual <input name="atual" type="password" required maxlength="29" autocomplete="current-password"></label>
+    <label>Nova senha <input name="nova" type="password" required minlength="6" maxlength="29" autocomplete="new-password"></label>
+    <label>Repita a nova senha <input name="nova2" type="password" required minlength="6" maxlength="29" autocomplete="new-password"></label>
+    <button class="botao" type="submit">Trocar senha</button>
+  </form>
+</section>
+<p class="suave">Conta criada em {{ criada|data }}{% if email %} · {{ email }}{% endif %}</p>
+{% endblock %}

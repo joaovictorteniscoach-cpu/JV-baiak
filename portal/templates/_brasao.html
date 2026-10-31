@@ -1,0 +1,18 @@
+{# Brasao dos fundadores: escudo partido ao meio, um lado para cada irmao. Desenho original. #}
+<svg class="brasao {{ classe|default('') }}" viewBox="0 0 100 128" role="img" aria-label="Brasão de {{ fundadores }}">
+  <defs>
+    <clipPath id="escudo-{{ id|default('b') }}"><path d="M12 30 H88 V72 C88 99 70 115 50 125 C30 115 12 99 12 72 Z"/></clipPath>
+  </defs>
+  <path d="M26 22 L22 6 L36 14 L50 2 L64 14 L78 6 L74 22 Z" fill="#e0b04a" stroke="#6b4a12" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="50" cy="12" r="2.6" fill="#962418"/><circle cx="31" cy="15" r="1.8" fill="#24451f"/><circle cx="69" cy="15" r="1.8" fill="#24451f"/>
+  <g clip-path="url(#escudo-{{ id|default('b') }})">
+    <rect x="0" y="0" width="50" height="128" fill="#8f1d14"/>
+    <rect x="50" y="0" width="50" height="128" fill="#24451f"/>
+    <path d="M0 30 L100 130 M100 30 L0 130" stroke="#000" stroke-opacity=".12" stroke-width="10"/>
+  </g>
+  <path d="M12 30 H88 V72 C88 99 70 115 50 125 C30 115 12 99 12 72 Z" fill="none" stroke="#e0b04a" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M50 30 V125" stroke="#e0b04a" stroke-width="2.5"/>
+  <text class="brasao-letra" x="31" y="78" text-anchor="middle">{{ iniciais[0] }}</text>
+  <text class="brasao-letra" x="69" y="78" text-anchor="middle">{{ iniciais[1] }}</text>
+  <path d="M22 96 L50 108 L78 96" fill="none" stroke="#e0b04a" stroke-width="2" stroke-opacity=".7"/>
+</svg>

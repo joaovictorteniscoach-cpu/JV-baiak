@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import char %}
+{% block titulo %}{{ g[1] }} — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+{% set gid, nome, motd, criada, lider = g %}
+<h1>{{ nome }}</h1>
+<p class="suave">Criada em {{ criada|data }} · líder {{ char(lider) }}</p>
+{% if motd %}<p class="aviso">{{ motd }}</p>{% endif %}
+<table class="tabela">
+  <thead><tr><th>Cargo</th><th>Membro</th><th>Level</th></tr></thead>
+  <tbody>
+  {% for pnome, lvl, voc, cargo, nick, on in membros %}
+    <tr><td>{{ cargo }}</td><td>{{ char(pnome) }}{% if nick %} <span class="suave">({{ nick }})</span>{% endif %}{% if on %} <span class="selo on">on</span>{% endif %}</td><td>{{ lvl }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if guerras %}
+<section class="cartao">
+  <h2>Guerras</h2>
+  <ul class="lista-simples">
+    {% for n1, n2, st, inicio in guerras %}<li><span>{{ n1 }} × {{ n2 }}</span><span class="suave">{{ {0:'convite', 1:'em guerra', 2:'recusada', 3:'cancelada', 4:'encerrada', 5:'encerrada'}.get(st, '') }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

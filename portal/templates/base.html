@@ -2,22 +2,39 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block titulo %}{{ nome_servidor }}{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a190c">
+<meta name="description" content="{{ nome_servidor }}: servidor Baiak 8.60 com PvP, castle war, eventos e treino automático. Jogue no PC, Android e iPhone.">
+<title>{% block titulo %}{{ nome_servidor }} · Baiak 8.60{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='brasao.svg') }}" type="image/svg+xml">
+<link rel="preload" href="{{ url_for('static', filename='fontes/cinzel.woff') }}" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
 </head>
 <body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <header class="topo">
-  <a class="marca" href="{{ url_for('inicio') }}">{{ nome_servidor }}</a>
-  <nav>
-    <a href="{{ url_for('criar_conta') }}">Criar conta</a>
-    <a href="{{ url_for('baixar') }}">Baixar</a>
-    <a href="{{ url_for('ranking') }}">Ranking</a>
+  <div class="topo-linha">
+    <a class="marca" href="{{ url_for('inicio') }}">
+      {% with classe='mini', id='topo' %}{% include "_brasao.html" %}{% endwith %}
+      <span>{{ nome_servidor }}</span>
+    </a>
+    <a class="botao pequeno" href="{{ url_for('conta') }}">{{ conta_logada or 'Minha conta' }}</a>
+  </div>
+  <nav class="menu" aria-label="Menu principal">
+    {% for ep, rotulo in [('inicio','Início'), ('online','Online'), ('ranking','Ranking'), ('personagem','Personagens'), ('mortes','Mortes'), ('guilds','Guilds'), ('casas','Casas'), ('servidor','Servidor'), ('baixar','Baixar')] %}
+    <a href="{{ url_for(ep) }}"{% if pagina == ep or (ep == 'guilds' and pagina == 'guild') %} class="ativa" aria-current="page"{% endif %}>{{ rotulo }}</a>
+    {% endfor %}
   </nav>
 </header>
-<main>
+<main id="conteudo">
 {% block conteudo %}{% endblock %}
 </main>
-<footer>Servidor 8.60 &middot; {{ endereco }}</footer>
+<footer class="rodape">
+  {% include "_selo.html" %}
+  <p class="assinatura">Família {{ familia }}</p>
+  <p>{{ nome_servidor }} foi erguido por {{ fundadores }}.</p>
+  <p class="suave">Tibia 8.60 · endereço do jogo <span class="mono">{{ endereco }}</span></p>
+  <p class="suave miudo">Servidor de fãs, sem fins lucrativos. Tibia é marca da CipSoft GmbH.</p>
+</footer>
 </body>
 </html>

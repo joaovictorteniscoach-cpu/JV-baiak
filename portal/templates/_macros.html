@@ -1,0 +1,18 @@
+{% macro char(nome) -%}
+<a class="char" href="{{ url_for('personagem', nome=nome) }}">{{ nome }}</a>
+{%- endmacro %}
+
+{% macro morte(d, com_nome=true) -%}
+{# d: (nome?, time, level, killed_by, is_player, mostdamage_by, mostdamage_is_player, unjustified) #}
+{% if com_nome %}{% set nome, t, lvl, quem, jogador, dano, dano_jogador, injusta = d %}{% else %}{% set t, lvl, quem, jogador, dano, dano_jogador, injusta = d %}{% endif %}
+<li class="morte {{ 'pvp' if jogador or dano_jogador }}">
+  <span class="quando" title="{{ t|data }}">{{ t|ha }}</span>
+  <span class="texto">
+    {% if com_nome %}{{ char(nome) }} morreu{% else %}Morreu{% endif %} no level <b>{{ lvl }}</b> para
+    {% if jogador %}{{ char(quem) }}{% else %}{{ quem }}{% endif %}
+    {%- if dano and dano != quem %} e {% if dano_jogador %}{{ char(dano) }}{% else %}{{ dano }}{% endif %}{% endif %}.
+    {% if jogador or dano_jogador %}<span class="selo pvp">PvP</span>{% endif %}
+    {% if injusta %}<span class="selo injusta">injustificada</span>{% endif %}
+  </span>
+</li>
+{%- endmacro %}

@@ -64,6 +64,8 @@ services:
       TZ: America/Sao_Paulo
     volumes:
       - ./downloads:/app/downloads:ro
+      # Somente leitura: o site mostra rates, regras de PvP e agenda de eventos direto dos arquivos do jogo
+      - ./servidor:/jogo:ro
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }

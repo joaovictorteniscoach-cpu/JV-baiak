@@ -1,29 +1,77 @@
 {% extends "base.html" %}
+{% from "_macros.html" import char, morte %}
 {% block conteudo %}
 <section class="destaque">
+  {% with classe='grande', id='heroi' %}{% include "_brasao.html" %}{% endwith %}
   <h1>{{ nome_servidor }}</h1>
-  <p class="sub">Baiak 8.60 com PvP, castle war, eventos e treino automatico.</p>
+  <p class="sub">Baiak 8.60 com PvP, castle war, eventos todo dia e treino automático. No PC, no Android e no iPhone.</p>
   <p class="status {{ 'on' if no_ar else 'off' }}">
-    {{ 'Servidor online' if no_ar else 'Servidor offline' }}{% if online is not none %} &middot; {{ online }} jogando{% endif %}
+    <span class="chama" aria-hidden="true"></span>
+    {% if no_ar %}Servidor online{% if online is not none %}, {{ online }} jogando{% endif %}{% else %}Servidor offline{% endif %}
   </p>
   <div class="botoes">
     <a class="botao" href="{{ url_for('criar_conta') }}">Criar conta</a>
     <a class="botao secundario" href="{{ url_for('baixar') }}">Baixar o jogo</a>
   </div>
 </section>
+
+<section class="numeros" aria-label="Rates do servidor">
+  <div><b>{{ srv.estagios[0].multiplicador if srv.estagios else (srv.rate_exp or '-') }}x</b><span>exp no começo</span></div>
+  <div><b>{{ srv.rate_skill or '-' }}x</b><span>skill</span></div>
+  <div><b>{{ srv.rate_magia or '-' }}x</b><span>magia</span></div>
+  <div><b>{{ srv.rate_loot or '-' }}x</b><span>loot</span></div>
+  {% if recorde %}<div><b>{{ recorde }}</b><span>recorde online</span></div>{% endif %}
+</section>
+
+<div class="grade">
+  <section class="cartao">
+    <h2>Próximos eventos</h2>
+    {% if eventos %}
+    <ul class="lista-simples">
+      {% for e in eventos %}<li><span>{{ e.nome }}</span><span class="suave">{{ e.quando }}, {{ e.hora }}</span></li>{% endfor %}
+    </ul>
+    {% else %}<p class="suave">A agenda aparece aqui assim que o servidor ligar.</p>{% endif %}
+    <a class="mais" href="{{ url_for('servidor') }}#eventos">Ver a agenda da semana</a>
+  </section>
+
+  <section class="cartao">
+    <h2>Mais fortes</h2>
+    {% if top %}
+    <ol class="lista-simples numerada">
+      {% for nome, lvl, voc in top %}<li><span>{{ char(nome) }}</span><span class="suave">level {{ lvl }}, {{ vocacoes.get(voc, '?') }}</span></li>{% endfor %}
+    </ol>
+    {% else %}<p class="suave">O ranking ainda está vazio. Crie seu personagem e seja o primeiro.</p>{% endif %}
+    <a class="mais" href="{{ url_for('ranking') }}">Ver o ranking</a>
+  </section>
+
+  <section class="cartao largo">
+    <h2>Últimas mortes</h2>
+    {% if mortes %}<ul class="mortes">{% for d in mortes %}{{ morte(d) }}{% endfor %}</ul>
+    {% else %}<p class="suave">Ninguém morreu ainda.</p>{% endif %}
+    <a class="mais" href="{{ url_for('mortes') }}">Ver todas as mortes</a>
+  </section>
+</div>
+
 <section class="cartoes">
   <article>
-    <h2>Treino automatico</h2>
-    <p>Entre numa sala de trainers e o servidor treina sozinho a skill da sua arma, shielding e magic level. Voce nao cai por inatividade la dentro. Digite <b>!treino</b> no jogo para ver o status.</p>
+    <h2>Treino automático</h2>
+    <p>Entre numa sala de trainers e o servidor treina sua arma, shielding e magic level sem você cair por inatividade. No jogo, digite <b>!treino</b>.</p>
   </article>
   <article>
     <h2>Bot liberado</h2>
-    <p>O cliente ja vem com o bot (vBot) para cura, ataque e magias. Nao ha punicao por usar bot.</p>
+    <p>O cliente já vem com o vBot para cura, ataque e magias. Usar bot não dá punição.</p>
   </article>
   <article>
-    <h2>PC e celular</h2>
-    <p>Windows e Android usam o mesmo servidor e a mesma conta.</p>
+    <h2>Mesma conta em tudo</h2>
+    <p>Windows e Android pelo app, iPhone pelo navegador. Você entra com a mesma conta em qualquer um.</p>
   </article>
 </section>
-<p class="dica">Ja tem conta? <a href="{{ url_for('novo_personagem') }}">Crie outro personagem</a>.</p>
+
+<section class="fundadores">
+  {% with classe='medio', id='fund' %}{% include "_brasao.html" %}{% endwith %}
+  <div>
+    <h2>Os fundadores</h2>
+    <p>{{ nome_servidor }} nasceu para {{ fundadores }}, da família {{ familia }}, jogarem juntos como nos velhos tempos de OT. O escudo é dos dois: uma metade para cada irmão.</p>
+  </div>
+</section>
 {% endblock %}

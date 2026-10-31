@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import char %}
+{% block titulo %}Online — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Quem está online</h1>
+<p class="status {{ 'on' if no_ar else 'off' }}">{{ jogadores|length }} jogando agora{% if recorde %} · recorde {{ recorde }}{% endif %}</p>
+{% if jogadores %}
+<table class="tabela">
+  <thead><tr><th>Personagem</th><th>Vocação</th><th>Level</th></tr></thead>
+  <tbody>{% for nome, lvl, voc in jogadores %}<tr><td>{{ char(nome) }}</td><td>{{ vocacoes.get(voc, '?') }}</td><td>{{ lvl }}</td></tr>{% endfor %}</tbody>
+</table>
+{% else %}
+<p class="suave">Ninguém online agora. Que tal ser o primeiro? <a href="{{ url_for('baixar') }}">Baixar o jogo</a></p>
+{% endif %}
+{% endblock %}

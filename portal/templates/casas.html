@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "_macros.html" import char %}
+{% block titulo %}Casas — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Casas</h1>
+<nav class="abas">
+  <a href="{{ url_for('casas') }}" class="{{ 'ativa' if not cidade }}">Todas</a>
+  {% for cid, cnome in cidades.items() %}<a href="{{ url_for('casas', cidade=cid) }}" class="{{ 'ativa' if cidade == cid }}">{{ cnome }}</a>{% endfor %}
+</nav>
+<p class="suave">{{ livres }} livre{{ 's' if livres != 1 }} de {{ casas|length }}. Para comprar, olhe para a porta da casa e digite <b>!buyhouse</b>.</p>
+{% if casas %}
+<table class="tabela">
+  <thead><tr><th>Casa</th><th>Dono</th><th>Tamanho</th></tr></thead>
+  <tbody>
+  {% for nome, cid, tam, aluguel, camas, dono in casas %}
+    <tr><td>{{ nome }}{% if not cidade %}<br><span class="suave">{{ cidades.get(cid, '') }}</span>{% endif %}</td>
+        <td>{% if dono %}{{ char(dono) }}{% else %}<span class="selo on">livre</span>{% endif %}</td>
+        <td>{{ tam }} sqm{% if camas %} · {{ camas }} cama{{ 's' if camas != 1 }}{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="suave">As casas aparecem aqui depois que o servidor for iniciado pela primeira vez.</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import char %}
+{% block titulo %}Guilds — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Guilds</h1>
+{% if guilds %}
+<div class="cartoes">
+  {% for gid, nome, motd, criada, lider, membros in guilds %}
+  <article>
+    <h2><a href="{{ url_for('guild', gid=gid) }}">{{ nome }}</a></h2>
+    <p>{{ membros }} membro{{ 's' if membros != 1 }} · líder {{ char(lider) }}</p>
+    {% if motd %}<p class="suave">“{{ motd }}”</p>{% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<p class="suave">Nenhuma guild ainda. Para criar uma, fale com um NPC de guild dentro do jogo.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block titulo %}Servidor — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<h1>Informações do servidor</h1>
+
+<section class="numeros">
+  <div><b>{{ srv.mundo or 'PvP' }}</b><span>tipo de mundo</span></div>
+  <div><b>{{ srv.rate_skill or '-' }}x</b><span>skill</span></div>
+  <div><b>{{ srv.rate_magia or '-' }}x</b><span>magia</span></div>
+  <div><b>{{ srv.rate_loot or '-' }}x</b><span>loot</span></div>
+  {% if srv.protecao %}<div><b>{{ srv.protecao }}</b><span>proteção PvP até level</span></div>{% endif %}
+</section>
+
+{% if srv.estagios %}
+<section class="cartao">
+  <h2>Experiência por level</h2>
+  <table class="tabela compacta">
+    <thead><tr><th>Level</th><th>Exp</th></tr></thead>
+    <tbody>{% for e in srv.estagios %}<tr><td>{{ e.de }}{{ ' – ' ~ e.ate if e.ate else '+' }}</td><td>{{ e.multiplicador }}x</td></tr>{% endfor %}</tbody>
+  </table>
+</section>
+{% endif %}
+
+<section class="cartao">
+  <h2>Regras de PvP</h2>
+  <ul class="lista-simples">
+    {% if srv.protecao %}<li><span>Proteção</span><span>ninguém ataca você até o level {{ srv.protecao }}</span></li>{% endif %}
+    {% if srv.red_skull %}<li><span>Red skull</span><span>{{ srv.red_skull }} mortes injustificadas</span></li>{% endif %}
+    {% if srv.black_skull %}<li><span>Black skull</span><span>{{ srv.black_skull }} mortes injustificadas</span></li>{% endif %}
+    {% if srv.pz_segundos %}<li><span>PZ lock</span><span>{{ srv.pz_segundos }} segundos</span></li>{% endif %}
+    <li><span>Bot</span><span>liberado</span></li>
+    {% if save %}<li><span>Server save</span><span>todo dia às {{ save }}</span></li>{% endif %}
+  </ul>
+</section>
+
+<section class="cartao" id="eventos">
+  <h2>Agenda de eventos</h2>
+  {% if eventos %}
+  <ul class="lista-simples agenda">
+    {% for e in eventos %}<li><span>{{ e.nome }}</span><span>{{ resumo_dias(e.dias) }}</span></li>{% endfor %}
+  </ul>
+  <p class="suave">Horário de Brasília.</p>
+  {% else %}<p class="suave">A agenda aparece aqui assim que o servidor ligar.</p>{% endif %}
+</section>
+
+<section class="cartao" id="comandos">
+  <h2>Comandos do jogo</h2>
+  {% for grupo, lista in comandos %}
+  <h3>{{ grupo }}</h3>
+  <dl class="comandos">{% for cmd, desc in lista %}<dt>{{ cmd }}</dt><dd>{{ desc }}</dd>{% endfor %}</dl>
+  {% endfor %}
+</section>
+{% endblock %}

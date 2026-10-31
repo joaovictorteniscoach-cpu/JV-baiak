@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_macros.html" import char, morte %}
+{% block titulo %}{{ p[1] if p else 'Personagens' }} — {{ nome_servidor }}{% endblock %}
+{% block conteudo %}
+<form class="busca" method="get" action="{{ url_for('personagem') }}">
+  <input name="nome" value="{{ nome }}" placeholder="Nome do personagem" aria-label="Nome do personagem" maxlength="30" autocomplete="off">
+  <button class="botao" type="submit">Buscar</button>
+</form>
+
+{% if p %}
+{% set pid, pnome, lvl, voc, ml, fist, club, sword, axe, dist, shield, fish, cidade, ultimo, sexo, tempo, grupo = p %}
+<section class="cartao perfil">
+  <h1>{{ pnome }} {% if esta_online %}<span class="selo on">online</span>{% endif %}</h1>
+  <dl class="dados">
+    <dt>Level</dt><dd>{{ lvl }}</dd>
+    <dt>Vocação</dt><dd>{{ vocacoes.get(voc, '?') }}</dd>
+    <dt>Sexo</dt><dd>{{ 'Masculino' if sexo == 1 else 'Feminino' }}</dd>
+    <dt>Cidade</dt><dd>{{ cidades.get(cidade, 'Cidade ' ~ cidade) }}</dd>
+    {% if guild %}<dt>Guild</dt><dd>{{ guild[2] }} da <a href="{{ url_for('guild', gid=guild[0]) }}">{{ guild[1] }}</a></dd>{% endif %}
+    {% if casa %}<dt>Casa</dt><dd>{{ casa[0] }} ({{ cidades.get(casa[1], '') }})</dd>{% endif %}
+    <dt>Último login</dt><dd>{{ ultimo|data }}</dd>
+    {% if tempo %}<dt>Tempo online</dt><dd>{{ tempo|horas }}</dd>{% endif %}
+    {% if grupo and grupo > 1 %}<dt>Cargo</dt><dd>Equipe do servidor</dd>{% endif %}
+  </dl>
+</section>
+<section class="cartao">
+  <h2>Skills</h2>
+  <div class="skills">
+    <div><span>Magic</span><b>{{ ml }}</b></div>
+    <div><span>Fist</span><b>{{ fist }}</b></div>
+    <div><span>Club</span><b>{{ club }}</b></div>
+    <div><span>Sword</span><b>{{ sword }}</b></div>
+    <div><span>Axe</span><b>{{ axe }}</b></div>
+    <div><span>Distance</span><b>{{ dist }}</b></div>
+    <div><span>Shielding</span><b>{{ shield }}</b></div>
+    <div><span>Fishing</span><b>{{ fish }}</b></div>
+  </div>
+</section>
+<section class="cartao">
+  <h2>Mortes recentes</h2>
+  {% if mortes %}<ul class="mortes">{% for d in mortes %}{{ morte(d, com_nome=false) }}{% endfor %}</ul>
+  {% else %}<p class="suave">Nenhuma morte até agora.</p>{% endif %}
+</section>
+{% elif nome %}
+<p class="aviso">Não existe personagem chamado <b>{{ nome }}</b>.</p>
+{% if sugestoes %}<p>Você quis dizer: {% for s in sugestoes %}{{ char(s[0]) }}{{ ', ' if not loop.last }}{% endfor %}?</p>{% endif %}
+{% else %}
+<h1>Personagens</h1>
+<p class="suave">Digite o nome para ver level, skills, guild e mortes.</p>
+{% endif %}
+{% endblock %}

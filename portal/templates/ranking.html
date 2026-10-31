@@ -1,20 +1,25 @@
 {% extends "base.html" %}
-{% block titulo %}Ranking - {{ nome_servidor }}{% endblock %}
+{% from "_macros.html" import char %}
+{% block titulo %}Ranking — {{ nome_servidor }}{% endblock %}
 {% block conteudo %}
 <h1>Ranking de {{ titulo }}</h1>
 <nav class="abas">
-{% for chave, r in rankings.items() %}<a href="{{ url_for('ranking', tipo=chave) }}" class="{{ 'ativa' if chave == tipo }}">{{ r[0] }}</a>{% endfor %}
+{% for chave, r in rankings.items() %}<a href="{{ url_for('ranking', tipo=chave, voc=voc or None) }}" class="{{ 'ativa' if chave == tipo }}">{{ r[0] }}</a>{% endfor %}
+</nav>
+<nav class="abas secundarias">
+  <a href="{{ url_for('ranking', tipo=tipo) }}" class="{{ 'ativa' if not voc }}">Todas</a>
+  {% for g in grupos %}<a href="{{ url_for('ranking', tipo=tipo, voc=g) }}" class="{{ 'ativa' if voc == g }}">{{ g|capitalize }}s</a>{% endfor %}
 </nav>
 {% if linhas %}
 <table class="tabela">
-  <thead><tr><th>#</th><th>Personagem</th><th>Vocacao</th><th>{{ titulo }}</th></tr></thead>
+  <thead><tr><th>#</th><th>Personagem</th><th>{{ titulo }}</th></tr></thead>
   <tbody>
-  {% for nome, voc, level, valor in linhas %}
-    <tr><td>{{ loop.index }}</td><td>{{ nome }}</td><td>{{ vocacoes.get(voc, '?') }}</td><td>{{ valor }}</td></tr>
+  {% for nome, v, level, valor in linhas %}
+    <tr><td>{{ loop.index }}</td><td>{{ char(nome) }}<br><span class="suave">{{ vocacoes.get(v, '?') }}{% if tipo != 'level' %} · level {{ level }}{% endif %}</span></td><td>{{ valor }}</td></tr>
   {% endfor %}
   </tbody>
 </table>
 {% else %}
-<p>Ninguem no ranking ainda. Seja o primeiro!</p>
+<p class="suave">Ninguém no ranking ainda. Seja o primeiro!</p>
 {% endif %}
 {% endblock %}

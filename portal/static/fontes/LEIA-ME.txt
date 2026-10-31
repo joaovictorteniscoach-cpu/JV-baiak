@@ -1,0 +1,2 @@
+Cinzel (Natanael Gama) e Alegreya (Huerta Tipografica), licenca SIL Open Font License 1.1.
+Fonte: github.com/google/fonts (ofl/cinzel, ofl/alegreya). Subconjunto latino em WOFF.

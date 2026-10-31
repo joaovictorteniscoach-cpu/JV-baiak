@@ -245,6 +245,15 @@ cmd_web_status() {
 	fi
 }
 
+cmd_atualizar() { # baixa a versao nova do kit no GitHub e reinstala (dados, contas e mapa ficam)
+	local url="${KIT_INSTALADOR:-https://raw.githubusercontent.com/joaovictorteniscoach-cpu/JV-baiak/main/instalar.sh}"
+	info "Fazendo backup antes de atualizar..."
+	cmd_backup
+	info "Baixando e rodando o instalador novo..."
+	curl -fsSL "$url" -o /root/instalar.sh || falha "nao consegui baixar $url"
+	bash /root/instalar.sh
+}
+
 cmd_config() {
 	"${EDITOR:-nano}" "$BASE/servidor/config.lua"
 	read -r -p "Reiniciar o servidor agora para aplicar? [s/N] " r
@@ -270,6 +279,7 @@ cmd_ajuda() {
 		  jvbaiak web <dominio> [token]     (beta) HTTPS + jogar no navegador/iPhone
 		  jvbaiak web-status                acompanha a compilacao do cliente web
 		  jvbaiak atualizar-ip              aponta o dominio DuckDNS para o IP atual
+		  jvbaiak atualizar                 backup + instala a versao nova do GitHub (site, scripts)
 	EOF
 }
 
@@ -293,6 +303,7 @@ case "$acao" in
 	web) cmd_web "$@" ;;
 	web-status) cmd_web_status ;;
 	atualizar-ip) cmd_atualizar_ip "$@" ;;
+	atualizar | update) cmd_atualizar ;;
 	ajuda | help | -h | --help) cmd_ajuda ;;
 	*) cmd_ajuda; exit 1 ;;
 esac
