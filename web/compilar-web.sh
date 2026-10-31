@@ -98,7 +98,22 @@ compilar_base_aqui() {
 		|| falha "a compilacao da base falhou (log acima)"
 }
 
-obter_base_pronta || compilar_base_aqui
+# A base ainda esta sendo compilada no GitHub? Espera ela (em vez de passar horas compilando aqui).
+espera_base_github() {
+	local fim primeira=1
+	fim=$(( $(date +%s) + ${JV_ESPERA_BASE_MIN:-300} * 60 ))
+	while [ "$(date +%s)" -lt "$fim" ]; do
+		curl -fsSL --retry 2 -o /dev/null "$URL_BASE/SHA256SUMS" 2>/dev/null && return 0
+		if [ "$primeira" = 1 ]; then
+			log "esperando o GitHub terminar a versao pronta (costuma levar 1 a 2 horas; depois segue sozinho)"
+			primeira=0
+		fi
+		sleep "${JV_ESPERA_INTERVALO_S:-180}"
+	done
+	return 1
+}
+
+obter_base_pronta || { espera_base_github && obter_base_pronta; } || compilar_base_aqui
 
 # ------------------------------------------------- 2) dominio + sprites + link
 log "juntando o dominio $DOMINIO e as sprites 8.60 (etapa final, poucos minutos)"
