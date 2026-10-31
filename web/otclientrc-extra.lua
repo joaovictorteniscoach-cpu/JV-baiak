@@ -6,3 +6,9 @@ if modules.client_bottommenu and modules.client_bottommenu.hide then
     modules.client_bottommenu.show = function() end
     pcall(modules.client_bottommenu.hide)
 end
+
+-- Esconde o texto tecnico da versao no canto da tela de login
+pcall(function()
+    local rotulo = rootWidget:recursiveGetChildById('clientVersionLabel')
+    if rotulo then rotulo:hide() end
+end)

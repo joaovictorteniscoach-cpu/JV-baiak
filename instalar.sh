@@ -297,6 +297,7 @@ main() {
 	fi
 	# Ajustes pedidos depois (cada um roda uma vez so; depois e voce quem manda)
 	AJUSTES="$SRV/.jvbaiak-ajustes"
+	REINICIAR_SERVIDOR=0
 	touch "$AJUSTES"
 	if ! grep -qx 'exp-800-fixo' "$AJUSTES"; then
 		# Baiak com 800x de experiencia em todos os levels
@@ -309,6 +310,29 @@ main() {
 		lua_define rateExp 800
 		echo 'exp-800-fixo' >> "$AJUSTES"
 		ok "experiencia: 800x fixo"
+		REINICIAR_SERVIDOR=1
+	fi
+	if ! grep -qx 'respawn-rapido' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Respawn mais rapido: comuns 60s -> 40s; bosses e raros 60s -> 50s
+		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-rapido' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+			import re, sys
+			RAROS = {"orshabaal", "morgaroth", "ghazbaran", "ferumbras", "demodras", "the old widow", "necropharus",
+			         "the horned fox", "the evil eye", "zulazza the corruptor", "the handmaiden", "the imperor",
+			         "the plasmother", "the plasmother", "dracola", "massacre", "mr. punish", "countess sorrow",
+			         "the count", "grorlam", "zevelon duskbringer", "black knight", "orc warlord", "laravel",
+			         "werewolf", "elder beholder", "massive fire elemental", "pirate ghost"}
+			def troca(m):
+			    tag = m.group(0)
+			    nome = re.search(r'name="([^"]+)"', tag)
+			    nome = nome.group(1).lower() if nome else ""
+			    raro = nome in RAROS or nome.startswith("the ")
+			    return re.sub(r'spawntime="60"', 'spawntime="%d"' % (50 if raro else 40), tag)
+			for arq in sys.argv[1:]:
+			    txt = open(arq, encoding="latin-1").read()
+			    novo = re.sub(r"<monster\b[^>]*>", troca, txt)
+			    open(arq, "w", encoding="latin-1").write(novo)
+		PY
+		ok "respawn: 40s nos comuns e 50s nos raros"
 	fi
 	chown -R 1000:1000 "$SRV"
 	chmod 640 "$SRV/config.lua"
@@ -340,6 +364,9 @@ main() {
 	docker compose build servidor portal || falha "a compilacao falhou"
 	etapa "Ligando banco, servidor e site"
 	docker compose up -d --remove-orphans db servidor portal
+	if [ "${REINICIAR_SERVIDOR:-0}" = 1 ]; then
+		docker compose restart servidor >/dev/null && ok "servidor reiniciado para aplicar os ajustes de jogo"
+	fi
 
 	etapa "Aguardando o servidor abrir (carregar o mapa leva alguns minutos)"
 	for i in $(seq 1 120); do
