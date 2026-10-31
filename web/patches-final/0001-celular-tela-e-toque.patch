@@ -1,6 +1,6 @@
 --- a/src/framework/platform/browserwindow.cpp
 +++ b/src/framework/platform/browserwindow.cpp
-@@ -32,6 +32,23 @@
+@@ -32,6 +32,25 @@
  
  BrowserWindow& g_browserWindow = (BrowserWindow&)g_window;
  
@@ -20,11 +20,13 @@
 +// JV Baiak: toque - posicao inicial para diferenciar "segurar" de "arrastar"
 +static double s_touchStartX = 0, s_touchStartY = 0;
 +static constexpr double JV_TOQUE_TOLERANCIA = 12.0; // px CSS
++// JV Baiak: dois dedos = pinça (a pagina muda o tamanho da interface); o jogo ignora
++static bool s_pinca = false;
 +
  stdext::map<char, Fw::Key> m_keyMapStr;
  EmscriptenWebGLContextAttributes attr;
  
-@@ -158,6 +175,7 @@
+@@ -158,6 +177,7 @@
      emscripten_set_touchend_callback("#canvas", this, EM_TRUE, nullptr);
      emscripten_set_touchstart_callback("#canvas", this, EM_TRUE, nullptr);
      emscripten_set_touchmove_callback("#canvas", this, EM_TRUE, nullptr);
@@ -32,7 +34,7 @@
      EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_get_current_context();
      emscripten_webgl_destroy_context(ctx);
  
-@@ -168,8 +186,10 @@
+@@ -168,8 +188,10 @@
  void BrowserWindow::internalInitGL() {
      double w, h;
      emscripten_get_element_css_size("#canvas", &w, &h);
@@ -45,7 +47,7 @@
  
  
      EmscriptenWebGLContextAttributes attr;
-@@ -180,7 +200,7 @@
+@@ -180,7 +202,7 @@
      emscripten_webgl_make_context_current(ctx);
  
  
@@ -54,7 +56,7 @@
  }
  
  void BrowserWindow::poll() {
-@@ -243,6 +263,11 @@
+@@ -243,6 +265,11 @@
              static_cast<BrowserWindow*>(userData)->handleTouchCallback(eventType, event);
              return EM_TRUE;
          }));
@@ -66,7 +68,7 @@
  
          // clang-format off
          MAIN_THREAD_ASYNC_EM_ASM({
-@@ -366,10 +391,12 @@
+@@ -366,10 +393,12 @@
  void BrowserWindow::handleResizeCallback(const EmscriptenUiEvent* event) {
      double w, h;
      emscripten_get_element_css_size("#canvas", &w, &h);
@@ -83,7 +85,7 @@
          m_onResize(m_size);
      }
  }
-@@ -377,7 +404,7 @@
+@@ -377,7 +406,7 @@
  void BrowserWindow::handleMouseMotionCallback(const EmscriptenMouseEvent* mouseEvent) {
      m_inputEvent.reset();
      m_inputEvent.type = Fw::MouseMoveInputEvent;
@@ -92,7 +94,7 @@
      m_inputEvent.mouseMoved = newMousePos - m_inputEvent.mousePos;
      m_inputEvent.mousePos = newMousePos;
      if (m_onInputEvent)
-@@ -386,32 +413,70 @@
+@@ -386,32 +415,95 @@
  
  void BrowserWindow::handleTouchCallback(int eventType, const EmscriptenTouchEvent* event) {
      m_usingTouch = true;
@@ -103,6 +105,31 @@
 +        return;
 +    // JV Baiak: copia os valores agora. O evento e liberado logo depois deste
 +    // callback, e antes ele era lido mais tarde (posicao errada no toque).
++    if (event->numTouches >= 2 && !s_pinca) {
++        s_pinca = true;
++        m_clickTimer.stop();
++    }
++    if (s_pinca) {
++        int naTela = 0;
++        const bool saindo = eventType == EMSCRIPTEN_EVENT_TOUCHEND || eventType == EMSCRIPTEN_EVENT_TOUCHCANCEL;
++        for (int i = 0; i < event->numTouches; ++i)
++            if (!(saindo && event->touches[i].isChanged))
++                ++naTela;
++        if (naTela == 0) {
++            s_pinca = false;
++            // solta o botao longe de tudo: sem clique, sem andar
++            g_dispatcher.addEvent([this] {
++                m_inputEvent.reset();
++                m_inputEvent.mousePos = Point(-10000, -10000);
++                m_inputEvent.mouseButton = Fw::MouseLeftButton;
++                m_inputEvent.type = Fw::MouseReleaseInputEvent;
++                m_mouseButtonStates &= ~(1 << Fw::MouseLeftButton);
++                if (m_onInputEvent)
++                    m_onInputEvent(m_inputEvent);
++            });
++        }
++        return;
++    }
 +    const EmscriptenTouchPoint& toque = event->touches[0];
 +    const double cssX = toque.targetX, cssY = toque.targetY;
 +    const Point pos(int(cssX * s_pixelRatio / m_displayDensity), int(cssY * s_pixelRatio / m_displayDensity));

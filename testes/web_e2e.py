@@ -146,6 +146,20 @@ def main():
             foto("8d-zoom-maior.png")
             pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(2)
             foto("8e-zoom-normal.png")
+            # pinça com dois dedos: abre (tudo maior) e depois fecha
+            def pinca(d0, d1):
+                pts = lambda d: [{"x": 422 - d / 2, "y": 200}, {"x": 422 + d / 2, "y": 200}]
+                cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": pts(d0)})
+                for i in range(1, 9):
+                    cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": pts(d0 + (d1 - d0) * i / 8)})
+                    time.sleep(0.05)
+                cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+                time.sleep(2.5)
+            pinca(100, 160)
+            foto("8f-pinca-abrir.png")
+            pinca(160, 100)
+            foto("8g-pinca-fechar.png")
+            log.write(f"zoom depois da pinca: {pg.evaluate('lerZoom()')}\n")
             pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
             time.sleep(6)
             foto("9-em-pe.png")

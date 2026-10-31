@@ -143,6 +143,11 @@
       #menu-painel .linha { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
       #menu-painel .jv-botao-teclado { position: static; display: flex; justify-content: center; min-width: 48px; min-height: 44px; padding: 0 12px; font-size: 18px; }
       #zoom-valor { min-width: 3.4em; text-align: center; }
+      #zoom-aviso {
+        position: fixed; z-index: 7; display: none; left: 50%; top: 40%; transform: translate(-50%, -50%);
+        padding: 10px 18px; border-radius: 999px; background: rgba(20, 14, 8, .85); border: 1px solid #a9781f;
+        color: #f1e0c6; font: 700 18px Georgia, serif; pointer-events: none;
+      }
       #girar {
         display: none;
         position: fixed;
@@ -189,7 +194,7 @@
     <div id="fechar-teclado" class="jv-botao-teclado" role="button">Fechar teclado</div>
     <div id="menu-botao" role="button" aria-label="Opcoes da tela">&#9776;</div>
     <div id="menu-painel">
-      <div class="linha"><span>Tamanho</span></div>
+      <div class="linha"><span>Tamanho (ou pinça com 2 dedos)</span></div>
       <div class="linha">
         <div id="zoom-menos" class="jv-botao-teclado" role="button" aria-label="Diminuir">A&minus;</div>
         <span id="zoom-valor">100%</span>
@@ -197,6 +202,7 @@
       </div>
       <div id="abrir-teclado" class="jv-botao-teclado" role="button">&#9000; Teclado</div>
     </div>
+    <div id="zoom-aviso">100%</div>
     <canvas class="backbuffer" id="canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
     <script type="text/javascript">
       var canvas = document.getElementById("canvas");
@@ -341,6 +347,29 @@
         clearTimeout(window.jvTimerTam);
         window.jvTimerTam = setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 120);
       });
+      // ---------------------------------------------------------------- pinça com dois dedos
+      // Dois dedos abrindo/fechando = aumenta/diminui janelas, icones e hotkeys (o mesmo do A+/A-).
+      // O jogo ignora toques de dois dedos, entao nao anda nem clica sem querer.
+      var pinca = null, avisoZoom = document.getElementById("zoom-aviso"), timerAviso = null, timerPinca = null;
+      function distancia(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy); }
+      function aplicarPinca(valor) {
+        valor = Math.max(0.6, Math.min(2, Math.round(valor * 20) / 20));
+        if (Math.abs(valor - lerZoom()) < 0.001) return;
+        gravarZoom(valor);
+        avisoZoom.textContent = Math.round(valor * 100) + "%";
+        avisoZoom.style.display = "block";
+        clearTimeout(timerAviso);
+        timerAviso = setTimeout(function () { avisoZoom.style.display = "none"; }, 900);
+        clearTimeout(timerPinca);
+        timerPinca = setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 120);
+      }
+      window.addEventListener("touchstart", function (ev) {
+        if (ev.touches.length === 2) pinca = { d: distancia(ev.touches), z: lerZoom() };
+      }, { capture: true, passive: true });
+      window.addEventListener("touchmove", function (ev) {
+        if (pinca && ev.touches.length === 2) aplicarPinca(pinca.z * distancia(ev.touches) / pinca.d);
+      }, { capture: true, passive: true });
+      window.addEventListener("touchend", function (ev) { if (ev.touches.length < 2) pinca = null; }, { capture: true, passive: true });
       function startGame() {
         document.getElementById("capa").style.display = "none";
         document.body.classList.add("jv-jogando");
