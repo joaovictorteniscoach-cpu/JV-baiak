@@ -1,0 +1,13 @@
+--- a/src/client/protocolgame.cpp
++++ b/src/client/protocolgame.cpp
+@@ -36,8 +36,8 @@
+ #ifndef __EMSCRIPTEN__
+     connect(host, port);
+ #else
+-    if (port == 7172)
+-        port = 443;
++    // JV Baiak: a ponte WebSocket usa a porta real do jogo (wss://dominio/ws/7172);
++    // trocar 7172 por 443 fazia o jogo ficar em "Conectando no servidor do jogo".
+     connect(host, port, true);
+ #endif
+ }

@@ -9,6 +9,10 @@
 	handle /ws/7172 {
 		reverse_proxy ponte-jogo:8080
 	}
+	# o OTClient web original troca a porta 7172 por 443; aceita as duas
+	handle /ws/443 {
+		reverse_proxy ponte-jogo:8080
+	}
 
 	# Cliente web (WebAssembly). Precisa de isolamento de origem para usar threads.
 	redir /jogar /jogar/ 308

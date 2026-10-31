@@ -227,6 +227,7 @@ cmd_web() { # dominio [token-duckdns]
 
 	info "Ligando HTTPS (Caddy) e a ponte WebSocket..."
 	dc up -d --build --remove-orphans
+	dc restart caddy >/dev/null 2>&1 || true  # le o Caddyfile novo (rotas da ponte)
 	info "Site agora em https://$dominio (o certificado sai em 1 ou 2 minutos)."
 
 	if systemctl is-active --quiet jvbaiak-web 2>/dev/null; then
