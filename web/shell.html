@@ -248,15 +248,22 @@
         if (t) enviarTexto(t);
         ev.stopPropagation();
       });
-      teclado.addEventListener("keydown", function (ev) {
-        ev.stopPropagation();
+      function tratarTeclaEspecial(ev) {
         if (ev.key === "Backspace") { ev.preventDefault(); enviarTecla("Backspace", "Backspace", 8, false); }
         else if (ev.key === "Enter") { ev.preventDefault(); enviarTecla("Enter", "Enter", 13, true); teclado.blur(); }
         else if (ev.key === "Tab") { ev.preventDefault(); enviarTecla("Tab", "Tab", 9, false); }
+      }
+      // O jogo escuta o teclado na janela em modo "captura" (antes do campo). As teclas
+      // nascidas no campo escondido nao podem chegar la: o texto vai so pelo evento
+      // "input" (senao cada letra entrava duas vezes). Registrado antes do jogo iniciar.
+      ["keydown", "keypress", "keyup"].forEach(function (tipo) {
+        window.addEventListener(tipo, function (ev) {
+          if (ev.target === teclado) {
+            ev.stopImmediatePropagation();
+            if (tipo === "keydown") tratarTeclaEspecial(ev);
+          }
+        }, true);
       });
-      teclado.addEventListener("keyup", function (ev) { ev.stopPropagation(); });
-      // o texto vai so pelo evento "input"; sem isto cada letra chegava duas vezes
-      teclado.addEventListener("keypress", function (ev) { ev.stopPropagation(); });
       function startGame() {
         document.getElementById("capa").style.display = "none";
         document.body.classList.add("jv-jogando");
