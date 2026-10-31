@@ -295,6 +295,21 @@ main() {
 		lua_define ownerName "\"$NOME\""
 		touch "$SRV/.jvbaiak-config-inicial"
 	fi
+	# Ajustes pedidos depois (cada um roda uma vez so; depois e voce quem manda)
+	AJUSTES="$SRV/.jvbaiak-ajustes"
+	touch "$AJUSTES"
+	if ! grep -qx 'exp-800-fixo' "$AJUSTES"; then
+		# Baiak com 800x de experiencia em todos os levels
+		LC_ALL=C awk '
+			/^experienceStages[ \t]*=[ \t]*\{/ { pula = 1; print "experienceStages = {"; print "\t{ minlevel = 1, multiplier = 800 },"; print "}"; next }
+			pula && /^\}/ { pula = 0; next }
+			pula { next }
+			{ print }
+		' "$SRV/config.lua" > "$SRV/config.lua.tmp" && mv "$SRV/config.lua.tmp" "$SRV/config.lua"
+		lua_define rateExp 800
+		echo 'exp-800-fixo' >> "$AJUSTES"
+		ok "experiencia: 800x fixo"
+	fi
 	chown -R 1000:1000 "$SRV"
 	chmod 640 "$SRV/config.lua"
 	ok "config.lua ajustado (ip, banco, nome, bot liberado, premium gratis)"

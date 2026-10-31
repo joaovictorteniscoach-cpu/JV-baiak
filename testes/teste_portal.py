@@ -251,7 +251,7 @@ class TestePortal(unittest.TestCase):
     def test_identidade_e_inicio(self):
         self.popular()
         html = self.c.get("/").get_data(as_text=True)
-        for trecho in ("Família Carnicini Soubihe", "João Victor e Henrique", "Sir Joao Victor", "recorde online",
+        for trecho in ("Família Carnacini Soubihe", "João Victor e Henrique", "Sir Joao Victor", "recorde online",
                        "Últimas mortes", "brasao-letra", ">J<", ">H<", ">CS<", "400x"):
             self.assertIn(trecho, html)
 

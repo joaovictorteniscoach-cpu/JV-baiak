@@ -10,7 +10,7 @@ Conta e sessão, login Google, criação de personagens, rankings, jogadores onl
 
 - Cabeçalho com arte de Tibia, navegação lateral tradicional, ícones locais, painéis de pergaminho e quatro vocações. O menu se reorganiza em telas pequenas; não exige JavaScript.
 - Textos da home reduzidos, mantendo eventos, ranking e informações dinâmicas. A disponibilidade dos clientes é consultada em Downloads.
-- Nome corrigido para **Carnicini Soubihe** no padrão da aplicação. Se uma instalação personalizou `FAMILIA` no ambiente, ela prevalece.
+- Nome corrigido para **Carnacini Soubihe** no padrão da aplicação. Se uma instalação personalizou `FAMILIA` no ambiente, ela prevalece.
 - Bloqueios de criação/login agora retornam HTTP 429, `Retry-After` em segundos e os minutos restantes na mensagem. Expiração liberada no instante exato do fim da janela.
 - Mantida a correção anterior: erros de validação não consomem a cota de criações; senhas erradas usam outro contador. Os limites continuam por IP e em memória, conforme a arquitetura atual de um processo Gunicorn.
 

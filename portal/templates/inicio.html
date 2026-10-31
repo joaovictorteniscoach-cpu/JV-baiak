@@ -13,7 +13,7 @@
 </section>
 
 <section class="numeros" aria-label="Rates do servidor">
-  <div><b>{{ srv.estagios[0].multiplicador if srv.estagios else (srv.rate_exp or '-') }}x</b><span>exp no começo</span></div>
+  <div><b>{{ srv.estagios[0].multiplicador if srv.estagios else (srv.rate_exp or '-') }}x</b><span>{{ 'experiência' if srv.estagios|length == 1 else 'exp no começo' }}</span></div>
   <div><b>{{ srv.rate_skill or '-' }}x</b><span>skill</span></div>
   <div><b>{{ srv.rate_magia or '-' }}x</b><span>magia</span></div>
   <div><b>{{ srv.rate_loot or '-' }}x</b><span>loot</span></div>

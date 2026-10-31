@@ -39,7 +39,7 @@ URL_WEB = os.environ.get("URL_WEB", "")  # cliente web (modo HTTPS), se ativado
 ATRAS_DE_PROXY = os.environ.get("ATRAS_DE_PROXY") == "1"
 # Identidade do site: os fundadores e a familia (mude no .env se quiser)
 FUNDADORES = os.environ.get("FUNDADORES", "João Victor e Henrique")
-FAMILIA = os.environ.get("FAMILIA", "Carnicini Soubihe")
+FAMILIA = os.environ.get("FAMILIA", "Carnacini Soubihe")
 # "Entrar com Google": so liga se os dois valores existirem (jvbaiak google ...)
 GOOGLE_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
 GOOGLE_SEGREDO = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
