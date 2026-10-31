@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
+<monster name="Cobra Assassin" nameDescription="a cobra assassin" race="blood" experience="6300" speed="240" manacost="0">
+	<health now="8200" max="8200"/>
+	<look type="114" corpse="6040"/>
+	<targetchange interval="4000" chance="10"/>
+	<flags>
+		<flag summonable="0"/>
+		<flag attackable="1"/>
+		<flag hostile="1"/>
+		<flag illusionable="0"/>
+		<flag convinceable="0"/>
+		<flag pushable="0"/>
+		<flag canpushitems="1"/>
+		<flag canpushcreatures="1"/>
+		<flag targetdistance="1"/>
+		<flag staticattack="90"/>
+		<flag runonhealth="0"/>
+	</flags>
+	<attacks>
+		<attack name="melee" interval="2000" min="0" max="-450"/>
+		<attack name="physical" interval="2000" chance="10" length="5" spread="3" min="-300" max="-380">
+			<attribute key="areaEffect" value="blackspark"/>
+		</attack>
+		<attack name="physical" interval="2000" chance="15" radius="4" min="-280" max="-400">
+			<attribute key="areaEffect" value="explosion"/>
+		</attack>
+		<attack name="earth" interval="2000" chance="12" length="5" spread="0" min="-250" max="-400">
+			<attribute key="areaEffect" value="greenspark"/>
+		</attack>
+	</attacks>
+	<defenses armor="60" defense="60">
+		<defense name="healing" interval="2000" chance="12" min="250" max="450">
+			<attribute key="areaEffect" value="greenshimmer"/>
+		</defense>
+	</defenses>
+	<elements>
+		<element physicalPercent="20"/>
+		<element earthPercent="100"/>
+		<element icePercent="-10"/>
+	</elements>
+	<immunities>
+		<immunity earth="1"/>
+		<immunity paralyze="1"/>
+		<immunity invisible="1"/>
+	</immunities>
+	<voices interval="5000" chance="10">
+		<voice sentence="Stand and deliver! Your money... AND your life!"/>
+		<voice sentence="You will not leave this place breathing!"/>
+	</voices>
+	<loot>
+		<item id="2152" countmax="4" chance="100000"/>
+		<item id="2148" countmax="90" chance="100000"/>
+		<item id="7591" countmax="2" chance="20000"/>
+		<item id="7590" countmax="2" chance="20000"/>
+		<item id="2145" countmax="2" chance="8000"/>
+		<item id="2147" countmax="2" chance="8000"/>
+		<item id="2149" countmax="2" chance="8000"/>
+		<item id="2419" chance="7750"/>
+		<item id="2201" chance="7500"/>
+		<item id="2450" chance="5000"/>
+		<item id="2395" chance="2250"/>
+		<item id="2149" chance="3000"/>
+	</loot>
+</monster>

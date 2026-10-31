@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
+<monster name="Falcon Knight" nameDescription="a falcon knight" race="blood" experience="7500" speed="250" manacost="0">
+	<health now="9000" max="9000"/>
+	<look type="131" head="57" body="96" legs="38" feet="105" addons="3" corpse="6080"/>
+	<targetchange interval="4000" chance="10"/>
+	<flags>
+		<flag summonable="0"/>
+		<flag attackable="1"/>
+		<flag hostile="1"/>
+		<flag illusionable="0"/>
+		<flag convinceable="0"/>
+		<flag pushable="0"/>
+		<flag canpushitems="1"/>
+		<flag canpushcreatures="1"/>
+		<flag targetdistance="1"/>
+		<flag staticattack="90"/>
+		<flag runonhealth="0"/>
+	</flags>
+	<attacks>
+		<attack name="melee" interval="2000" min="0" max="-400"/>
+		<attack name="earth" interval="2000" chance="18" radius="2" min="-200" max="-500">
+			<attribute key="areaEffect" value="groundshaker"/>
+		</attack>
+		<attack name="holy" interval="2000" chance="14" length="5" spread="0" min="-200" max="-360">
+			<attribute key="areaEffect" value="holydamage"/>
+		</attack>
+	</attacks>
+	<defenses armor="86" defense="86"/>
+	<elements>
+		<element physicalPercent="30"/>
+		<element holyPercent="-10"/>
+		<element deathPercent="50"/>
+	</elements>
+	<immunities>
+		<immunity paralyze="1"/>
+		<immunity invisible="1"/>
+	</immunities>
+	<voices interval="5000" chance="10">
+		<voice sentence="Mmmhaarrrgh!"/>
+		<voice sentence="For the order of the falcon!"/>
+	</voices>
+	<loot>
+		<item id="2152" countmax="4" chance="100000"/>
+		<item id="2148" countmax="90" chance="100000"/>
+		<item id="7591" countmax="2" chance="20000"/>
+		<item id="7590" countmax="2" chance="20000"/>
+		<item id="2145" countmax="2" chance="8000"/>
+		<item id="2147" countmax="2" chance="8000"/>
+		<item id="2149" countmax="2" chance="8000"/>
+		<item id="2671" countmax="8" chance="70000"/>
+		<item id="5944" chance="35000"/>
+		<item id="6558" chance="30000"/>
+		<item id="2454" chance="1200"/>
+		<item id="2476" chance="1980"/>
+		<item id="2466" chance="840"/>
+		<item id="2514" chance="600"/>
+		<item id="2452" chance="450"/>
+	</loot>
+</monster>

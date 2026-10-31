@@ -12,3 +12,18 @@ pcall(function()
     local rotulo = rootWidget:recursiveGetChildById('clientVersionLabel')
     if rotulo then rotulo:hide() end
 end)
+
+-- Celular: tela do jogo mais limpa ao entrar. A janela do bot (vBot) fica fechada;
+-- ela abre pelo botao "Bot" do menu quando o jogador quiser.
+if g_platform.isMobile() then
+    connect(g_game, {
+        onGameStart = function()
+            scheduleEvent(function()
+                local bot = modules.game_bot
+                if bot and bot.botButton and bot.botButton:isOn() and bot.toggle then
+                    pcall(bot.toggle)
+                end
+            end, 1500)
+        end
+    })
+end

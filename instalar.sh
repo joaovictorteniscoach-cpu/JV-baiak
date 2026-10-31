@@ -312,27 +312,65 @@ main() {
 		ok "experiencia: 800x fixo"
 		REINICIAR_SERVIDOR=1
 	fi
-	if ! grep -qx 'respawn-rapido' "$AJUSTES" && command -v python3 >/dev/null; then
-		# Respawn mais rapido: comuns 60s -> 40s; bosses e raros 60s -> 50s
-		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-rapido' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+	if ! grep -qx 'criaturas-novas' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Cobras, Falcons e Spectres (ideia do Styller-Baiak) com visual do 8.60:
+		# registra os monstros e troca parte das hunts parecidas por eles
+		python3 - "$SRV/data/monster/monsters.xml" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'criaturas-novas' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
 			import re, sys
-			RAROS = {"orshabaal", "morgaroth", "ghazbaran", "ferumbras", "demodras", "the old widow", "necropharus",
-			         "the horned fox", "the evil eye", "zulazza the corruptor", "the handmaiden", "the imperor",
-			         "the plasmother", "the plasmother", "dracola", "massacre", "mr. punish", "countess sorrow",
-			         "the count", "grorlam", "zevelon duskbringer", "black knight", "orc warlord", "laravel",
-			         "werewolf", "elder beholder", "massive fire elemental", "pirate ghost"}
+			NOVOS = ["Cobra Assassin", "Cobra Scout", "Cobra Vizier", "Falcon Knight", "Falcon Paladin",
+			         "Burster Spectre", "Gazer Spectre", "Ripper Spectre"]
+			lista = sys.argv[1]
+			txt = open(lista, encoding="latin-1").read()
+			linhas = "".join('\t<monster name="%s" file="JV/%s.xml"/>\n' % (n, n.lower()) for n in NOVOS if ('name="%s"' % n) not in txt)
+			if linhas:
+			    txt = txt.replace("</monsters>", linhas + "</monsters>")
+			    open(lista, "w", encoding="latin-1").write(txt)
+			TROCAS = {  # monstro do mapa: (a cada quantos, criaturas novas em rodizio)
+			    "serpent spawn": (3, ["Cobra Assassin", "Cobra Scout", "Cobra Vizier"]),
+			    "hero": (3, ["Falcon Knight", "Falcon Paladin"]),
+			    "grim reaper": (4, ["Burster Spectre", "Gazer Spectre", "Ripper Spectre"]),
+			}
+			conta = {k: 0 for k in TROCAS}
+			def troca(m):
+			    tag = m.group(0)
+			    nome = re.search(r'name="([^"]+)"', tag)
+			    chave = nome.group(1).lower() if nome else ""
+			    if chave not in TROCAS:
+			        return tag
+			    cada, novos = TROCAS[chave]
+			    conta[chave] += 1
+			    if conta[chave] % cada:
+			        return tag
+			    novo = novos[(conta[chave] // cada) % len(novos)]
+			    return tag.replace(nome.group(0), 'name="%s"' % novo)
+			for arq in sys.argv[2:]:
+			    t = open(arq, encoding="latin-1").read()
+			    open(arq, "w", encoding="latin-1").write(re.sub(r"<monster\b[^>]*>", troca, t))
+		PY
+		ok "criaturas novas: cobras, falcons e spectres nas hunts parecidas"
+	fi
+	if ! grep -qx 'respawn-rapido-v2' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Respawn mais rapido: comuns 60s -> 40s; bosses e raros (lista do GPT, ~110 lugares) -> 50s
+		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-rapido-v2' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+			import re, sys
+			RAROS = {"the old widow", "orshabaal", "laravel", "diabolic imp", "hand of cursed fate", "orc warlord",
+			         "black knight", "werewolf", "elder beholder", "massive fire elemental", "pirate ghost",
+			         "spectre", "blightwalker", "juggernaut", "rotworm queen", "vampire bride", "undead dragon",
+			         "ashmunrah", "morgaroth", "ghazbaran", "ferumbras", "demodras", "necropharus", "the horned fox",
+			         "the evil eye", "zulazza the corruptor", "the handmaiden", "the imperor", "the plasmother",
+			         "dracola", "massacre", "mr. punish", "countess sorrow", "the count", "grorlam"}
 			def troca(m):
 			    tag = m.group(0)
 			    nome = re.search(r'name="([^"]+)"', tag)
 			    nome = nome.group(1).lower() if nome else ""
-			    raro = nome in RAROS or nome.startswith("the ")
-			    return re.sub(r'spawntime="60"', 'spawntime="%d"' % (50 if raro else 40), tag)
+			    if nome in RAROS:
+			        return re.sub(r'spawntime="(60|40)"', 'spawntime="50"', tag)
+			    return re.sub(r'spawntime="60"', 'spawntime="40"', tag)
 			for arq in sys.argv[1:]:
-			    txt = open(arq, encoding="latin-1").read()
-			    novo = re.sub(r"<monster\b[^>]*>", troca, txt)
-			    open(arq, "w", encoding="latin-1").write(novo)
+			    t = open(arq, encoding="latin-1").read()
+			    open(arq, "w", encoding="latin-1").write(re.sub(r"<monster\b[^>]*>", troca, t))
 		PY
-		ok "respawn: 40s nos comuns e 50s nos raros"
+		ok "respawn: 40s nos comuns e 50s nos bosses e raros"
 	fi
 	chown -R 1000:1000 "$SRV"
 	chmod 640 "$SRV/config.lua"

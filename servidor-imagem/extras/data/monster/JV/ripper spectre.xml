@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
+<monster name="Ripper Spectre" nameDescription="a ripper spectre" race="undead" experience="3500" speed="250" manacost="0">
+	<health now="3800" max="3800"/>
+	<look type="235" head="20" corpse="6348"/>
+	<targetchange interval="4000" chance="10"/>
+	<flags>
+		<flag summonable="0"/>
+		<flag attackable="1"/>
+		<flag hostile="1"/>
+		<flag illusionable="0"/>
+		<flag convinceable="0"/>
+		<flag pushable="0"/>
+		<flag canpushitems="1"/>
+		<flag canpushcreatures="1"/>
+		<flag targetdistance="1"/>
+		<flag staticattack="90"/>
+		<flag runonhealth="0"/>
+	</flags>
+	<attacks>
+		<attack name="melee" interval="2000" min="0" max="-350"/>
+		<attack name="death" interval="2000" chance="18" length="4" spread="2" min="-150" max="-320">
+			<attribute key="areaEffect" value="mortarea"/>
+		</attack>
+	</attacks>
+	<defenses armor="70" defense="70"/>
+	<elements>
+		<element physicalPercent="40"/>
+		<element holyPercent="-20"/>
+		<element deathPercent="100"/>
+	</elements>
+	<immunities>
+		<immunity death="1"/>
+		<immunity paralyze="1"/>
+		<immunity invisible="1"/>
+	</immunities>
+	<voices interval="5000" chance="10">
+		<voice sentence="Rip... and tear!"/>
+	</voices>
+	<loot>
+		<item id="2152" countmax="4" chance="100000"/>
+		<item id="2148" countmax="90" chance="100000"/>
+		<item id="7591" countmax="2" chance="20000"/>
+		<item id="7590" countmax="2" chance="20000"/>
+		<item id="6500" chance="12000"/>
+		<item id="5944" chance="10000"/>
+	</loot>
+</monster>
