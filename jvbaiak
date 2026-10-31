@@ -120,6 +120,62 @@ cmd_criar_gm() { # conta senha personagem
 	info "GM pronto: conta '$conta', personagem '$nome'."
 }
 
+cmd_admin() { # interativo: cria ou renomeia uma conta de administrador (tudo liberado)
+	[ -t 0 ] || falha "rode no terminal: sudo jvbaiak admin"
+	sqlq() { sql "$@" </dev/null; }  # o banco nao le o que voce digita
+	echo
+	info "Contas de administrador que existem hoje:"
+	sqlq -e "SELECT CONCAT('  conta: ', a.name, '   personagens: ', IFNULL(GROUP_CONCAT(p.name SEPARATOR ', '), '-'))
+	        FROM accounts a LEFT JOIN players p ON p.account_id = a.id
+	        WHERE a.type >= 5 GROUP BY a.id ORDER BY a.id"
+	echo
+	local antiga="" conta senha senha2 nome id_antiga="" id_outra
+	read -rp "Trocar uma conta que ja existe? Digite o nome dela (ex.: admin) ou so Enter para criar nova: " antiga
+	antiga="$(printf '%s' "$antiga" | tr -d ' ' | tr 'A-Z' 'a-z')"
+	if [ -n "$antiga" ]; then
+		id_antiga="$(sqlq -e "SELECT id FROM accounts WHERE name = '$(esc "$antiga")'")"
+		[ -n "$id_antiga" ] || falha "a conta '$antiga' nao existe"
+		[ "$(sqlq -e "SELECT COUNT(*) FROM players_online o JOIN players p ON p.id = o.player_id WHERE p.account_id = $id_antiga")" = "0" ] \
+			|| falha "saia do jogo com os personagens da conta '$antiga' e rode de novo"
+	fi
+	read -rp "Nome NOVO da conta (login: 4 a 20 letras minusculas ou numeros): " conta
+	conta="$(printf '%s' "$conta" | tr -d ' ' | tr 'A-Z' 'a-z')"
+	[[ "$conta" =~ ^[a-z0-9]{4,20}$ ]] || falha "nome da conta: 4 a 20 letras minusculas ou numeros, sem espaco"
+	id_outra="$(sqlq -e "SELECT id FROM accounts WHERE name = '$(esc "$conta")'")"
+	if [ -n "$id_outra" ] && [ "$id_outra" != "$id_antiga" ]; then
+		falha "ja existe uma conta chamada '$conta'"
+	fi
+	read -rsp "Senha (6+ caracteres; nao aparece enquanto digita): " senha; echo
+	read -rsp "Repita a senha: " senha2; echo
+	[ "$senha" = "$senha2" ] || falha "as senhas nao sao iguais"
+	[ "${#senha}" -ge 6 ] || falha "senha com pelo menos 6 caracteres"
+	read -rp "Nome do personagem (ex.: Joao Victor): " nome
+	[[ "$nome" =~ ^[A-Za-z\ ]{3,25}$ ]] || falha "nome do personagem: 3 a 25 letras e espacos (sem acento)"
+	if [ -n "$(sqlq -e "SELECT id FROM players WHERE name = '$(esc "$nome")' AND account_id <> '${id_antiga:-0}'")" ]; then
+		falha "ja existe um personagem chamado '$nome'"
+	fi
+	if [ -n "$id_antiga" ]; then
+		local id_gm
+		sqlq -e "UPDATE accounts SET name = '$(esc "$conta")', password = '$(sha1 "$senha")', type = 5 WHERE id = $id_antiga"
+		id_gm="$(sqlq -e "SELECT id FROM players WHERE account_id = $id_antiga ORDER BY group_id DESC, id LIMIT 1")"
+		if [ -n "$id_gm" ]; then
+			sqlq -e "UPDATE players SET name = '$(esc "$nome")', group_id = 5 WHERE id = $id_gm"
+		else
+			cmd_criar_gm "$conta" "$senha" "$nome" >/dev/null
+		fi
+	else
+		cmd_criar_gm "$conta" "$senha" "$nome" >/dev/null
+	fi
+	if [ -f /root/jvbaiak-credenciais.txt ] && [ -n "$antiga" ]; then
+		sed -i "s/^Conta GM: .*/Conta GM:        $conta/; s/^Senha GM: .*/Senha GM:        (a que voce escolheu)/; s/^Personagem GM: .*/Personagem GM:   $nome/" \
+			/root/jvbaiak-credenciais.txt
+	fi
+	echo
+	info "Pronto! Administrador com tudo liberado:"
+	info "  conta: $conta    personagem: $nome"
+	info "  No jogo, fale /comandos para ver a lista (criar item, clonar, teletransportar...)."
+}
+
 cmd_gm() { # personagem
 	local nome="${1:-}"
 	[ -n "$nome" ] || falha "uso: jvbaiak gm \"Nome do Personagem\""
@@ -301,6 +357,7 @@ cmd_ajuda() {
 		  jvbaiak parar | iniciar           desliga / liga servidor e site
 		  jvbaiak backup                    backup agora (tambem roda todo dia as 05:30)
 		  jvbaiak restaurar <arquivo>       volta o banco para um backup
+		  jvbaiak admin                     cria ou renomeia uma conta de administrador (pergunta tudo)
 		  jvbaiak gm "Nome"                 transforma um personagem em GM
 		  jvbaiak criar-gm conta senha Nome cria/atualiza uma conta GM
 		  jvbaiak senha <conta> <nova>      troca a senha de uma conta
@@ -326,6 +383,7 @@ case "$acao" in
 	iniciar | start) cmd_iniciar ;;
 	backup) cmd_backup ;;
 	restaurar) cmd_restaurar "$@" ;;
+	admin) cmd_admin ;;
 	criar-gm) cmd_criar_gm "$@" ;;
 	gm) cmd_gm "$@" ;;
 	senha) cmd_senha "$@" ;;

@@ -410,6 +410,19 @@ main() {
 		PY
 		ok "respawn: 40s nos comuns e 50s nos bosses e raros"
 	fi
+	if ! grep -qx 'admin-total' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Administrador (grupo 5) com capacidade infinita: criar/clonar item sem limite de peso
+		python3 - "$SRV/data/XML/groups.xml" <<-'PY' && echo 'admin-total' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+			import re, sys
+			arq = sys.argv[1]
+			t = open(arq, encoding="latin-1").read()
+			def grupo(m):
+			    return m.group(0).replace('hasinfinitecapacity="0"', 'hasinfinitecapacity="1"')
+			t = re.sub(r'<group id="5".*?</group>', grupo, t, flags=re.S)
+			open(arq, "w", encoding="latin-1").write(t)
+		PY
+		ok "administradores com capacidade infinita"
+	fi
 	chown -R 1000:1000 "$SRV"
 	chmod 640 "$SRV/config.lua"
 	ok "config.lua ajustado (ip, banco, nome, bot liberado, premium gratis)"
