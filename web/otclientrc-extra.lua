@@ -60,6 +60,14 @@ pcall(function()
             fundo:setImageSource('/images/background')
         end
     end
-    connect(g_window, { onResize = function() scheduleEvent(ajustarFundo, 50) end })
-    ajustarFundo()
+    -- confere a cada segundo (barato) se o celular girou
+    local ultimo = nil
+    cycleEvent(function()
+        local tam = g_window.getSize()
+        local emPe = tam.height > tam.width
+        if emPe ~= ultimo then
+            ultimo = emPe
+            ajustarFundo()
+        end
+    end, 1000)
 end)

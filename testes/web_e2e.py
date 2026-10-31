@@ -99,8 +99,7 @@ def main():
                 pg.tap("#digitar")
             else:
                 pg.tap("#menu-botao"); time.sleep(0.5)
-            foto("8a-menu.png")
-            pg.tap("#abrir-teclado")
+                pg.tap("#abrir-teclado")
             time.sleep(1)
             log.write(f"campo do teclado com foco: {pg.evaluate('document.activeElement && document.activeElement.id')}\n")
             pg.keyboard.type(conta, delay=60)
