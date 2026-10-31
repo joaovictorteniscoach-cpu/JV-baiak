@@ -212,7 +212,7 @@ def erro_de(d):
     return None
 
 
-def testar(host, conta, senha, gm=False):
+def testar(host, conta, senha, gm=False, clonar=True):
     r = {"host": host, "etapas": [], "ok": True}
 
     def etapa(nome, ok, **info):
@@ -282,7 +282,7 @@ def testar(host, conta, senha, gm=False):
         jg.falar("/i 2400")  # magic sword (vai para a mao se estiver livre)
         jg.receber(2)
         antes = len(jg.recebidos)
-        jg.falar("/clonar 2")
+        jg.falar("/clonar 2" if clonar else "oi")
         jg.receber(3)
         txt = b"".join(x for _, x in jg.recebidos[antes:])
         pos = txt.find(b"Clonado")
@@ -309,7 +309,7 @@ if __name__ == "__main__":
     if "--saida" in sys.argv:
         saida = sys.argv[sys.argv.index("--saida") + 1]
         args.remove(saida)
-    res = testar(args[0], args[1], args[2], gm="--gm" in sys.argv)
+    res = testar(args[0], args[1], args[2], gm="--gm" in sys.argv, clonar="--sem-clonar" not in sys.argv)
     if saida:
         with open(saida, "w") as f:
             json.dump(res, f, ensure_ascii=False, indent=1)

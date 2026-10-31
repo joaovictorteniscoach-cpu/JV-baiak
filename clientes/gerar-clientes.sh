@@ -109,9 +109,7 @@ sed -i "s/^local defaultLocaleName = 'en'/local defaultLocaleName = 'pt'/" "$CLI
 # Visual classico do Tibia tambem no Android: mesmo layout "retro" do PC (em vez do
 # layout de celular) e o joystick comeca escondido (anda tocando no mapa, como no
 # Tibia; o botao do joystick continua no menu de cima para quem quiser).
-sed -i 's/^  layout = "mobile"$/  layout = DEFAULT_LAYOUT -- JV Baiak: visual classico tambem no celular/' "$CLI/init.lua"
 sed -i 's/^  keypadButton:setChecked(true)$/  keypadButton:setChecked(false)/' "$CLI/modules/client_mobile/mobile.lua"
-grep -q 'layout = DEFAULT_LAYOUT -- JV Baiak' "$CLI/init.lua" || log "aviso: nao consegui trocar o layout do Android"
 sed -i "s|clientVersionLabel:setText('OTClientV8 ' .. g_app.getVersion()|clientVersionLabel:setText('$NOME_SERVIDOR - Tibia $VERSAO_CLIENTE\\\\nOTClientV8 ' .. g_app.getVersion()|" \
 	"$CLI/modules/client_background/background.lua"
 
@@ -153,6 +151,9 @@ awk -v cfg="$CONFIG" '
 	END { if (!feito) exit 3 }
 ' "$CACHE/otclientv8/init.lua" > "$CLI/init.lua" || falha "formato inesperado do init.lua"
 grep -q "\"$ENDERECO_SERVIDOR:$PORTA_LOGIN:$VERSAO_CLIENTE\"" "$CLI/init.lua" || falha "init.lua sem o endereco do servidor"
+# Android com o mesmo layout classico do PC (o init.lua so existe a partir daqui)
+sed -i 's/^  layout = "mobile"$/  layout = DEFAULT_LAYOUT -- JV Baiak: visual classico tambem no celular/' "$CLI/init.lua"
+grep -q 'layout = DEFAULT_LAYOUT -- JV Baiak' "$CLI/init.lua" || log "aviso: nao consegui trocar o layout do Android"
 
 cat > "$CLI/LEIA-ME.txt" <<EOF
 $NOME_SERVIDOR - cliente para Windows

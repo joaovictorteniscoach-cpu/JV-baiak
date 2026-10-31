@@ -12,6 +12,8 @@ on:
       - testes/windows_cliente.ps1
       - testes/android_emulador.sh
       - testes/esperar_atualizacao.sh
+      - testes/experimento_crash.sh
+      - clientes/**
       - .github/workflows/varredura.yml
   workflow_dispatch:
 
@@ -96,6 +98,9 @@ jobs:
           cat "$F"/protocolo-*.txt "$F/site.txt" | grep -E "^(OK|FALHA)" >> "$R" || true
           echo "linhas suspeitas no log do servidor: $(wc -l < "$F/log-servidor-problemas.txt")" >> "$R"
           cat "$R"
+      - name: Experimentos de queda do servidor
+        if: always()
+        run: bash testes/experimento_crash.sh "$RUNNER_TEMP/r/servidor-local/experimentos" || true
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: servidor-local, path: "${{ runner.temp }}/r" }
