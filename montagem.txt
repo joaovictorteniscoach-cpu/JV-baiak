@@ -1,0 +1,18 @@
+[web 21:27:23] base ja estava nesta maquina (web-base-1fcea26-emsdk6.0.13-r1)
+[web 21:27:23] juntando o dominio bayakjh.duckdns.org e as sprites 8.60 (etapa final, poucos minutos)
+[web 21:28:16] publicando em /jogar
+[web 21:28:17] pronto: https://bayakjh.duckdns.org/jogar/
+etapa final levou 54 s (ok=1)
+total 100940
+drwxr-xr-x 2 root   root       4096 Oct 31 21:28 .
+drwxr-xr-x 3 runner runner     4096 Oct 31 21:28 ..
+-rw-r--r-- 1 root   root        338 Oct 31 21:28 atualizacao.txt
+-rw-r--r-- 1 root   root       1525 Oct 31 21:28 icone-180.png
+-rw-r--r-- 1 root   root       3868 Oct 31 21:28 icone-512.png
+-rw-r--r-- 1 root   root      17188 Oct 31 21:28 index.html
+-rw-r--r-- 1 root   root        390 Oct 31 21:28 manifest.webmanifest
+-rw-r--r-- 1 root   root   90413727 Oct 31 21:27 otclient.data
+-rw-r--r-- 1 root   root      17188 Oct 31 21:28 otclient.html
+-rw-r--r-- 1 root   root     598386 Oct 31 21:28 otclient.js
+-rwxr-xr-x 1 root   root   12275657 Oct 31 21:28 otclient.wasm
+-rw-r--r-- 1 root   root         55 Oct 31 21:28 status.txt

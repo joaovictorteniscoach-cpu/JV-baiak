@@ -1,0 +1,81 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.69kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/jvbaiak/web-base:web-base-1fcea26-emsdk6.0.13-r1
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/busybox:latest
+#3 DONE 0.3s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [stage-1 1/3] FROM docker.io/library/busybox:latest@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+#5 resolve docker.io/library/busybox:latest@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4 0.0s done
+#5 sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc 2.23MB / 2.23MB 0.1s done
+#5 DONE 0.1s
+
+#6 [builder 1/6] FROM docker.io/jvbaiak/web-base:web-base-1fcea26-emsdk6.0.13-r1@sha256:ae0b55467ed577d48f7777ba3afec81fa5dce76ca5770ac43dc71172cd75f331
+#6 resolve docker.io/jvbaiak/web-base:web-base-1fcea26-emsdk6.0.13-r1@sha256:ae0b55467ed577d48f7777ba3afec81fa5dce76ca5770ac43dc71172cd75f331 0.0s done
+#6 DONE 0.1s
+
+#5 [stage-1 1/3] FROM docker.io/library/busybox:latest@sha256:a46257e06c82ad85242d0d38077d0a52d9896389ca60a1a59d3463db586e5fa4
+#5 extracting sha256:37bb94b0940bd40749eced2b83080d1b9912f281ac499a7247e4ce7c385792cc 0.1s done
+#5 DONE 0.2s
+
+#7 [internal] load build context
+#7 transferring context: 46.20MB 0.2s done
+#7 DONE 0.3s
+
+#8 [stage-1 2/3] WORKDIR /otclient-web
+#8 DONE 0.0s
+
+#9 [builder 2/6] COPY jv_web_config.h /workspace/src/framework/net/jv_web_config.h
+#9 DONE 0.0s
+
+#10 [builder 3/6] COPY init.lua /workspace/init.lua
+#10 DONE 0.0s
+
+#11 [builder 4/6] COPY Tibia.dat Tibia.spr /workspace/data/things/860/
+#11 DONE 0.0s
+
+#12 [builder 5/6] COPY jv/ /tmp/jv/
+#12 DONE 0.0s
+
+#13 [builder 6/6] RUN cd /workspace  && for p in /tmp/jv/patches/*.patch; do       [ -f "$p" ] || continue;       git apply --whitespace=nowarn "$p" || { echo "patch $p nao aplicou"; exit 1; };     done  && cp /tmp/jv/shell.html browser/shell.html  && cat /tmp/jv/otclientrc-extra.lua >> otclientrc.lua  && cat /tmp/jv/jv_autoataque.lua >> otclientrc.lua && echo 'JVAutoAtaque.iniciar()' >> otclientrc.lua  && if [ -f /tmp/jv/fundo-login.png ]; then cp /tmp/jv/fundo-login.png data/images/background.png; fi  && if [ -f /tmp/jv/fundo-login-em-pe.png ]; then cp /tmp/jv/fundo-login-em-pe.png data/images/background-em-pe.png; fi  && if [ -d /tmp/jv/imagens ]; then cp /tmp/jv/imagens/*.png data/images/options/; fi  && source /opt/emsdk/emsdk_env.sh  && touch /workspace/src/framework/net/jv_web_config.h  && rm -f /workspace/build-emscripten/bin/otclient.*  && cmake --build /workspace/build-emscripten --target otclient -j"$(nproc)"  && test -f /workspace/build-emscripten/bin/otclient.wasm
+#13 0.307 Setting up EMSDK environment (suppress these messages with EMSDK_QUIET=1)
+#13 0.307 Adding directories to PATH:
+#13 0.307 PATH += /opt/emsdk
+#13 0.307 PATH += /opt/emsdk/upstream/emscripten
+#13 0.307 PATH += /opt/emsdk/node/24.19.0_64bit/bin
+#13 0.307 
+#13 0.308 Setting environment variables:
+#13 0.308 PATH = /opt/emsdk:/opt/emsdk/upstream/emscripten:/opt/emsdk/node/24.19.0_64bit/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+#13 0.308 EMSDK = /opt/emsdk
+#13 0.308 EMSDK_NODE = /opt/emsdk/node/24.19.0_64bit/bin/node
+#13 3.465 [1/5] Building CXX object src/CMakeFiles/otclient_core.dir/Unity/unity_22_cxx.cxx.o
+#13 11.28 [2/5] Building CXX object src/CMakeFiles/otclient_core.dir/Unity/unity_19_cxx.cxx.o
+#13 18.70 [3/5] Building CXX object src/CMakeFiles/otclient_core.dir/Unity/unity_11_cxx.cxx.o
+#13 18.87 [4/5] Linking CXX static library src/libotclient_core.a
+#13 43.94 [5/5] Linking CXX executable bin/otclient.html
+#13 43.94 em++: warning: USE_PTHREADS is deprecated (prefer the standard -pthread flag). Please open a bug if you have a continuing need for this setting [-Wdeprecated]
+#13 DONE 44.0s
+
+#14 [stage-1 3/3] COPY --from=builder /workspace/build-emscripten/bin/ .
+#14 DONE 0.1s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 2.9s done
+#15 exporting manifest sha256:19290229ea5c7c6905ce4d450f5381fc20807eff7230d7a9fbb7fc8bcaefb2b1 done
+#15 exporting config sha256:075175d1c57a4c8e32a9bba9ff6fc30b22c37f6d91293f2ef22b2d75d5b8cc61 done
+#15 exporting attestation manifest sha256:4688083badc79635bb8378fdbda21170e008b01731eb1da7406569a68dfa867b done
+#15 exporting manifest list sha256:41403c7c572d5b3777d61ec47729830fcc8ba294bd8856fdccf3020a1ca85240 done
+#15 naming to docker.io/jvbaiak/web-build:local done
+#15 unpacking to docker.io/jvbaiak/web-build:local
+#15 unpacking to docker.io/jvbaiak/web-build:local 0.4s done
+#15 DONE 3.3s
