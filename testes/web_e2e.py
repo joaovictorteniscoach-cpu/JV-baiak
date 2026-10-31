@@ -84,6 +84,9 @@ def main():
         pg.tap("#start")
         time.sleep(25)
         foto("3-login.png")
+        pg.set_viewport_size({"width": 390, "height": 844}); time.sleep(4)
+        foto("3b-login-em-pe.png")
+        pg.set_viewport_size({"width": 844, "height": 390}); time.sleep(4)
         conta, senha, ok = conta_de_teste()
         if ok:
             # como no iPhone: toca no campo da conta, aparece "Toque para digitar", toca nele
@@ -135,13 +138,11 @@ def main():
             pg.keyboard.press("Escape")
             time.sleep(1)
             # tamanho da interface: A+ duas vezes (tudo maior), depois volta
-            pg.tap("#zoom-botao"); time.sleep(0.5)
-            pg.tap("#zoom-mais"); time.sleep(0.5); pg.tap("#zoom-mais"); time.sleep(3)
-            foto("8d-zoom-maior.png")
-            pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(0.5)
-            pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(3)
-            foto("8e-zoom-menor.png")
+            pg.tap("#menu-botao"); time.sleep(0.5)
             pg.tap("#zoom-mais"); time.sleep(0.5); pg.tap("#zoom-mais"); time.sleep(2)
+            foto("8d-zoom-maior.png")
+            pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(2)
+            foto("8e-zoom-normal.png")
             pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
             time.sleep(6)
             foto("9-em-pe.png")

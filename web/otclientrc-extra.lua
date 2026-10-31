@@ -47,3 +47,19 @@ pcall(function()
             end, false, 5)
     end
 end)
+
+-- Fundo da tela de login: arte inteira em pe e deitado (troca ao girar o celular)
+pcall(function()
+    local function ajustarFundo()
+        local fundo = rootWidget:recursiveGetChildById('background')
+        if not fundo then return end
+        local tam = g_window.getSize()
+        if tam.height > tam.width and g_resources.fileExists('/images/background-em-pe.png') then
+            fundo:setImageSource('/images/background-em-pe')
+        else
+            fundo:setImageSource('/images/background')
+        end
+    end
+    connect(g_window, { onResize = function() scheduleEvent(ajustarFundo, 50) end })
+    ajustarFundo()
+end)

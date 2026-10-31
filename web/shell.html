@@ -124,25 +124,25 @@
       }
       #digitar { left: 50%; top: 12px; transform: translateX(-50%); padding: 10px 20px; }
       #fechar-teclado { right: 10px; top: 10px; padding: 8px 14px; font-size: 13px; }
-      body.jv-jogando #abrir-teclado {
-        display: flex;
-        left: max(8px, env(safe-area-inset-left));
-        top: 44%;
-        padding: 6px 9px;
-        font-size: 18px;
-        opacity: .55;
+      /* um unico botao discreto no canto (por cima do "Store", que nao usamos) */
+      #menu-botao {
+        position: fixed; z-index: 6; display: none;
+        top: max(2px, env(safe-area-inset-top)); right: max(2px, env(safe-area-inset-right));
+        width: 44px; height: 44px; align-items: center; justify-content: center;
+        color: #f1e0c6; font: 22px/1 Georgia, serif; opacity: .6;
+        background: rgba(20, 14, 8, .55); border: 1px solid rgba(169, 120, 31, .7); border-radius: 10px;
+        -webkit-user-select: none; user-select: none;
       }
-      /* zoom da interface: cada orientacao guarda o seu */
-      #zoom-botao { left: max(8px, env(safe-area-inset-left)); top: calc(44% + 46px); padding: 6px 9px; font-size: 16px; opacity: .55; }
-      body.jv-jogando #zoom-botao { display: flex; }
-      #zoom-painel {
-        position: fixed; z-index: 6; display: none; align-items: center; gap: 8px;
-        left: calc(max(8px, env(safe-area-inset-left)) + 48px); top: calc(44% + 40px);
-        padding: 6px 8px; border-radius: 999px; background: rgba(20, 14, 8, .92); border: 1px solid #a9781f;
+      body.jv-jogando #menu-botao { display: flex; }
+      #menu-painel {
+        position: fixed; z-index: 6; display: none; flex-direction: column; gap: 8px;
+        top: calc(max(2px, env(safe-area-inset-top)) + 50px); right: max(2px, env(safe-area-inset-right));
+        padding: 10px; border-radius: 12px; background: rgba(20, 14, 8, .94); border: 1px solid #a9781f;
         color: #f1e0c6; font: 600 14px Georgia, serif;
       }
-      #zoom-painel .jv-botao-teclado { position: static; display: flex; padding: 6px 14px; font-size: 18px; }
-      #zoom-valor { min-width: 3.2em; text-align: center; }
+      #menu-painel .linha { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+      #menu-painel .jv-botao-teclado { position: static; display: flex; justify-content: center; min-width: 48px; min-height: 44px; padding: 0 12px; font-size: 18px; }
+      #zoom-valor { min-width: 3.4em; text-align: center; }
       #girar {
         display: none;
         position: fixed;
@@ -186,13 +186,16 @@
     </div>
     <input id="teclado" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-hidden="true" tabindex="-1" />
     <div id="digitar" class="jv-botao-teclado" role="button">&#9000; Toque para digitar</div>
-    <div id="abrir-teclado" class="jv-botao-teclado" role="button" aria-label="Abrir teclado">&#9000;</div>
     <div id="fechar-teclado" class="jv-botao-teclado" role="button">Fechar teclado</div>
-    <div id="zoom-botao" class="jv-botao-teclado" role="button" aria-label="Tamanho da tela">&#177;</div>
-    <div id="zoom-painel">
-      <div id="zoom-menos" class="jv-botao-teclado" role="button" aria-label="Diminuir">A&minus;</div>
-      <span id="zoom-valor">100%</span>
-      <div id="zoom-mais" class="jv-botao-teclado" role="button" aria-label="Aumentar">A+</div>
+    <div id="menu-botao" role="button" aria-label="Opcoes da tela">&#9776;</div>
+    <div id="menu-painel">
+      <div class="linha"><span>Tamanho</span></div>
+      <div class="linha">
+        <div id="zoom-menos" class="jv-botao-teclado" role="button" aria-label="Diminuir">A&minus;</div>
+        <span id="zoom-valor">100%</span>
+        <div id="zoom-mais" class="jv-botao-teclado" role="button" aria-label="Aumentar">A+</div>
+      </div>
+      <div id="abrir-teclado" class="jv-botao-teclado" role="button">&#9000; Teclado</div>
     </div>
     <canvas class="backbuffer" id="canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
     <script type="text/javascript">
@@ -250,6 +253,7 @@
         window.jvTimerDigitar = setTimeout(function () { botaoDigitar.style.display = "none"; }, 6000);
       };
       [botaoDigitar, botaoAbrir].forEach(function (b) {
+        if (!b) return;
         b.addEventListener("touchend", abrirTeclado, { passive: false });
         b.addEventListener("click", abrirTeclado);
       });
@@ -296,7 +300,7 @@
         var base = Math.min(window.devicePixelRatio || 1, 2);
         return base / lerZoom();
       };
-      var zoomPainel = document.getElementById("zoom-painel");
+      var zoomPainel = document.getElementById("menu-painel");
       var zoomValor = document.getElementById("zoom-valor");
       var zoomTimer = null;
       function mostrarZoom() {
@@ -319,12 +323,24 @@
         el.addEventListener("touchend", fn, { passive: false });
         el.addEventListener("click", fn);
       }
-      ligar("zoom-botao", function (ev) {
+      ligar("menu-botao", function (ev) {
         ev.preventDefault(); ev.stopPropagation();
         if (zoomPainel.style.display === "flex") zoomPainel.style.display = "none"; else mostrarZoom();
       });
       ligar("zoom-menos", function (ev) { mudarZoom(-1, ev); });
       ligar("zoom-mais", function (ev) { mudarZoom(1, ev); });
+      // Ao girar o celular o iPhone muda o tamanho da tela aos poucos; avisa o jogo
+      // algumas vezes para ele refazer a imagem no tamanho certo (sem esticar nem cortar).
+      function avisarTamanho() {
+        [60, 250, 600, 1200].forEach(function (ms) {
+          setTimeout(function () { window.dispatchEvent(new Event("resize")); }, ms);
+        });
+      }
+      window.addEventListener("orientationchange", avisarTamanho);
+      if (window.visualViewport) window.visualViewport.addEventListener("resize", function () {
+        clearTimeout(window.jvTimerTam);
+        window.jvTimerTam = setTimeout(function () { window.dispatchEvent(new Event("resize")); }, 120);
+      });
       function startGame() {
         document.getElementById("capa").style.display = "none";
         document.body.classList.add("jv-jogando");
