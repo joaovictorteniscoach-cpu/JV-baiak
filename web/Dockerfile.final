@@ -1,0 +1,19 @@
+# JV Baiak - etapa FINAL do cliente web (roda na VPS, leva poucos minutos):
+# parte da base pre-compilada, coloca o dominio (ponte WebSocket), a tela de login
+# do nosso servidor e as sprites 8.60, e refaz so o que mudou (1 arquivo + o link).
+ARG BASE_IMG=jvbaiak/web-base:local
+FROM ${BASE_IMG} AS builder
+SHELL ["/bin/bash", "-lc"]
+COPY jv_web_config.h /workspace/src/framework/net/jv_web_config.h
+COPY init.lua /workspace/init.lua
+COPY Tibia.dat Tibia.spr /workspace/data/things/860/
+RUN source /opt/emsdk/emsdk_env.sh \
+ && touch /workspace/src/framework/net/jv_web_config.h \
+ && rm -f ${BUILD_DIR}/bin/otclient.* \
+ && cmake --build ${BUILD_DIR} --target otclient -j"$(nproc)" \
+ && test -f ${BUILD_DIR}/bin/otclient.wasm
+
+FROM busybox:latest
+WORKDIR /otclient-web
+COPY --from=builder /workspace/build-emscripten/bin/ .
+CMD ["sh"]

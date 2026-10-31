@@ -1,0 +1,103 @@
+name: Cliente web (base pre-compilada)
+
+# Compila a parte pesada do cliente do iPhone (bibliotecas + OTClient em WebAssembly)
+# numa maquina do GitHub e publica em Releases. A VPS baixa e so junta dominio e sprites.
+# Nada aqui leva sprites da CipSoft nem dados do servidor.
+on:
+  push:
+    branches: [main]
+    paths:
+      - web/versao-base.env
+      - web/preparar-fonte.sh
+      - web/Dockerfile.base
+      - web/Dockerfile.final
+      - web/patches/**
+      - .github/workflows/web-base.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web-base
+  cancel-in-progress: false
+
+jobs:
+  base:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versao
+        id: v
+        run: |
+          . web/versao-base.env
+          tag="web-base-${OTC_COMMIT:0:7}-emsdk${EMSDK_VERSION}-r${BASE_REV}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "emsdk=$EMSDK_VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" >/dev/null 2>&1; then echo "existe=1" >> "$GITHUB_OUTPUT"; fi
+          echo "Base: $tag"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Liberar espaco em disco
+        if: steps.v.outputs.existe != '1'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          docker image prune -af >/dev/null || true
+          df -h /
+
+      - name: Preparar o codigo do OTClient
+        if: steps.v.outputs.existe != '1'
+        run: bash web/preparar-fonte.sh "$RUNNER_TEMP/fonte"
+
+      - name: Compilar a base (bibliotecas + OTClient)
+        if: steps.v.outputs.existe != '1'
+        run: |
+          set -o pipefail
+          DOCKER_BUILDKIT=1 docker build --progress=plain \
+            --build-arg EMSDK_VERSION=${{ steps.v.outputs.emsdk }} \
+            -t "jvbaiak/web-base:${{ steps.v.outputs.tag }}" \
+            -f web/Dockerfile.base "$RUNNER_TEMP/fonte" 2>&1 | tee "$RUNNER_TEMP/build.log" | grep -E --line-buffered '^#[0-9]+ (\[|DONE|ERROR)|Installing [0-9]+/|^#[0-9]+ [0-9.]+ \[[0-9]+/[0-9]+\]' || true
+          docker image inspect "jvbaiak/web-base:${{ steps.v.outputs.tag }}" >/dev/null || { tail -n 150 "$RUNNER_TEMP/build.log"; exit 1; }
+          docker image ls
+
+      - name: Testar a etapa final (com sprites de mentira)
+        if: steps.v.outputs.existe != '1'
+        run: |
+          ctx="$RUNNER_TEMP/final"
+          mkdir -p "$ctx"
+          cp web/Dockerfile.final "$ctx/Dockerfile"
+          head -c 4096 /dev/urandom > "$ctx/Tibia.dat"
+          head -c 4096 /dev/urandom > "$ctx/Tibia.spr"
+          printf '#pragma once\n#define JV_WS_BASE "wss://teste.example.org/ws/"\n' > "$ctx/jv_web_config.h"
+          docker run --rm --entrypoint cat "jvbaiak/web-base:${{ steps.v.outputs.tag }}" /workspace/init.lua > "$ctx/init.lua"
+          inicio=$(date +%s)
+          DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg BASE_IMG="jvbaiak/web-base:${{ steps.v.outputs.tag }}" -t teste-final "$ctx" 2>&1 | tail -n 40
+          echo "etapa final levou $(( $(date +%s) - inicio )) s (aqui 4 nucleos; na VPS de 2 nucleos, ~2x)"
+          docker create --name tf teste-final >/dev/null
+          docker cp tf:/otclient-web "$RUNNER_TEMP/saida"
+          ls -la "$RUNNER_TEMP/saida"
+          test -f "$RUNNER_TEMP/saida/otclient.wasm"
+          test -f "$RUNNER_TEMP/saida/otclient.html"
+          grep -c "teste.example.org" "$RUNNER_TEMP/saida/otclient.wasm" || { echo "dominio nao entrou no wasm"; exit 1; }
+
+      - name: Empacotar e publicar
+        if: steps.v.outputs.existe != '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.v.outputs.tag }}"
+          out="$RUNNER_TEMP/pub"
+          mkdir -p "$out"
+          docker rmi -f teste-final >/dev/null 2>&1 || true
+          docker save "jvbaiak/web-base:$tag" | zstd -T0 -12 -q -o "$out/base.tar.zst"
+          cd "$out"
+          split -b 1900M -d -a 2 base.tar.zst base.tar.zst.part
+          rm base.tar.zst
+          sha256sum base.tar.zst.part* > SHA256SUMS
+          ls -la
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --title "Cliente web: base $tag" \
+            --notes "Base pre-compilada do cliente web (OTClient Redemption ${tag}). Sem sprites e sem dominio: a VPS junta isso com 'jvbaiak web'. Gerado automaticamente." \
+            base.tar.zst.part* SHA256SUMS

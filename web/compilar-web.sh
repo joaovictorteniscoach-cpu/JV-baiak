@@ -1,34 +1,42 @@
 #!/usr/bin/env bash
-# JV Baiak - compila o cliente WEB (OTClient Redemption em WebAssembly) para
-# jogar pelo navegador, inclusive no iPhone. EXPERIMENTAL.
+# JV Baiak - monta o cliente WEB (OTClient Redemption em WebAssembly) para
+# jogar pelo navegador, inclusive no iPhone.
 #
 # Uso (o "jvbaiak web" chama este script em segundo plano):
 #   bash compilar-web.sh <dominio>
-# Leva de 1 a 2 horas na primeira vez. Nao mexe no servidor do jogo.
+#
+# Caminho rapido (~10 min): baixa do GitHub a BASE ja compilada pelo GitHub Actions
+# (bibliotecas + OTClient, sem sprites e sem dominio) e aqui so junta o dominio e as
+# sprites 8.60 (Dockerfile.final). Se a base nao existir, compila tudo aqui (horas).
 set -Eeuo pipefail
 
 BASE="${BASE:-/opt/jvbaiak}"
 DOMINIO="${1:?informe o dominio, ex.: meubaiak.duckdns.org}"
-REPO="https://github.com/opentibiabr/otclient.git"
-COMMIT="1fcea26f23ef1d1857103ef446c0190955523ca8"
-FONTE="$BASE/web/fonte"
+WEB="$BASE/web"
+# shellcheck source=web/versao-base.env
+. "$WEB/versao-base.env"
+TAG="web-base-${OTC_COMMIT:0:7}-emsdk${EMSDK_VERSION}-r${BASE_REV}"
+IMG="jvbaiak/web-base:$TAG"
+URL_BASE="${JV_URL_BASE:-https://github.com/$KIT_GITHUB/releases/download/$TAG}"
+FONTE="$WEB/fonte"
 # Caddy monta web/www; a pasta jogar/ e trocada inteira quando fica pronta
-SITE="$BASE/web/www/jogar"
+SITE="$WEB/www/jogar"
 SPR="$BASE/clientes-cache/sprites860"
 DAT_SHA256="38e4e23ee550503842388e3aa3119125692316facf5adf97f4c24385735ddaee"
 SPR_SHA256="672351b1a3dd0f45da7c76bca35a1d8f7fbf1db3be65e080aeb1d8789c61a575"
+LOG=/var/log/jvbaiak-web-build.log
 
 # Andamento visivel no celular em https://<dominio>/jogar/status.txt (sem terminal)
-STATUS="$BASE/web/www/jogar/status.txt"
-anota() { [ -d "$(dirname "$STATUS")" ] && [ ! -f "$BASE/web/www/jogar/otclient.wasm" ] && printf '%s\n' "$*" >> "$STATUS" || true; }
+STATUS="$SITE/status.txt"
+anota() { [ -d "$(dirname "$STATUS")" ] && [ ! -f "$SITE/otclient.wasm" ] && printf '%s\n' "$*" >> "$STATUS" || true; }
 log() { printf '[web %s] %s\n' "$(date +%H:%M:%S)" "$*"; anota "$(date '+%d/%m %H:%M') $*"; }
 falha() {
 	trap - ERR
 	printf '[web] ERRO: %s\n' "$*" >&2
 	anota "ERRO: $*"
-	if [ -f /var/log/jvbaiak-web-build.log ]; then
+	if [ -f "$LOG" ]; then
 		anota "--- fim do log da compilacao ---"
-		anota "$(tail -n 40 /var/log/jvbaiak-web-build.log)"
+		anota "$(tail -n 40 "$LOG")"
 	fi
 	exit 1
 }
@@ -36,6 +44,7 @@ trap 'falha "parou na linha $LINENO: $BASH_COMMAND"' ERR
 
 [[ "$DOMINIO" =~ ^[a-z0-9.-]+\.[a-z]{2,}$ ]] || falha "dominio invalido: $DOMINIO"
 [ -f "$STATUS" ] && : > "$STATUS"
+: > "$LOG"
 NOME="$(grep -E '^NOME_SERVIDOR=' "$BASE/.env" | tail -n1 | cut -d= -f2-)"
 NOME="${NOME:-JV Baiak}"
 
@@ -44,33 +53,66 @@ confere() { [ "$(sha256sum "$1" | awk '{print $1}')" = "$2" ] || falha "arquivo 
 confere "$SPR/Tibia.dat" "$DAT_SHA256"
 confere "$SPR/Tibia.spr" "$SPR_SHA256"
 
-log "baixando OTClient Redemption (commit ${COMMIT:0:7})"
-if [ "$(git -C "$FONTE" rev-parse HEAD 2>/dev/null || true)" != "$COMMIT" ]; then
-	rm -rf "$FONTE"
-	mkdir -p "$FONTE"
-	git -C "$FONTE" init -q
-	git -C "$FONTE" remote add origin "$REPO"
-	git -C "$FONTE" fetch -q --depth 1 origin "$COMMIT"
-	git -C "$FONTE" -c advice.detachedHead=false checkout -q FETCH_HEAD
-fi
-# volta ao original antes de aplicar as mudancas (pode rodar varias vezes)
-git -C "$FONTE" checkout -q -- .
-git -C "$FONTE" clean -q -fd -- data/things src/framework/net
-for p in "$BASE"/web/patches/*.patch; do
-	git -C "$FONTE" apply "$p" || falha "patch $(basename "$p") nao aplicou"
-done
+livre_gb() { local v; v="$(df -BG --output=avail /var/lib/docker 2>/dev/null | tail -n1 | tr -dc '0-9')"; echo "${v:-999}"; }
+abre_espaco() { # sobras de compilacoes antigas do cliente web
+	if [ "$(livre_gb)" -lt "${1:-12}" ]; then
+		log "pouco espaco em disco ($(livre_gb) GB livres); limpando sobras de compilacoes antigas"
+		docker image rm -f jvbaiak/web-build:local >/dev/null 2>&1 || true
+		docker images --format '{{.Repository}}:{{.Tag}}' | grep '^jvbaiak/web-base:' | grep -vx "$IMG" \
+			| xargs -r docker image rm -f >/dev/null 2>&1 || true
+		docker builder prune -af >/dev/null 2>&1 || true
+	fi
+}
 
-log "configurando para o servidor $DOMINIO"
-# 1) ponte WebSocket no mesmo dominio do site (o patch usa este endereco)
-cat > "$FONTE/src/framework/net/jv_web_config.h" <<EOF
+# ------------------------------------------------------------- 1) base pronta
+obter_base_pronta() {
+	docker image inspect "$IMG" >/dev/null 2>&1 && { log "base ja estava nesta maquina ($TAG)"; return 0; }
+	local tmp lista
+	tmp="$(mktemp -d /var/tmp/jvweb.XXXXXX)"
+	if ! curl -fsSL --retry 3 "$URL_BASE/SHA256SUMS" -o "$tmp/SHA256SUMS" 2>>"$LOG"; then
+		rm -rf "$tmp"
+		return 1
+	fi
+	command -v zstd >/dev/null || { apt-get install -y -qq zstd >>"$LOG" 2>&1 || { apt-get update -qq >>"$LOG" 2>&1 && apt-get install -y -qq zstd >>"$LOG" 2>&1; }; }
+	abre_espaco 14
+	lista="$(awk '{print $2}' "$tmp/SHA256SUMS" | tr -d '*' | grep -E '^base\.tar\.zst\.part[0-9]+$' | sort)"
+	[ -n "$lista" ] || { rm -rf "$tmp"; falha "lista de arquivos da base vazia em $URL_BASE"; }
+	log "baixando a base pronta do GitHub ($TAG, $(echo "$lista" | wc -l) parte(s))"
+	for p in $lista; do
+		curl -fsSL --retry 5 --retry-delay 5 "$URL_BASE/$p" -o "$tmp/$p" 2>>"$LOG" || { rm -rf "$tmp"; falha "download de $p falhou"; }
+	done
+	(cd "$tmp" && sha256sum --quiet -c SHA256SUMS) >>"$LOG" 2>&1 || { rm -rf "$tmp"; falha "a base baixada nao confere (sha256)"; }
+	log "carregando a base no Docker"
+	# shellcheck disable=SC2086
+	(cd "$tmp" && cat $lista) | zstd -dc | docker load >>"$LOG" 2>&1 || { rm -rf "$tmp"; falha "docker load da base falhou"; }
+	rm -rf "$tmp"
+	docker image inspect "$IMG" >/dev/null 2>&1 || falha "a base carregada nao tem a tag $IMG"
+}
+
+compilar_base_aqui() {
+	log "base pronta nao encontrada; compilando tudo nesta maquina (demora horas)"
+	abre_espaco 20
+	bash "$WEB/preparar-fonte.sh" "$FONTE" >>"$LOG" 2>&1 || falha "nao consegui preparar o codigo do OTClient"
+	DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg EMSDK_VERSION="$EMSDK_VERSION" \
+		-t "$IMG" -f "$WEB/Dockerfile.base" "$FONTE" >>"$LOG" 2>&1 \
+		|| falha "a compilacao da base falhou (log acima)"
+}
+
+obter_base_pronta || compilar_base_aqui
+
+# ------------------------------------------------- 2) dominio + sprites + link
+log "juntando o dominio $DOMINIO e as sprites 8.60 (etapa final, poucos minutos)"
+CTX="$(mktemp -d /var/tmp/jvweb-final.XXXXXX)"
+cp "$WEB/Dockerfile.final" "$CTX/Dockerfile"
+cp "$SPR/Tibia.dat" "$SPR/Tibia.spr" "$CTX/"
+cat > "$CTX/jv_web_config.h" <<H
 #pragma once
 // Gerado pelo JV Baiak. O navegador conecta em wss://$DOMINIO/ws/<porta>.
 #define JV_WS_BASE "wss://$DOMINIO/ws/"
-EOF
-
-# 2) servidor fixo na tela de login, sem download de assets modernos
-INIT="$FONTE/init.lua"
-grep -q '^g_app.setName("OTClient - Redemption");' "$INIT" || falha "formato inesperado do init.lua"
+H
+# tela de login: so o nosso servidor, protocolo 8.60, sem download de assets modernos
+docker run --rm --entrypoint cat "$IMG" /workspace/init.lua > "$CTX/init.lua.orig"
+grep -q '^g_app.setName("OTClient - Redemption");' "$CTX/init.lua.orig" || falha "formato inesperado do init.lua"
 awk -v dom="$DOMINIO" -v nome="$NOME" '
 	/^g_app.setName\("OTClient - Redemption"\);/ {
 		print "-- JV Baiak: so o nosso servidor, protocolo 8.60"
@@ -82,33 +124,14 @@ awk -v dom="$DOMINIO" -v nome="$NOME" '
 		next
 	}
 	{ print }
-' "$INIT" > "$INIT.novo" && mv "$INIT.novo" "$INIT"
-grep -q "protocol = 860" "$INIT" || falha "init.lua nao foi ajustado"
+' "$CTX/init.lua.orig" > "$CTX/init.lua"
+rm -f "$CTX/init.lua.orig"
+grep -q "protocol = 860" "$CTX/init.lua" || falha "init.lua nao foi ajustado"
 
-# 3) ajustes recomendados pelo OTClient para TFS 1.x em 8.60
-SETUP="$FONTE/data/setup.otml"
-sed -i 's/^\(\s*force-new-walking-formula:\).*/\1 true/; s/^\(\s*item-ticks-per-frame:\).*/\1 500/' "$SETUP"
-grep -q 'force-new-walking-formula: true' "$SETUP" || falha "setup.otml nao foi ajustado"
-
-# 4) sprites 8.60 dentro do pacote do site
-mkdir -p "$FONTE/data/things/860"
-cp "$SPR/Tibia.dat" "$SPR/Tibia.spr" "$FONTE/data/things/860/"
-
-# 5) memoria: 1 GB fixo costuma falhar no Safari do iPhone; 512 MB sobra para o 8.60
-sed -i 's/INITIAL_MEMORY=1073741824/INITIAL_MEMORY=536870912/g' "$FONTE/Dockerfile.browser" "$FONTE/src/CMakeLists.txt"
-grep -q 'INITIAL_MEMORY=536870912' "$FONTE/Dockerfile.browser" || falha "Dockerfile.browser com formato inesperado"
-
-# 6) vcpkg em processador ARM (Oracle gratis) precisa das ferramentas do sistema
-grep -q 'VCPKG_FORCE_SYSTEM_BINARIES' "$FONTE/Dockerfile.browser" \
-	|| sed -i 's#^ENV VCPKG_ROOT=/opt/vcpkg$#ENV VCPKG_ROOT=/opt/vcpkg\nENV VCPKG_FORCE_SYSTEM_BINARIES=1#' "$FONTE/Dockerfile.browser"
-grep -q 'VCPKG_FORCE_SYSTEM_BINARIES' "$FONTE/Dockerfile.browser" || falha "nao consegui ajustar o vcpkg"
-
-if [ -n "${JVBAIAK_SO_PREPARAR:-}" ]; then log "fonte preparada em $FONTE (sem compilar)"; exit 0; fi
-
-log "compilando (demora; o log completo fica em /var/log/jvbaiak-web-build.log)"
-DOCKER_BUILDKIT=1 docker build --progress=plain -t jvbaiak/web-build:local -f "$FONTE/Dockerfile.browser" "$FONTE" \
-	> /var/log/jvbaiak-web-build.log 2>&1 \
-	|| { tail -n 60 /var/log/jvbaiak-web-build.log >&2; falha "a compilacao do cliente web falhou (log acima)"; }
+DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg BASE_IMG="$IMG" \
+	-t jvbaiak/web-build:local "$CTX" >>"$LOG" 2>&1 \
+	|| { rm -rf "$CTX"; tail -n 60 "$LOG" >&2; falha "a etapa final do cliente web falhou (log acima)"; }
+rm -rf "$CTX"
 
 log "publicando em /jogar"
 TMP="$(mktemp -d)"
@@ -118,6 +141,7 @@ docker cp jvbaiak-web-tmp:/otclient-web/. "$TMP/"
 docker rm -f jvbaiak-web-tmp >/dev/null
 [ -f "$TMP/otclient.html" ] && [ -f "$TMP/otclient.wasm" ] || falha "a compilacao nao gerou otclient.html/otclient.wasm"
 cp "$TMP/otclient.html" "$TMP/index.html"
+printf '%s pronto: https://%s/jogar/\n' "$(date '+%d/%m %H:%M')" "$DOMINIO" > "$TMP/status.txt"
 mkdir -p "$(dirname "$SITE")"
 rm -rf "$SITE.novo"
 mv "$TMP" "$SITE.novo"

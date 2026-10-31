@@ -229,7 +229,12 @@ cmd_web() { # dominio [token-duckdns]
 	dc up -d --build --remove-orphans
 	info "Site agora em https://$dominio (o certificado sai em 1 ou 2 minutos)."
 
-	info "Compilando o cliente web em segundo plano (1 a 2 horas)..."
+	if systemctl is-active --quiet jvbaiak-web 2>/dev/null; then
+		info "Parando a montagem anterior do cliente web (vai recomecar pelo caminho novo)..."
+		systemctl stop jvbaiak-web >/dev/null 2>&1 || true
+		docker rm -f jvbaiak-web-tmp >/dev/null 2>&1 || true
+	fi
+	info "Montando o cliente web em segundo plano (com a base pronta do GitHub: uns 10 a 20 minutos)..."
 	systemctl reset-failed jvbaiak-web >/dev/null 2>&1 || true
 	systemd-run --unit=jvbaiak-web --description="JV Baiak: compilar cliente web" \
 		--setenv=BASE="$BASE" /bin/bash "$BASE/web/compilar-web.sh" "$dominio" >/dev/null
@@ -277,7 +282,7 @@ cmd_ajuda() {
 		  jvbaiak clientes                  gera de novo os clientes Windows/Android
 		  jvbaiak endereco <ip|dominio>     troca o endereco do servidor
 		  jvbaiak web <dominio> [token]     (beta) HTTPS + jogar no navegador/iPhone
-		  jvbaiak web-status                acompanha a compilacao do cliente web
+		  jvbaiak web-status                acompanha a montagem do cliente web
 		  jvbaiak atualizar-ip              aponta o dominio DuckDNS para o IP atual
 		  jvbaiak atualizar                 backup + instala a versao nova do GitHub (site, scripts)
 	EOF

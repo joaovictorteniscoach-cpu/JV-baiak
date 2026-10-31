@@ -43,7 +43,7 @@ Não existe cliente 8.60 nativo para iOS. O kit tem um modo web experimental: HT
 
 ```bash
 jvbaiak web meubaiak.duckdns.org SEU-TOKEN-DUCKDNS   # domínio grátis do duckdns.org
-jvbaiak web-status                                   # acompanha a compilação (1 a 2 horas)
+jvbaiak web-status                                   # acompanha a montagem (uns 15 minutos com a base pronta do GitHub)
 ```
 
 ## Administração
