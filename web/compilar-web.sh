@@ -9,6 +9,7 @@
 # (bibliotecas + OTClient, sem sprites e sem dominio) e aqui so junta o dominio e as
 # sprites 8.60 (Dockerfile.final). Se a base nao existir, compila tudo aqui (horas).
 set -Eeuo pipefail
+shopt -u patsub_replacement 2>/dev/null || true  # bash 5.2: "&" na troca de texto e literal
 
 BASE="${BASE:-/opt/jvbaiak}"
 DOMINIO="${1:?informe o dominio, ex.: meubaiak.duckdns.org}"
@@ -143,6 +144,16 @@ awk -v dom="$DOMINIO" -v nome="$NOME" '
 rm -f "$CTX/init.lua.orig"
 grep -q "protocol = 860" "$CTX/init.lua" || falha "init.lua nao foi ajustado"
 
+# ajustes do JV Baiak para celular: tela nitida e toque (patches), pagina do jogo,
+# esconder paineis que dependem de servico web, fundo da tela de login
+mkdir -p "$CTX/jv/patches"
+cp "$WEB"/patches-final/*.patch "$CTX/jv/patches/" 2>/dev/null || true
+NOME_HTML="${NOME//&/&amp;}"; NOME_HTML="${NOME_HTML//</&lt;}"; NOME_HTML="${NOME_HTML//>/&gt;}"; NOME_HTML="${NOME_HTML//\"/&quot;}"
+pagina="$(cat "$WEB/shell.html")"
+printf '%s\n' "${pagina//__JV_NOME__/$NOME_HTML}" > "$CTX/jv/shell.html"
+cp "$WEB/otclientrc-extra.lua" "$CTX/jv/"
+[ -f "$WEB/visual/fundo-login.png" ] && cp "$WEB/visual/fundo-login.png" "$CTX/jv/"
+
 DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg BASE_IMG="$IMG" \
 	-t jvbaiak/web-build:local "$CTX" >>"$LOG" 2>&1 \
 	|| { rm -rf "$CTX"; tail -n 60 "$LOG" >&2; falha "a etapa final do cliente web falhou (log acima)"; }
@@ -156,6 +167,13 @@ docker cp jvbaiak-web-tmp:/otclient-web/. "$TMP/"
 docker rm -f jvbaiak-web-tmp >/dev/null
 [ -f "$TMP/otclient.html" ] && [ -f "$TMP/otclient.wasm" ] || falha "a compilacao nao gerou otclient.html/otclient.wasm"
 cp "$TMP/otclient.html" "$TMP/index.html"
+# icone e "app" para Adicionar a Tela de Inicio (abre em tela cheia)
+cp "$WEB"/jogar-extra/*.png "$TMP/" 2>/dev/null || true
+if [ -f "$WEB/jogar-extra/manifest.webmanifest" ]; then
+	NOME_JSON="${NOME//\\/\\\\}"; NOME_JSON="${NOME_JSON//\"/\\\"}"
+	manifesto="$(cat "$WEB/jogar-extra/manifest.webmanifest")"
+	printf '%s\n' "${manifesto//__JV_NOME__/$NOME_JSON}" > "$TMP/manifest.webmanifest"
+fi
 printf '%s pronto: https://%s/jogar/\n' "$(date '+%d/%m %H:%M')" "$DOMINIO" > "$TMP/status.txt"
 mkdir -p "$(dirname "$SITE")"
 rm -rf "$SITE.novo"

@@ -1,0 +1,87 @@
+name: Cliente web (teste no "iPhone")
+
+# Monta o cliente web do mesmo jeito que a VPS (base pronta + etapa final) e testa
+# num navegador com tela de iPhone deitado. As fotos vao para o ramo "testes-web".
+on:
+  push:
+    branches: [main]
+    paths:
+      - web/Dockerfile.final
+      - web/compilar-web.sh
+      - web/patches-final/**
+      - web/shell.html
+      - web/otclientrc-extra.lua
+      - web/visual/**
+      - web/jogar-extra/**
+      - testes/web_e2e.py
+      - .github/workflows/web-teste.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web-teste
+  cancel-in-progress: true
+
+jobs:
+  teste:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Liberar espaco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          df -h /
+
+      - name: Baixar a base pronta (Releases)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          . web/versao-base.env
+          tag="web-base-${OTC_COMMIT:0:7}-emsdk${EMSDK_VERSION}-r${BASE_REV}"
+          mkdir -p "$RUNNER_TEMP/base" && cd "$RUNNER_TEMP/base"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" -p 'base.tar.zst.part*' -p SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cat base.tar.zst.part* | zstd -dc | docker load
+          rm -f base.tar.zst.part*
+
+      - name: Montar como a VPS faz (compilar-web.sh)
+        run: |
+          B="$RUNNER_TEMP/jv"
+          mkdir -p "$B/clientes-cache/sprites860" "$B/web/www/jogar"
+          cp -a web/. "$B/web/"
+          echo "NOME_SERVIDOR=JV Baiak" > "$B/.env"
+          s="$RUNNER_TEMP/spr"
+          git init -q "$s" && cd "$s"
+          git remote add origin https://github.com/vinisdl/tibia-client-860-linux.git
+          git fetch -q --depth 1 --filter=blob:none origin 9e896e2fff662e8b2629b0bfad29ec199bfe72a9
+          git sparse-checkout set --no-cone /Tibia.dat /Tibia.spr
+          git -c advice.detachedHead=false checkout -q FETCH_HEAD
+          cp Tibia.dat Tibia.spr "$B/clientes-cache/sprites860/"
+          cd "$GITHUB_WORKSPACE"
+          inicio=$(date +%s)
+          sudo BASE="$B" bash "$B/web/compilar-web.sh" bayakjh.duckdns.org || { sudo tail -n 80 /var/log/jvbaiak-web-build.log; exit 1; }
+          echo "etapa final levou $(( $(date +%s) - inicio )) s"
+          ls -la "$B/web/www/jogar"
+
+      - name: Testar como iPhone deitado
+        run: |
+          pip install -q playwright==1.48.0
+          python -m playwright install --with-deps chromium >/dev/null
+          python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$RUNNER_TEMP/fotos" || echo "teste com erro (veja console.txt)"
+          sudo tail -n 30 /var/log/jvbaiak-web-build.log > "$RUNNER_TEMP/fotos/build-final.txt" || true
+          ls -la "$RUNNER_TEMP/fotos"
+
+      - name: Publicar as fotos no ramo testes-web
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/fotos" 2>/dev/null || exit 0
+          git init -q && git checkout -q -b testes-web
+          git config user.name "jv-robo" && git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -qm "Fotos do teste do cliente web (${GITHUB_SHA::7})"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" testes-web

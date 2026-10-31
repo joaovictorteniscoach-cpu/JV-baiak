@@ -1,0 +1,184 @@
+--- a/src/framework/platform/browserwindow.cpp
++++ b/src/framework/platform/browserwindow.cpp
+@@ -32,6 +32,19 @@
+ 
+ BrowserWindow& g_browserWindow = (BrowserWindow&)g_window;
+ 
++// JV Baiak: o canvas usa os pixels reais da tela (ate 2x) para ficar nitido no
++// celular; a interface continua no mesmo tamanho (a escala vem do HUD Scale).
++static double s_pixelRatio = 1.0;
++static double jvPixelRatio() {
++    double pr = MAIN_THREAD_EM_ASM_DOUBLE({ return (window.devicePixelRatio || 1); });
++    if (!(pr >= 1.0)) pr = 1.0;
++    if (pr > 2.0) pr = 2.0;
++    return pr;
++}
++// JV Baiak: toque - posicao inicial para diferenciar "segurar" de "arrastar"
++static double s_touchStartX = 0, s_touchStartY = 0;
++static constexpr double JV_TOQUE_TOLERANCIA = 12.0; // px CSS
++
+ stdext::map<char, Fw::Key> m_keyMapStr;
+ EmscriptenWebGLContextAttributes attr;
+ 
+@@ -158,6 +171,7 @@
+     emscripten_set_touchend_callback("#canvas", this, EM_TRUE, nullptr);
+     emscripten_set_touchstart_callback("#canvas", this, EM_TRUE, nullptr);
+     emscripten_set_touchmove_callback("#canvas", this, EM_TRUE, nullptr);
++    emscripten_set_touchcancel_callback("#canvas", this, EM_TRUE, nullptr);
+     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_get_current_context();
+     emscripten_webgl_destroy_context(ctx);
+ 
+@@ -168,8 +182,10 @@
+ void BrowserWindow::internalInitGL() {
+     double w, h;
+     emscripten_get_element_css_size("#canvas", &w, &h);
+-    m_size = Size(int(w), int(h));
+-    emscripten_set_canvas_element_size("#canvas", int(w), int(h));
++    s_pixelRatio = jvPixelRatio();
++    const int pw = int(w * s_pixelRatio), ph = int(h * s_pixelRatio);
++    m_size = Size(pw, ph);
++    emscripten_set_canvas_element_size("#canvas", pw, ph);
+ 
+ 
+     EmscriptenWebGLContextAttributes attr;
+@@ -180,7 +196,7 @@
+     emscripten_webgl_make_context_current(ctx);
+ 
+ 
+-    glViewport(0, 0, int(w), int(h));
++    glViewport(0, 0, pw, ph);
+ }
+ 
+ void BrowserWindow::poll() {
+@@ -243,6 +259,11 @@
+             static_cast<BrowserWindow*>(userData)->handleTouchCallback(eventType, event);
+             return EM_TRUE;
+         }));
++        // JV Baiak: o iPhone cancela o toque em gestos do sistema; sem isto o botao ficava preso
++        emscripten_set_touchcancel_callback("#canvas", this, EM_TRUE, ([](int eventType, const EmscriptenTouchEvent* event, void* userData) -> EM_BOOL {
++            static_cast<BrowserWindow*>(userData)->handleTouchCallback(eventType, event);
++            return EM_TRUE;
++        }));
+ 
+         // clang-format off
+         MAIN_THREAD_ASYNC_EM_ASM({
+@@ -366,10 +387,12 @@
+ void BrowserWindow::handleResizeCallback(const EmscriptenUiEvent* event) {
+     double w, h;
+     emscripten_get_element_css_size("#canvas", &w, &h);
+-    if (m_size.width() != int(w) || m_size.height() != int(h)) {
+-        emscripten_set_canvas_element_size("#canvas", int(w), int(h));
+-        glViewport(0, 0, int(w), int(h));
+-        m_size = Size(int(w), int(h));
++    s_pixelRatio = jvPixelRatio();
++    const int pw = int(w * s_pixelRatio), ph = int(h * s_pixelRatio);
++    if (m_size.width() != pw || m_size.height() != ph) {
++        emscripten_set_canvas_element_size("#canvas", pw, ph);
++        glViewport(0, 0, pw, ph);
++        m_size = Size(pw, ph);
+         m_onResize(m_size);
+     }
+ }
+@@ -377,7 +400,7 @@
+ void BrowserWindow::handleMouseMotionCallback(const EmscriptenMouseEvent* mouseEvent) {
+     m_inputEvent.reset();
+     m_inputEvent.type = Fw::MouseMoveInputEvent;
+-    Point newMousePos(mouseEvent->clientX / m_displayDensity, mouseEvent->clientY / m_displayDensity);
++    Point newMousePos(mouseEvent->clientX * s_pixelRatio / m_displayDensity, mouseEvent->clientY * s_pixelRatio / m_displayDensity);
+     m_inputEvent.mouseMoved = newMousePos - m_inputEvent.mousePos;
+     m_inputEvent.mousePos = newMousePos;
+     if (m_onInputEvent)
+@@ -386,32 +409,70 @@
+ 
+ void BrowserWindow::handleTouchCallback(int eventType, const EmscriptenTouchEvent* event) {
+     m_usingTouch = true;
+-    if (event->touches->screenX != 0 && event->touches->screenY != 0 && event->touches->clientX != 0 && event->touches->clientY != 0 && event->touches->targetX != 0 && event->touches->targetY != 0) {
+-        updateTouchPosition(event);
+-        if (eventType == EMSCRIPTEN_EVENT_TOUCHMOVE) {
++    if (!event || event->numTouches <= 0)
++        return;
++    // JV Baiak: copia os valores agora. O evento e liberado logo depois deste
++    // callback, e antes ele era lido mais tarde (posicao errada no toque).
++    const EmscriptenTouchPoint& toque = event->touches[0];
++    const double cssX = toque.targetX, cssY = toque.targetY;
++    const Point pos(int(cssX * s_pixelRatio / m_displayDensity), int(cssY * s_pixelRatio / m_displayDensity));
++
++    g_dispatcher.addEvent([this, pos] {
++        m_inputEvent.reset();
++        m_inputEvent.mouseMoved = pos - m_inputEvent.mousePos;
++        m_inputEvent.mousePos = pos;
++        m_inputEvent.type = Fw::MouseMoveInputEvent;
++        if (m_onInputEvent)
++            m_onInputEvent(m_inputEvent);
++    });
++
++    if (eventType == EMSCRIPTEN_EVENT_TOUCHMOVE) {
++        // so cancela o "segurar" (botao direito) se o dedo andou de verdade
++        const double dx = cssX - s_touchStartX, dy = cssY - s_touchStartY;
++        if (dx * dx + dy * dy > JV_TOQUE_TOLERANCIA * JV_TOQUE_TOLERANCIA)
+             m_clickTimer.stop();
+-            return;
+-        };
+-        g_dispatcher.addEvent([this, eventType, event] {
+-            m_inputEvent.reset();
+-            Point newMousePos(event->touches->targetX / m_displayDensity, event->touches->targetY / m_displayDensity);
+-            m_inputEvent.mouseButton = Fw::MouseLeftButton;
+-            if (eventType == EMSCRIPTEN_EVENT_TOUCHSTART) {
+-                m_clickTimer.restart();
++        return;
++    }
++    if (eventType == EMSCRIPTEN_EVENT_TOUCHSTART) {
++        s_touchStartX = cssX;
++        s_touchStartY = cssY;
++    }
++
++    g_dispatcher.addEvent([this, eventType, pos] {
++        m_inputEvent.reset();
++        m_inputEvent.mousePos = pos;
++        m_inputEvent.mouseButton = Fw::MouseLeftButton;
++        bool segurou = false;
++        if (eventType == EMSCRIPTEN_EVENT_TOUCHSTART) {
++            m_clickTimer.restart();
++            m_inputEvent.type = Fw::MousePressInputEvent;
++            m_mouseButtonStates |= 1 << Fw::MouseLeftButton;
++        } else if (eventType == EMSCRIPTEN_EVENT_TOUCHEND || eventType == EMSCRIPTEN_EVENT_TOUCHCANCEL) {
++            m_inputEvent.type = Fw::MouseReleaseInputEvent;
++            g_dispatcher.addEvent([this] { m_mouseButtonStates &= ~(1 << Fw::MouseLeftButton); });
++            segurou = m_clickTimer.running() && m_clickTimer.ticksElapsed() >= 200;
++            m_clickTimer.stop();
++        }
++        if (m_inputEvent.type != Fw::NoInputEvent && m_onInputEvent)
++            m_onInputEvent(m_inputEvent);
++        if (segurou) {
++            // segurar o dedo = botao direito (menu, usar, olhar)
++            g_dispatcher.addEvent([this, pos] {
++                m_inputEvent.reset();
++                m_inputEvent.mousePos = pos;
++                m_inputEvent.mouseButton = Fw::MouseRightButton;
+                 m_inputEvent.type = Fw::MousePressInputEvent;
+-                m_mouseButtonStates |= 1 << Fw::MouseLeftButton;
+-            } else if (eventType == EMSCRIPTEN_EVENT_TOUCHEND) {
++                if (m_onInputEvent)
++                    m_onInputEvent(m_inputEvent);
++                m_inputEvent.reset();
++                m_inputEvent.mousePos = pos;
++                m_inputEvent.mouseButton = Fw::MouseRightButton;
+                 m_inputEvent.type = Fw::MouseReleaseInputEvent;
+-                g_dispatcher.addEvent([this] { m_mouseButtonStates &= ~(1 << Fw::MouseLeftButton); });
+-                if (m_clickTimer.running() && m_clickTimer.ticksElapsed() >= 200) {
+-                    processLongTouch(event);
+-                }
+-                m_clickTimer.stop();
+-            }
+-            if (m_inputEvent.type != Fw::NoInputEvent && m_onInputEvent)
+-                m_onInputEvent(m_inputEvent);
+-        });
+-    }
++                if (m_onInputEvent)
++                    m_onInputEvent(m_inputEvent);
++            });
++        }
++    });
+ }
+ 
+ void BrowserWindow::updateTouchPosition(const EmscriptenTouchEvent* event) {

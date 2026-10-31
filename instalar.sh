@@ -383,6 +383,11 @@ main() {
 					|| cor "1;35" "   Aviso: o modo web nao ligou agora (veja acima). O servidor do jogo esta funcionando."
 			fi
 		fi
+	elif [ -n "$(le_env DOMINIO)" ] && grep -q 'docker-compose.web.yml' "$ENV"; then
+		# atualizacao de quem ja usa o modo web: remonta o jogo do navegador com a versao nova
+		etapa "Atualizando o jogo do navegador (iPhone) em segundo plano"
+		"$BASE/jvbaiak" web "$(le_env DOMINIO)" </dev/null \
+			|| cor "1;35" "   Aviso: nao consegui atualizar o jogo do navegador agora. O servidor do jogo esta funcionando."
 	fi
 
 	touch "$BASE/.instalado"
