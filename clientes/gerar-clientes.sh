@@ -96,6 +96,17 @@ done
 mkdir -p "$CLI/data/things/$VERSAO_CLIENTE"
 cp "$CACHE/sprites860/Tibia.dat" "$CACHE/sprites860/Tibia.spr" "$CLI/data/things/$VERSAO_CLIENTE/"
 
+# Cara do JV Baiak: fundo do dragao (o mesmo do site e do jogo no navegador),
+# tudo em portugues desde a primeira vez e o nome do servidor no canto da tela.
+if [ -f /opt/jv/fundo.png ]; then
+	for fundo in "$CLI/data/images/background.png" "$CLI"/layouts/*/images/background.png; do
+		[ -f "$fundo" ] && cp /opt/jv/fundo.png "$fundo"
+	done
+fi
+sed -i "s/^local defaultLocaleName = 'en'/local defaultLocaleName = 'pt'/" "$CLI/modules/client_locales/locales.lua"
+sed -i "s|clientVersionLabel:setText('OTClientV8 ' .. g_app.getVersion()|clientVersionLabel:setText('$NOME_SERVIDOR - Tibia $VERSAO_CLIENTE\\\\nOTClientV8 ' .. g_app.getVersion()|" \
+	"$CLI/modules/client_background/background.lua"
+
 # init.lua: troca o bloco de configuracao pelo do seu servidor.
 # Servicos externos (updater, crash, feedback) ficam desligados: nada e enviado a terceiros.
 CONFIG="$TRAB/config.lua"
