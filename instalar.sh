@@ -98,8 +98,19 @@ main() {
 	esac
 	RAM_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
 	LIVRE_GB=$(df -Pk / | awk 'NR==2 {print int($4/1024/1024)}')
+	MINIMO_GB=12
+	if [ -f "${BASE:-/opt/jvbaiak}/.instalado" ]; then
+		# atualizacao: o que ja esta instalado conta; antes, limpa sobras de compilacoes antigas
+		MINIMO_GB=4
+		if [ "$LIVRE_GB" -lt 15 ] && command -v docker >/dev/null; then
+			docker image rm -f jvbaiak/web-build:local >/dev/null 2>&1 || true
+			docker builder prune -af >/dev/null 2>&1 || true
+			docker image prune -f >/dev/null 2>&1 || true
+			LIVRE_GB=$(df -Pk / | awk 'NR==2 {print int($4/1024/1024)}')
+		fi
+	fi
 	ok "RAM ${RAM_MB} MB, disco livre ${LIVRE_GB} GB"
-	[ "$LIVRE_GB" -ge 12 ] || falha "pouco espaco em disco (${LIVRE_GB} GB). Sao necessarios pelo menos 12 GB livres."
+	[ "$LIVRE_GB" -ge "$MINIMO_GB" ] || falha "pouco espaco em disco (${LIVRE_GB} GB). Sao necessarios pelo menos ${MINIMO_GB} GB livres."
 	[ "$RAM_MB" -ge 1800 ] || falha "pouca memoria (${RAM_MB} MB). Use uma VPS com pelo menos 2 GB (recomendado 4 GB ou mais)."
 	[[ "$NOME_SERVIDOR" =~ ^[A-Za-z0-9\ ]{3,30}$ ]] || falha "NOME_SERVIDOR deve ter 3-30 letras, numeros ou espacos (sem acentos)."
 	if [ -n "$GM_SENHA_PASSADA" ] && ! [[ "$GM_SENHA_PASSADA" =~ ^[A-Za-z0-9._@#%+=-]{6,29}$ ]]; then
