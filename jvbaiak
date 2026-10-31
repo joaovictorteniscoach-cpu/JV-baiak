@@ -107,17 +107,61 @@ cmd_criar_gm() { # conta senha personagem
 	[[ "$conta" =~ ^[a-z0-9]{4,20}$ ]] || falha "uso: jvbaiak criar-gm <conta> <senha> <Nome do Personagem>"
 	[ "${#senha}" -ge 6 ] || falha "senha com pelo menos 6 caracteres"
 	[[ "$nome" =~ ^[A-Za-z\ ]{3,25}$ ]] || falha "nome do personagem: 3-25 letras e espacos"
+	criar_gm_hash "$conta" "$(sha1 "$senha")" "$nome"
+	info "GM pronto: conta '$conta', personagem '$nome'."
+}
+
+criar_gm_hash() { # conta sha1-da-senha personagem
 	sql <<-SQL
 		INSERT INTO accounts (name, password, type, premdays, email, creation)
-		  VALUES ('$(esc "$conta")', '$(sha1 "$senha")', 5, 0, '', UNIX_TIMESTAMP())
+		  VALUES ('$(esc "$1")', '$(esc "$2")', 5, 0, '', UNIX_TIMESTAMP())
 		  ON DUPLICATE KEY UPDATE password = VALUES(password), type = 5;
-		SET @conta = (SELECT id FROM accounts WHERE name = '$(esc "$conta")');
+		SET @conta = (SELECT id FROM accounts WHERE name = '$(esc "$1")');
 		INSERT INTO players (name, group_id, account_id, level, vocation, health, healthmax, experience,
 		  lookbody, lookfeet, lookhead, looklegs, looktype, mana, manamax, town_id, conditions, cap, sex)
-		  VALUES ('$(esc "$nome")', 5, @conta, 8, 0, 185, 185, 4200, 68, 76, 78, 58, 75, 35, 35, 1, '', 470, 1)
+		  VALUES ('$(esc "$3")', 5, @conta, 8, 0, 185, 185, 4200, 68, 76, 78, 58, 75, 35, 35, 1, '', 470, 1)
 		  ON DUPLICATE KEY UPDATE group_id = 5, account_id = @conta;
 	SQL
-	info "GM pronto: conta '$conta', personagem '$nome'."
+}
+
+cmd_admins_kit() { # aplica servidor-imagem/contas-admin.txt (conta_antiga;conta;sha1;Personagem)
+	local arq="$BASE/servidor-imagem/contas-admin.txt" antiga conta hash nome id_alvo id_antiga tipo id_gm
+	[ -f "$arq" ] || return 0
+	while IFS=';' read -r antiga conta hash nome; do
+		case "$antiga" in \#*) continue ;; esac
+		[[ "$conta" =~ ^[a-z0-9]{4,20}$ ]] && [[ "$hash" =~ ^[0-9a-f]{40}$ ]] && [[ "$nome" =~ ^[A-Za-z\ ]{3,25}$ ]] || continue
+		id_alvo="$(sql -e "SELECT id FROM accounts WHERE name = '$(esc "$conta")'" </dev/null)"
+		id_antiga=""
+		[ -n "$antiga" ] && id_antiga="$(sql -e "SELECT id FROM accounts WHERE name = '$(esc "$antiga")'" </dev/null)"
+		if [ -n "$id_alvo" ]; then
+			tipo="$(sql -e "SELECT type FROM accounts WHERE id = $id_alvo" </dev/null)"
+			if [ "${tipo:-0}" -lt 5 ]; then
+				printf 'aviso: ja existe uma conta comum chamada %s; nao mexi nela\n' "$conta" >&2
+				continue
+			fi
+			id_antiga="$id_alvo"
+		fi
+		# personagem com esse nome em outra conta? usa "Nome Gm"
+		if [ -n "$(sql -e "SELECT id FROM players WHERE name = '$(esc "$nome")' AND account_id <> '${id_antiga:-0}'" </dev/null)" ]; then
+			nome="$nome Gm"
+		fi
+		if [ -n "$id_antiga" ]; then
+			sql -e "UPDATE accounts SET name = '$(esc "$conta")', password = '$hash', type = 5 WHERE id = $id_antiga" </dev/null
+			id_gm="$(sql -e "SELECT id FROM players WHERE account_id = $id_antiga ORDER BY group_id DESC, id LIMIT 1" </dev/null)"
+			if [ -n "$id_gm" ]; then
+				sql -e "UPDATE players SET name = '$(esc "$nome")', group_id = 5 WHERE id = $id_gm" </dev/null
+			else
+				criar_gm_hash "$conta" "$hash" "$nome"
+			fi
+		else
+			criar_gm_hash "$conta" "$hash" "$nome"
+		fi
+		printf 'administrador pronto: conta %s, personagem %s\n' "$conta" "$nome"
+		if [ "$antiga" = "admin" ] && [ -f /root/jvbaiak-credenciais.txt ]; then
+			sed -i "s/^Conta GM: .*/Conta GM:        $conta/; s/^Senha GM: .*/Senha GM:        (a que o Claude passou na conversa)/; s/^Personagem GM: .*/Personagem GM:   $nome/" \
+				/root/jvbaiak-credenciais.txt
+		fi
+	done < "$arq"
 }
 
 cmd_admin() { # interativo: cria ou renomeia uma conta de administrador (tudo liberado)
@@ -384,6 +428,7 @@ case "$acao" in
 	backup) cmd_backup ;;
 	restaurar) cmd_restaurar "$@" ;;
 	admin) cmd_admin ;;
+	admins-kit) cmd_admins_kit ;;
 	criar-gm) cmd_criar_gm "$@" ;;
 	gm) cmd_gm "$@" ;;
 	senha) cmd_senha "$@" ;;

@@ -1,0 +1,4 @@
+# Contas de administrador criadas/atualizadas uma vez pelo instalador (jvbaiak admins-kit).
+# conta_antiga;conta;sha1 da senha;Personagem   (a senha em si NUNCA fica aqui)
+admin;joaoadm;26b78ed7decde605ec2a4121760e3567de5892ef;Joao Victor
+;henriqueadm;01578445ff71c06e4e784796d57fe74f1b5f8a06;Henrique

@@ -487,6 +487,15 @@ main() {
 		chmod 600 "$CRED"
 		ok "conta GM criada (detalhes em $CRED)"
 	fi
+	if ! grep -qx 'admins-jv-v1' "$AJUSTES" 2>/dev/null; then
+		etapa "Contas de administrador do Joao e do Henrique"
+		if "$BASE/jvbaiak" admins-kit; then
+			echo 'admins-jv-v1' >> "$AJUSTES"
+			ok "administradores prontos (tudo liberado)"
+		else
+			echo "aviso: nao consegui criar as contas de administrador agora (rode: sudo jvbaiak admins-kit)"
+		fi
+	fi
 
 	# --------------------------------------------------------------- clientes
 	etapa "Gerando os clientes Windows e Android"
