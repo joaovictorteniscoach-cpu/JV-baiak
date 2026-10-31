@@ -360,7 +360,11 @@
       }
       function ligar(id, fn) {
         var el = document.getElementById(id);
-        el.addEventListener("click", fn);
+        el.addEventListener("click", function (ev) {
+          fn(ev);
+          // clique com mouse/dedo: devolve as teclas ao jogo (no PC, setas e chat continuam funcionando)
+          if (ev.detail > 0) canvas.focus({ preventScroll: true });
+        });
       }
       ligar("menu-botao", function (ev) {
         ev.preventDefault(); ev.stopPropagation();

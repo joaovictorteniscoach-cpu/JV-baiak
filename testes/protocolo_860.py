@@ -275,8 +275,10 @@ def testar(host, conta, senha, gm=False):
         antes = len(jg.recebidos)
         jg.falar("/i 2160, 1")  # cria 1 crystal coin
         jg.receber(3)
-        criou = any(x and x[0] in (0x70, 0x71, 0x78, 0x79, 0x83) for _, x in jg.recebidos[antes:])
-        etapa("admin: /i cria item", criou)
+        novos = [x for _, x in jg.recebidos[antes:] if x]
+        criou = any(op in x for x in novos for op in (b"\x78", b"\x70", b"\x83")) and not any(
+            b"There is no item" in x for x in novos)
+        etapa("admin: /i cria item", criou, pacotes=len(novos))
         jg.falar("/i 2400")  # magic sword (vai para a mao se estiver livre)
         jg.receber(2)
         antes = len(jg.recebidos)

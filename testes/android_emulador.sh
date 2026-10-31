@@ -28,10 +28,10 @@ sleep 20
 foto tela-de-login
 # campo da conta: no layout de celular do OTClientV8 fica no centro, um pouco acima
 L="${TAM%x*}"; A="${TAM#*x}"; [ "$L" -lt "$A" ] && { t=$L; L=$A; A=$t; }
-adb shell input tap $((L / 2)) $((A * 40 / 100)); sleep 2
+adb shell input tap $((L / 2)) $((A * 32 / 100)); sleep 2   # campo "Account name"
 foto tocou-no-campo
 adb shell input text "$CONTA"; sleep 1
-adb shell input keyevent 61   # TAB
+adb shell input tap $((L / 2)) $((A * 45 / 100)); sleep 1   # campo "Password"
 adb shell input text "$SENHA"; sleep 1
 foto login-preenchido
 adb shell input keyevent 66   # ENTER

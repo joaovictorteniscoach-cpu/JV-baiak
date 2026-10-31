@@ -164,6 +164,35 @@ cmd_admins_kit() { # aplica servidor-imagem/contas-admin.txt (conta_antiga;conta
 	done < "$arq"
 }
 
+cmd_reparar_banco() { # cria tabelas que o Baiak Thunder usa mas o schema original nao cria
+	# Sem player_inboxitems o servidor NAO SALVA o personagem (level, itens, posicao) ao sair.
+	sql <<-'SQL'
+		CREATE TABLE IF NOT EXISTS `player_inboxitems` (
+		  `player_id` int(11) NOT NULL,
+		  `sid` int(11) NOT NULL,
+		  `pid` int(11) NOT NULL DEFAULT '0',
+		  `itemtype` smallint(6) NOT NULL,
+		  `count` smallint(5) NOT NULL DEFAULT '0',
+		  `attributes` blob NOT NULL,
+		  UNIQUE KEY `player_id_2` (`player_id`, `sid`),
+		  FOREIGN KEY (`player_id`) REFERENCES `players`(`id`) ON DELETE CASCADE
+		) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+		CREATE TABLE IF NOT EXISTS `account_storage` (
+		  `account_id` int(11) NOT NULL,
+		  `key` int(10) unsigned NOT NULL,
+		  `value` int(11) NOT NULL,
+		  PRIMARY KEY (`account_id`, `key`),
+		  FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) ON DELETE CASCADE
+		) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+		CREATE TABLE IF NOT EXISTS `znote_guild_wars` (
+		  `id` int(11) NOT NULL AUTO_INCREMENT,
+		  `limit` int(11) NOT NULL DEFAULT '20',
+		  PRIMARY KEY (`id`)
+		) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8;
+	SQL
+	info "Banco conferido: tabelas de salvar personagem ok."
+}
+
 cmd_admin() { # interativo: cria ou renomeia uma conta de administrador (tudo liberado)
 	[ -t 0 ] || falha "rode no terminal: sudo jvbaiak admin"
 	sqlq() { sql "$@" </dev/null; }  # o banco nao le o que voce digita
@@ -428,6 +457,7 @@ case "$acao" in
 	backup) cmd_backup ;;
 	restaurar) cmd_restaurar "$@" ;;
 	admin) cmd_admin ;;
+	reparar-banco) cmd_reparar_banco ;;
 	admins-kit) cmd_admins_kit ;;
 	criar-gm) cmd_criar_gm "$@" ;;
 	gm) cmd_gm "$@" ;;

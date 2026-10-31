@@ -470,6 +470,11 @@ main() {
 		sleep 5
 	done
 
+	# Tabelas que faltam no banco original (sem elas o personagem nao e salvo ao sair)
+	etapa "Conferindo o banco (salvar personagens)"
+	"$BASE/jvbaiak" reparar-banco >/dev/null && ok "banco conferido (salvar personagens ok)" \
+		|| cor "1;35" "   Aviso: nao consegui conferir o banco agora (rode: sudo jvbaiak reparar-banco)"
+
 	# ---------------------------------------------------------------- conta GM
 	CRED="/root/jvbaiak-credenciais.txt"
 	if [ ! -f "$CRED" ] || [ -n "$GM_SENHA_PASSADA" ]; then

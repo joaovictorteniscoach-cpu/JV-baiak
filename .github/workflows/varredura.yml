@@ -39,8 +39,8 @@ jobs:
           falhas=0
           { echo "== shellcheck (erros) =="; shellcheck -S error instalar.sh jvbaiak empacotar.sh web/*.sh clientes/*.sh testes/*.sh && echo ok || falhas=1
             echo "== shellcheck (avisos) =="; shellcheck -S warning instalar.sh jvbaiak web/*.sh testes/*.sh | head -n 80 || true
-            echo "== Lua =="; for f in $(find servidor-imagem/extras -name '*.lua') web/otclientrc-extra.lua; do luac5.1 -p "$f" && echo "ok $f" || { echo "ERRO $f"; falhas=1; }; done
-            echo "== XML =="; for f in $(find servidor-imagem/extras -name '*.xml'); do xmllint --noout "$f" && echo "ok $f" || { echo "ERRO $f"; falhas=1; }; done
+            echo "== Lua =="; { find servidor-imagem/extras -name '*.lua' -print0 | xargs -0 -n1 luac5.1 -p && luac5.1 -p web/otclientrc-extra.lua; } && echo "ok (todos)" || falhas=1
+            echo "== XML =="; find servidor-imagem/extras -name '*.xml' -print0 | xargs -0 xmllint --noout && echo "ok (todos)" || falhas=1
             echo "== contas-admin.txt so com hash =="; if grep -vE '^#|^[a-z0-9]*;[a-z0-9]{4,20};[0-9a-f]{40};[A-Za-z ]{3,25}$' servidor-imagem/contas-admin.txt; then falhas=1; else echo ok; fi
             echo "== testes do site =="; pip install -q -r portal/requirements.txt && python -m unittest discover -s testes -p 'teste_portal.py' 2>&1 | tail -n 5
           } > "$R" 2>&1
@@ -80,6 +80,11 @@ jobs:
           python3 testes/protocolo_860.py 127.0.0.1 robogm Robo12345 --gm --saida "$F/protocolo-admin.json" > "$F/protocolo-admin.txt" 2>&1 || true
           if [ -f "$C" ]; then
             python3 testes/protocolo_860.py 127.0.0.1 "$(jq -r .conta "$C")" "$(jq -r .senha "$C")" --saida "$F/protocolo-jogador.json" > "$F/protocolo-jogador.txt" 2>&1 || true
+          fi
+          if [ -f "$C" ]; then
+            nome="$(jq -r .personagem "$C")"
+            pagina="$(curl -fsS "http://127.0.0.1/personagem?nome=$(printf '%s' "$nome" | sed 's/ /%20/g')")"
+            if printf '%s' "$pagina" | grep -q "nunca"; then echo "FALHA personagem NAO foi salvo ao sair (ultimo login: nunca)" >> "$R"; else echo "OK    personagem salvo ao sair (ultimo login gravado)" >> "$R"; fi
           fi
           rm -f "$F"/site/*.apk "$F"/site/*.zip
           cd /opt/jvbaiak
