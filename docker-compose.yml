@@ -62,6 +62,9 @@ services:
       ENDERECO_SERVIDOR: ${ENDERECO_SERVIDOR:?defina ENDERECO_SERVIDOR no .env}
       SERVIDOR_JOGO: servidor
       TZ: America/Sao_Paulo
+      # "Entrar com Google" (opcional): jvbaiak google <client-id> <client-secret>
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - ./downloads:/app/downloads:ro
       # Somente leitura: o site mostra rates, regras de PvP e agenda de eventos direto dos arquivos do jogo

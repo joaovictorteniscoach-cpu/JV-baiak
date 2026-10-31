@@ -7,14 +7,18 @@ Pensado para celular primeiro. Fala direto com o banco do TFS 1.3 (Baiak Thunder
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
+import json
 import os
 import re
 import secrets
 import socket
 import threading
 import time
+import urllib.parse
+import urllib.request
 from collections import defaultdict, deque
 from contextlib import contextmanager
 
@@ -35,6 +39,11 @@ ATRAS_DE_PROXY = os.environ.get("ATRAS_DE_PROXY") == "1"
 # Identidade do site: os fundadores e a familia (mude no .env se quiser)
 FUNDADORES = os.environ.get("FUNDADORES", "João Victor e Henrique")
 FAMILIA = os.environ.get("FAMILIA", "Carnicini Soubhi")
+# "Entrar com Google": so liga se os dois valores existirem (jvbaiak google ...)
+GOOGLE_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_SEGREDO = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+URL_SITE = os.environ.get("URL_SITE", "").rstrip("/")
+GOOGLE_ATIVO = bool(GOOGLE_ID and GOOGLE_SEGREDO and URL_SITE)
 CONFIG_LUA = os.environ.get("CONFIG_LUA", "/srv/config.lua")
 PASTA_DATA = os.environ.get("PASTA_DATA", "/srv/data")
 FUSO = ZoneInfo(infos.FUSO)
@@ -281,7 +290,7 @@ def _globais():
             "vocacoes": VOCACOES, "url_web": URL_WEB, "cidades": CIDADES,
             "conta_logada": session.get("conta_nome"), "pagina": request.endpoint,
             "fundadores": FUNDADORES, "familia": FAMILIA, "iniciais": INICIAIS_FUNDADORES,
-            "iniciais_familia": INICIAIS_FAMILIA}
+            "iniciais_familia": INICIAIS_FAMILIA, "google_ativo": GOOGLE_ATIVO}
 
 
 @app.template_filter("data")
@@ -560,7 +569,7 @@ def conta():
                            "(SELECT COUNT(*) FROM players_online o WHERE o.player_id = p.id) "
                            "FROM players p WHERE p.account_id = %s ORDER BY p.level DESC", (c[0],), padrao=[])
     return render_template("conta.html", c=c, personagens=personagens, msg=request.args.get("msg"),
-                           max_personagens=MAX_PERSONAGENS, erro=None, f={})
+                           max_personagens=MAX_PERSONAGENS, erro=None, f={}, **extras_conta(c))
 
 
 @app.post("/conta/sair")
@@ -576,9 +585,10 @@ def trocar_senha():
         return redirect(url_for("conta"))
     f = request.form
     erro = None
-    linha = consulta("SELECT password FROM accounts WHERE id = %s", (c[0],), um=True)
-    if not linha or not hmac.compare_digest(linha[0], sha1(f.get("atual") or "")):
-        erro = "A senha atual está errada."
+    if not session.get("via_google"):  # entrou pelo Google: ja provou quem e
+        linha = consulta("SELECT password FROM accounts WHERE id = %s", (c[0],), um=True)
+        if not linha or not hmac.compare_digest(linha[0], sha1(f.get("atual") or "")):
+            erro = "A senha atual está errada."
     erro = erro or validar_senha(f.get("nova"), f.get("nova2"))
     if not erro:
         try:
@@ -587,11 +597,13 @@ def trocar_senha():
         except Exception:
             app.logger.exception("falha ao trocar senha")
             erro = "Não foi possível trocar a senha agora."
+    if not erro:
+        session.pop("definir_senha", None)
     if erro:
         personagens = consulta("SELECT p.name, p.level, p.vocation, p.lastlogin, 0 FROM players p "
                                "WHERE p.account_id = %s ORDER BY p.level DESC", (c[0],), padrao=[])
         return render_template("conta.html", c=c, personagens=personagens, msg=None, erro=erro,
-                               max_personagens=MAX_PERSONAGENS, f={}), 400
+                               max_personagens=MAX_PERSONAGENS, f={}, **extras_conta(c)), 400
     return redirect(url_for("conta", msg="Senha alterada."))
 
 
@@ -624,8 +636,158 @@ def criar_personagem_logado():
         personagens = consulta("SELECT p.name, p.level, p.vocation, p.lastlogin, 0 FROM players p "
                                "WHERE p.account_id = %s ORDER BY p.level DESC", (c[0],), padrao=[])
         return render_template("conta.html", c=c, personagens=personagens, msg=None, erro=erro,
-                               max_personagens=MAX_PERSONAGENS, f=f), 400
+                               max_personagens=MAX_PERSONAGENS, f=f, **extras_conta(c)), 400
     return redirect(url_for("conta", msg=f"Personagem {personagem} criado."))
+
+
+# ------------------------------------------------------------ entrar com Google
+# Fluxo "authorization code" no servidor (sem JavaScript do Google na pagina).
+# A conta do jogo continua com nome + senha (o cliente 8.60 so entende isso);
+# o Google serve para criar a conta, entrar no site e definir a senha do jogo.
+SQL_TABELA_GOOGLE = ("CREATE TABLE IF NOT EXISTS jv_google (sub VARCHAR(64) NOT NULL PRIMARY KEY, "
+                     "account_id INT NOT NULL, email VARCHAR(255) NOT NULL DEFAULT '', criado INT NOT NULL DEFAULT 0)")
+_tabela_google = {"ok": False}
+
+
+def tabela_google():
+    if not _tabela_google["ok"]:
+        with banco.transacao() as cur:
+            cur.executa(SQL_TABELA_GOOGLE)
+        _tabela_google["ok"] = True
+
+
+def extras_conta(c):
+    g = None
+    if GOOGLE_ATIVO:
+        try:
+            tabela_google()
+            g = banco.um("SELECT email FROM jv_google WHERE account_id = %s", (c[0],))
+        except Exception:
+            app.logger.exception("falha ao ler vinculo do Google")
+    return {"google_email": g[0] if g else None, "via_google": bool(session.get("via_google")),
+            "definir_senha": bool(session.get("definir_senha"))}
+
+
+def _google_trocar_codigo(codigo):
+    """Troca o codigo pelo id_token direto com o Google (HTTPS). Devolve os dados do usuario."""
+    corpo = urllib.parse.urlencode({
+        "code": codigo, "client_id": GOOGLE_ID, "client_secret": GOOGLE_SEGREDO,
+        "redirect_uri": URL_SITE + "/conta/google/retorno", "grant_type": "authorization_code",
+    }).encode()
+    req = urllib.request.Request("https://oauth2.googleapis.com/token", data=corpo,
+                                 headers={"Content-Type": "application/x-www-form-urlencoded"})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        resposta = json.loads(r.read().decode())
+    return ler_id_token(resposta.get("id_token", ""))
+
+
+def ler_id_token(token):
+    # Recebido direto do Google por HTTPS, entao basta conferir os campos (OpenID Connect 3.1.3.7)
+    partes = token.split(".")
+    if len(partes) != 3:
+        raise ValueError("id_token invalido")
+    meio = partes[1] + "=" * (-len(partes[1]) % 4)
+    return json.loads(base64.urlsafe_b64decode(meio).decode())
+
+
+def validar_dados_google(dados, nonce):
+    if dados.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        return "resposta do Google com emissor estranho"
+    if dados.get("aud") != GOOGLE_ID:
+        return "resposta do Google para outro aplicativo"
+    if int(dados.get("exp", 0)) < time.time():
+        return "resposta do Google expirada"
+    if not nonce or not hmac.compare_digest(str(dados.get("nonce", "")), nonce):
+        return "resposta do Google nao confere"
+    if not dados.get("sub") or not dados.get("email") or not dados.get("email_verified"):
+        return "a conta Google precisa ter e-mail confirmado"
+    return None
+
+
+def nome_conta_do_email(email, existe):
+    """'Joao.Victor+x@gmail.com' -> 'joaovictor' (ou joaovictor27 se ja existir)."""
+    base = re.sub(r"[^a-z0-9]", "", email.split("@")[0].split("+")[0].lower())[:16] or "jogador"
+    if len(base) < 4:
+        base = (base + "jogador")[:8]
+    nome = base
+    for _ in range(50):
+        if not existe(nome):
+            return nome
+        nome = f"{base}{secrets.randbelow(9000) + 100}"
+    raise RuntimeError("nao achei nome livre")
+
+
+def entrar_na_sessao(conta_id, conta_nome, **extra):
+    session.clear()
+    session.update(conta_id=conta_id, conta_nome=conta_nome, csrf=secrets.token_urlsafe(24), **extra)
+
+
+@app.get("/conta/google")
+def google_inicio():
+    if not GOOGLE_ATIVO:
+        return redirect(url_for("conta"))
+    estado, nonce = secrets.token_urlsafe(24), secrets.token_urlsafe(24)
+    session["g_estado"], session["g_nonce"] = estado, nonce
+    params = {"client_id": GOOGLE_ID, "redirect_uri": URL_SITE + "/conta/google/retorno", "response_type": "code",
+              "scope": "openid email profile", "state": estado, "nonce": nonce, "prompt": "select_account"}
+    return redirect("https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params))
+
+
+@app.get("/conta/google/retorno")
+def google_retorno():
+    if not GOOGLE_ATIVO:
+        return redirect(url_for("conta"))
+    estado = session.pop("g_estado", None)
+    nonce = session.pop("g_nonce", None)
+    erro = None
+    if request.args.get("error"):
+        erro = "Você cancelou o login com o Google."
+    elif not estado or not hmac.compare_digest(request.args.get("state", ""), estado):
+        erro = "O login com o Google expirou. Tente de novo."
+    dados = {}
+    if not erro:
+        try:
+            dados = _google_trocar_codigo(request.args.get("code", ""))
+            erro = validar_dados_google(dados, nonce)
+        except Exception:
+            app.logger.exception("falha no login com Google")
+            erro = "Não consegui falar com o Google agora. Tente de novo em instantes."
+    if erro:
+        return render_template("login.html", erro=erro, nome=""), 400
+    sub, email = str(dados["sub"]), str(dados["email"]).lower()[:255]
+    try:
+        tabela_google()
+        with banco.transacao() as cur:
+            ligado = cur.um("SELECT a.id, a.name FROM jv_google g JOIN accounts a ON a.id = g.account_id "
+                            "WHERE g.sub = %s", (sub,))
+            if ligado:
+                conta_id, conta_nome, nova = ligado[0], ligado[1], False
+            elif session.get("conta_id"):
+                conta_id, conta_nome, nova = session["conta_id"], session.get("conta_nome"), False
+                cur.executa("INSERT INTO jv_google (sub, account_id, email, criado) VALUES (%s, %s, %s, %s)",
+                            (sub, conta_id, email, int(time.time())))
+            else:
+                if limite_criacao.esgotado(ip_cliente()):
+                    return render_template("login.html", nome="",
+                                           erro="Muitas contas criadas a partir da sua internet na última hora."), 429
+                conta_nome = nome_conta_do_email(
+                    email, lambda n: cur.um("SELECT id FROM accounts WHERE name = %s", (n,)) is not None)
+                conta_id = cur.executa(
+                    "INSERT INTO accounts (name, password, type, premdays, email, creation) VALUES (%s, %s, 1, 0, %s, %s)",
+                    (conta_nome, sha1(secrets.token_urlsafe(32)), email, int(time.time())))
+                cur.executa("INSERT INTO jv_google (sub, account_id, email, criado) VALUES (%s, %s, %s, %s)",
+                            (sub, conta_id, email, int(time.time())))
+                nova = True
+    except Exception:
+        app.logger.exception("falha ao salvar login com Google")
+        return render_template("login.html", erro="Não foi possível entrar agora. Tente de novo.", nome=""), 500
+    if nova:
+        limite_criacao.permite(ip_cliente())
+        entrar_na_sessao(conta_id, conta_nome, via_google=True, definir_senha=True)
+        return redirect(url_for("conta", msg=f"Conta {conta_nome} criada com o Google. Agora escolha a senha do jogo."))
+    ja_logado = session.get("conta_id") == conta_id and not ligado
+    entrar_na_sessao(conta_id, conta_nome, via_google=True)
+    return redirect(url_for("conta", msg="Google ligado à sua conta." if ja_logado else None))
 
 
 @app.get("/baixar")

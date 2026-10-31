@@ -259,6 +259,31 @@ cmd_atualizar() { # baixa a versao nova do kit no GitHub e reinstala (dados, con
 	bash /root/instalar.sh
 }
 
+cmd_google() { # [client-id] [client-secret]  -> liga o "Entrar com Google" no site
+	local dom id="${1:-}" seg="${2:-}"
+	dom="$(le_env DOMINIO)"
+	[ -n "$dom" ] || falha "o Google exige HTTPS: ative antes com  jvbaiak web <dominio>"
+	if [ -z "$id" ]; then
+		cat <<-EOF
+			No Google Cloud (console.cloud.google.com), em APIs e servicos > Credenciais >
+			Criar credenciais > ID do cliente OAuth > Aplicativo da Web:
+			  Origens JavaScript autorizadas:  https://$dom
+			  URIs de redirecionamento:        https://$dom/conta/google/retorno
+			Depois cole aqui o ID do cliente e a chave secreta.
+		EOF
+		read -r -p "ID do cliente: " id
+	fi
+	id="$(printf '%s' "$id" | tr -d '[:space:]')"
+	[[ "$id" =~ ^[0-9]+-[A-Za-z0-9_]+\.apps\.googleusercontent\.com$ ]] || falha "esse ID do cliente nao parece do Google (termina em .apps.googleusercontent.com)"
+	if [ -z "$seg" ]; then read -r -s -p "Chave secreta do cliente: " seg; echo; fi
+	seg="$(printf '%s' "$seg" | tr -d '[:space:]')"
+	[[ "$seg" =~ ^[A-Za-z0-9_-]{10,}$ ]] || falha "chave secreta vazia ou com formato estranho"
+	define_env GOOGLE_CLIENT_ID "$id"
+	define_env GOOGLE_CLIENT_SECRET "$seg"
+	dc up -d portal >/dev/null
+	info "Entrar com Google ligado: https://$dom/conta"
+}
+
 cmd_config() {
 	"${EDITOR:-nano}" "$BASE/servidor/config.lua"
 	read -r -p "Reiniciar o servidor agora para aplicar? [s/N] " r
@@ -285,6 +310,7 @@ cmd_ajuda() {
 		  jvbaiak web-status                acompanha a montagem do cliente web
 		  jvbaiak atualizar-ip              aponta o dominio DuckDNS para o IP atual
 		  jvbaiak atualizar                 backup + instala a versao nova do GitHub (site, scripts)
+		  jvbaiak google                    liga o "Entrar com Google" no site (pede ID e chave)
 	EOF
 }
 
@@ -309,6 +335,7 @@ case "$acao" in
 	web-status) cmd_web_status ;;
 	atualizar-ip) cmd_atualizar_ip "$@" ;;
 	atualizar | update) cmd_atualizar ;;
+	google) cmd_google "$@" ;;
 	ajuda | help | -h | --help) cmd_ajuda ;;
 	*) cmd_ajuda; exit 1 ;;
 esac

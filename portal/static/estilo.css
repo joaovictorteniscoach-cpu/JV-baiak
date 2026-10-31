@@ -312,3 +312,17 @@ legend { padding: 0 6px; font-weight: 700; }
 .rodape { text-align: center; color: var(--osso); padding: 28px 16px calc(34px + env(safe-area-inset-bottom)); border-top: 1px solid #000; background: rgba(0, 0, 0, .35); }
 .rodape p { margin: 3px 0; }
 .rodape .assinatura { font-size: 1.05rem; margin-bottom: 6px; }
+
+/* ---------------------------------------------------------------- Google */
+.google-caixa { text-align: center; margin: 0 4px 6px; }
+.google-caixa .suave { margin: 8px 0 0; font-size: .95rem; }
+.botao.google {
+  display: block; width: 100%; max-width: 360px; margin: 0 auto;
+  font-family: var(--texto); font-size: 1.05rem; letter-spacing: 0; text-transform: none;
+  color: #1f1f1f; background: #ffffff; border: 1px solid #747775; box-shadow: 0 2px 0 #000;
+}
+.botao.google:hover { filter: none; background: #f2f2f2; }
+.cartao .botao.google { margin: 4px 0 2px; max-width: none; }
+.ou { display: flex; align-items: center; gap: 10px; margin: 16px 4px; color: var(--osso-suave); font-size: .92rem; }
+.ou::before, .ou::after { content: ""; flex: 1; border-top: 1px solid var(--madeira-clara); }
+.destaque-cartao { box-shadow: 0 0 0 3px var(--ouro), 0 0 0 4px #000, 0 8px 18px rgba(0, 0, 0, .5); }

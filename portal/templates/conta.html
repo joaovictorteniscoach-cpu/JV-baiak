@@ -10,6 +10,19 @@
 {% if msg %}<p class="ok" role="status">{{ msg }}</p>{% endif %}
 {% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
 
+{% if definir_senha %}
+<section class="cartao destaque-cartao">
+  <h2>Senha do jogo</h2>
+  <p>No jogo você entra com a conta <b>{{ cnome }}</b> e uma senha. Escolha a senha agora:</p>
+  <form method="post" class="form sem-borda" action="{{ url_for('trocar_senha') }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label>Senha do jogo <input name="nova" type="password" required minlength="6" maxlength="29" autocomplete="new-password"></label>
+    <label>Repita a senha <input name="nova2" type="password" required minlength="6" maxlength="29" autocomplete="new-password"></label>
+    <button class="botao" type="submit">Salvar senha</button>
+  </form>
+</section>
+{% endif %}
+
 <section class="cartao">
   <h2>Seus personagens</h2>
   {% if personagens %}
@@ -33,15 +46,29 @@
 </section>
 {% endif %}
 
+{% if not definir_senha %}
 <section class="cartao">
-  <h2>Trocar senha</h2>
+  <h2>Trocar a senha do jogo</h2>
   <form method="post" class="form sem-borda" action="{{ url_for('trocar_senha') }}">
     <input type="hidden" name="csrf" value="{{ csrf }}">
-    <label>Senha atual <input name="atual" type="password" required maxlength="29" autocomplete="current-password"></label>
+    {% if not via_google %}<label>Senha atual <input name="atual" type="password" required maxlength="29" autocomplete="current-password"></label>{% endif %}
     <label>Nova senha <input name="nova" type="password" required minlength="6" maxlength="29" autocomplete="new-password"></label>
     <label>Repita a nova senha <input name="nova2" type="password" required minlength="6" maxlength="29" autocomplete="new-password"></label>
     <button class="botao" type="submit">Trocar senha</button>
   </form>
 </section>
+{% endif %}
+
+{% if google_ativo %}
+<section class="cartao">
+  <h2>Google</h2>
+  {% if google_email %}
+  <p>Esta conta entra com o Google <b>{{ google_email }}</b>.</p>
+  {% else %}
+  <p>Ligue ao Google para entrar no site com um toque, sem digitar senha.</p>
+  <a class="botao google" href="{{ url_for('google_inicio') }}">Ligar ao Google</a>
+  {% endif %}
+</section>
+{% endif %}
 <p class="suave">Conta criada em {{ criada|data }}{% if email %} · {{ email }}{% endif %}</p>
 {% endblock %}

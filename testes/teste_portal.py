@@ -5,6 +5,7 @@ import re
 import sqlite3
 import sys
 import tempfile
+import time
 import unittest
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -80,6 +81,7 @@ class TestePortal(unittest.TestCase):
         portal.banco = portal.Banco(lambda: sqlite3.connect(self.arq), marcador="?")
         portal.limite_criacao = portal.LimiteDeTaxa(maximo=5, janela_s=3600)
         portal.limite_login = portal.LimiteDeTaxa(maximo=10, janela_s=900)
+        portal._tabela_google["ok"] = False  # banco novo a cada teste
         portal._status_cache.update(t=1e18, online=True)
         self.c = portal.app.test_client()
 
@@ -314,6 +316,85 @@ class TestePortal(unittest.TestCase):
         for _ in range(8):
             self.assertEqual(self.criar(personagem="Outro Heroi").status_code, 400)  # conta repetida
         self.assertEqual(self.criar(conta="novaconta", personagem="Outro Heroi").status_code, 200)
+
+    # ------------------------------------------------------------ Google
+    def ligar_google(self, dados_extra=None, sub="g-123", email="Joao.Victor+tibia@gmail.com"):
+        portal.GOOGLE_ATIVO, portal.GOOGLE_ID, portal.URL_SITE = True, "123-abc.apps.googleusercontent.com", "https://x.org"
+        r = self.c.get("/conta/google")
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("accounts.google.com", r.headers["Location"])
+        self.assertIn("redirect_uri=https%3A%2F%2Fx.org%2Fconta%2Fgoogle%2Fretorno", r.headers["Location"])
+        with self.c.session_transaction() as sess:
+            estado, nonce = sess["g_estado"], sess["g_nonce"]
+        dados = {"iss": "https://accounts.google.com", "aud": portal.GOOGLE_ID, "exp": time.time() + 600,
+                 "nonce": nonce, "sub": sub, "email": email, "email_verified": True}
+        dados.update(dados_extra or {})
+        portal._google_trocar_codigo = lambda codigo: dados
+        return self.c.get(f"/conta/google/retorno?state={estado}&code=abc")
+
+    def tearDown_google(self):
+        portal.GOOGLE_ATIVO = False
+
+    def test_google_cria_conta_e_pede_senha(self):
+        self.addCleanup(self.tearDown_google)
+        r = self.ligar_google()
+        self.assertEqual(r.status_code, 302, r.get_data(as_text=True))
+        self.assertEqual(self.sql("SELECT a.name, a.email, g.sub FROM accounts a JOIN jv_google g ON g.account_id = a.id"),
+                         [("joaovictor", "joao.victor+tibia@gmail.com", "g-123")])
+        html = self.c.get(r.headers["Location"]).get_data(as_text=True)
+        self.assertIn("Escolha a senha agora", html)
+        self.assertIn("joaovictor", html)
+        self.assertNotIn('name="atual"', html)  # entrou pelo Google: nao pede a senha atual
+        t = re.search(r'name="csrf" value="([^"]+)"', html).group(1)
+        r = self.c.post("/conta/senha", data=dict(csrf=t, nova="minhasenha1", nova2="minhasenha1"))
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.sql("SELECT password FROM accounts")[0][0], hashlib.sha1(b"minhasenha1").hexdigest())
+        self.assertNotIn("Escolha a senha agora", self.c.get("/conta").get_data(as_text=True))
+        # a senha nova funciona no login normal (a mesma do jogo)
+        self.c.post("/conta/sair", data=dict(csrf=self.csrf("/conta")))
+        t = self.csrf("/conta")
+        self.assertEqual(self.c.post("/conta", data=dict(csrf=t, conta="joaovictor", senha="minhasenha1")).status_code, 302)
+
+    def test_google_segunda_vez_entra_na_mesma_conta(self):
+        self.addCleanup(self.tearDown_google)
+        self.ligar_google()
+        self.c.post("/conta/sair", data=dict(csrf=self.csrf("/conta")))
+        r = self.ligar_google()
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.sql("SELECT COUNT(*) FROM accounts")[0][0], 1)
+        self.assertIn("Olá, joaovictor", self.c.get("/conta").get_data(as_text=True))
+        # outro Google com o mesmo e-mail-base ganha outro nome de conta
+        self.c.post("/conta/sair", data=dict(csrf=self.csrf("/conta")))
+        self.ligar_google(sub="g-999", email="joaovictor@outlook.com")
+        nomes = [n for (n,) in self.sql("SELECT name FROM accounts ORDER BY id")]
+        self.assertEqual(nomes[0], "joaovictor")
+        self.assertRegex(nomes[1], r"^joaovictor\d{3,4}$")
+
+    def test_google_liga_conta_existente(self):
+        self.addCleanup(self.tearDown_google)
+        self.criar()
+        t = self.csrf("/conta")
+        self.c.post("/conta", data=dict(csrf=t, conta="joao123", senha="segredo1"))
+        r = self.ligar_google()
+        self.assertIn("Google+ligado", r.headers["Location"])
+        self.assertEqual(self.sql("SELECT account_id FROM jv_google"), [(1,)])
+        self.assertEqual(self.sql("SELECT COUNT(*) FROM accounts")[0][0], 1)
+        self.assertIn("joao.victor+tibia@gmail.com", self.c.get("/conta").get_data(as_text=True))
+
+    def test_google_recusa_respostas_ruins(self):
+        self.addCleanup(self.tearDown_google)
+        for ruim in ({"aud": "outro"}, {"email_verified": False}, {"exp": 1}, {"nonce": "x"}, {"iss": "evil"}):
+            self.c = portal.app.test_client()
+            r = self.ligar_google(ruim)
+            self.assertEqual(r.status_code, 400, ruim)
+        self.assertEqual(self.sql("SELECT COUNT(*) FROM accounts")[0][0], 0)
+        r = self.c.get("/conta/google/retorno?state=errado&code=x")
+        self.assertEqual(r.status_code, 400)
+
+    def test_google_desligado_nao_aparece(self):
+        portal.GOOGLE_ATIVO = False
+        self.assertNotIn("Entrar com Google", self.c.get("/conta").get_data(as_text=True))
+        self.assertEqual(self.c.get("/conta/google").status_code, 302)
 
 
 class TesteModoWeb(unittest.TestCase):

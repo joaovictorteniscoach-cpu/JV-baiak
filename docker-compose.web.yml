@@ -5,6 +5,7 @@ services:
     ports: !reset []
     environment:
       URL_WEB: https://${DOMINIO}/jogar/
+      URL_SITE: https://${DOMINIO}
       ATRAS_DE_PROXY: "1"
 
   caddy:

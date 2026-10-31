@@ -3,6 +3,13 @@
 {% block conteudo %}
 <h1>Criar conta</h1>
 {% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
+{% if google_ativo %}
+<div class="google-caixa">
+  <a class="botao google" href="{{ url_for('google_inicio') }}">Criar com Google</a>
+  <p class="suave">Um toque: a conta do jogo é criada com o seu Google, e você só escolhe a senha do jogo.</p>
+</div>
+<p class="ou"><span>ou preencha</span></p>
+{% endif %}
 <form method="post" class="form">
   <input type="hidden" name="csrf" value="{{ csrf }}">
   <label>Conta (login)
