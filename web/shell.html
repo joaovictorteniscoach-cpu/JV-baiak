@@ -94,6 +94,44 @@
         border: 1px solid #5a3a0c;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 3px 0 #000;
       }
+      /* teclado do celular: o iPhone so abre o teclado num toque direto */
+      #teclado {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        font-size: 16px; /* evita o zoom automatico do iPhone */
+        border: 0;
+        padding: 0;
+        z-index: -1;
+      }
+      .jv-botao-teclado {
+        position: fixed;
+        z-index: 5;
+        display: none;
+        align-items: center;
+        gap: 6px;
+        font: 600 15px Georgia, serif;
+        color: #2a1704;
+        background: linear-gradient(180deg, #f4cf73, #e0b04a 45%, #b98322);
+        border: 1px solid #5a3a0c;
+        border-radius: 999px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #digitar { left: 50%; top: 12px; transform: translateX(-50%); padding: 10px 20px; }
+      #fechar-teclado { right: 10px; top: 10px; padding: 8px 14px; font-size: 13px; }
+      body.jv-jogando #abrir-teclado {
+        display: flex;
+        left: max(8px, env(safe-area-inset-left));
+        top: 44%;
+        padding: 6px 9px;
+        font-size: 18px;
+        opacity: .55;
+      }
       #girar {
         display: none;
         position: fixed;
@@ -135,6 +173,10 @@
       <div style="font-size:14px;color:#b9a582">Dica: no Safari, Compartilhar &rarr; Adicionar &agrave; Tela de In&iacute;cio abre o jogo em tela cheia.</div>
       <button onclick="document.body.classList.add('retrato-ok')">Continuar assim</button>
     </div>
+    <input id="teclado" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-hidden="true" tabindex="-1" />
+    <div id="digitar" class="jv-botao-teclado" role="button">&#9000; Toque para digitar</div>
+    <div id="abrir-teclado" class="jv-botao-teclado" role="button" aria-label="Abrir teclado">&#9000;</div>
+    <div id="fechar-teclado" class="jv-botao-teclado" role="button">Fechar teclado</div>
     <canvas class="backbuffer" id="canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
     <script type="text/javascript">
       var canvas = document.getElementById("canvas");
@@ -153,11 +195,73 @@
           .join(": ");
         console.error(payload);
       }
+      // ---------------------------------------------------------------- teclado no celular
+      // O jogo chama jvPedirTeclado() quando um campo de texto e tocado. No iPhone o
+      // teclado so abre com focus() dentro de um toque, entao mostramos um botao.
+      var teclado = document.getElementById("teclado");
+      var botaoDigitar = document.getElementById("digitar");
+      var botaoAbrir = document.getElementById("abrir-teclado");
+      var botaoFechar = document.getElementById("fechar-teclado");
+      var tecladoAberto = false;
+      function enviarTecla(code, key, keyCode, comPress) {
+        var op = { code: code, key: key, keyCode: keyCode, which: keyCode, charCode: comPress ? keyCode : 0, bubbles: true };
+        window.dispatchEvent(new KeyboardEvent("keydown", op));
+        if (comPress) window.dispatchEvent(new KeyboardEvent("keypress", op));
+        window.dispatchEvent(new KeyboardEvent("keyup", op));
+      }
+      function enviarTexto(texto) {
+        for (var ch of texto) {
+          canvas.dispatchEvent(new KeyboardEvent("keypress", { key: ch, charCode: ch.charCodeAt(0), bubbles: true }));
+        }
+      }
+      function abrirTeclado(ev) {
+        if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+        botaoDigitar.style.display = "none";
+        teclado.value = "";
+        teclado.focus();
+        tecladoAberto = true;
+        botaoFechar.style.display = "flex";
+      }
+      function fecharTeclado(ev) {
+        if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+        teclado.blur();
+      }
+      window.jvPedirTeclado = function () {
+        if (tecladoAberto) return;
+        botaoDigitar.style.display = "flex";
+        clearTimeout(window.jvTimerDigitar);
+        window.jvTimerDigitar = setTimeout(function () { botaoDigitar.style.display = "none"; }, 6000);
+      };
+      [botaoDigitar, botaoAbrir].forEach(function (b) {
+        b.addEventListener("touchend", abrirTeclado, { passive: false });
+        b.addEventListener("click", abrirTeclado);
+      });
+      botaoFechar.addEventListener("touchend", fecharTeclado, { passive: false });
+      botaoFechar.addEventListener("click", fecharTeclado);
+      teclado.addEventListener("blur", function () {
+        tecladoAberto = false;
+        botaoFechar.style.display = "none";
+      });
+      teclado.addEventListener("input", function (ev) {
+        var t = teclado.value;
+        teclado.value = "";
+        if (t) enviarTexto(t);
+        ev.stopPropagation();
+      });
+      teclado.addEventListener("keydown", function (ev) {
+        ev.stopPropagation();
+        if (ev.key === "Backspace") { ev.preventDefault(); enviarTecla("Backspace", "Backspace", 8, false); }
+        else if (ev.key === "Enter") { ev.preventDefault(); enviarTecla("Enter", "Enter", 13, true); teclado.blur(); }
+        else if (ev.key === "Tab") { ev.preventDefault(); enviarTecla("Tab", "Tab", 9, false); }
+      });
+      teclado.addEventListener("keyup", function (ev) { ev.stopPropagation(); });
       function startGame() {
         document.getElementById("capa").style.display = "none";
+        document.body.classList.add("jv-jogando");
         callMain();
         ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (tipo) {
           document.addEventListener(tipo, function (ev) {
+            if (ev.target && ev.target.classList && ev.target.classList.contains("jv-botao-teclado")) return;
             ev.preventDefault();
             ev.stopPropagation();
           }, { passive: false });

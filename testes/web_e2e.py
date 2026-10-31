@@ -86,10 +86,22 @@ def main():
         foto("3-login.png")
         conta, senha, ok = conta_de_teste()
         if ok:
+            # como no iPhone: toca no campo da conta, aparece "Toque para digitar", toca nele
+            pg.touchscreen.tap(440, 140)
+            time.sleep(2)
+            foto("4a-pediu-teclado.png")
+            visivel = pg.is_visible("#digitar")
+            log.write(f"botao 'Toque para digitar' apareceu: {visivel}\n")
+            if visivel:
+                pg.tap("#digitar")
+            else:
+                pg.tap("#abrir-teclado")
+            time.sleep(1)
+            log.write(f"campo do teclado com foco: {pg.evaluate('document.activeElement && document.activeElement.id')}\n")
             pg.keyboard.type(conta, delay=60)
             pg.keyboard.press("Tab")
             pg.keyboard.type(senha, delay=60)
-            foto("4-login-preenchido.png")
+            foto("4b-login-preenchido.png")
             pg.keyboard.press("Enter")
             time.sleep(12)
             foto("5-mensagem.png")
@@ -99,12 +111,25 @@ def main():
             pg.keyboard.press("Enter")  # entra com o personagem
             time.sleep(20)
             foto("7-no-jogo.png")
-            pg.touchscreen.tap(422 + 60, 170)  # toque no mapa: anda
-            time.sleep(3)
+            pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
+            time.sleep(2)
+            foto("7b-sem-janela.png")
+            pg.touchscreen.tap(422 + 70, 170)  # toque no mapa: anda
+            time.sleep(4)
             foto("8-depois-do-toque.png")
+            # chat: abre o teclado pelo botao fixo e manda uma fala
+            pg.tap("#abrir-teclado")
+            time.sleep(1)
+            pg.keyboard.type("oi", delay=80)
+            pg.keyboard.press("Enter")
+            time.sleep(2)
+            foto("8b-falou-oi.png")
             pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
             time.sleep(6)
             foto("9-em-pe.png")
+            pg.touchscreen.tap(195, 300)
+            time.sleep(3)
+            foto("9b-em-pe-toque.png")
             pg.set_viewport_size({"width": 844, "height": 390})
             time.sleep(4)
             foto("10-deitado-de-novo.png")

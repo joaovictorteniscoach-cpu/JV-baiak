@@ -1,0 +1,15 @@
+--- a/src/framework/ui/uitextedit.cpp
++++ b/src/framework/ui/uitextedit.cpp
+@@ -1667,7 +1667,11 @@
+ #ifdef __EMSCRIPTEN__
+         if (g_window.isVisible()) {
+             MAIN_THREAD_ASYNC_EM_ASM({
+-                if (navigator && "virtualKeyboard" in navigator) {
++                // JV Baiak: no iPhone o teclado so abre num toque do usuario;
++                // a pagina mostra o botao "Digitar" (window.jvPedirTeclado)
++                if (typeof window.jvPedirTeclado === "function") {
++                    window.jvPedirTeclado();
++                } else if (navigator && "virtualKeyboard" in navigator) {
+                     document.getElementById("title-text").focus();
+                     navigator.virtualKeyboard.show();
+                 }
