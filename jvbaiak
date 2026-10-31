@@ -164,6 +164,25 @@ cmd_admins_kit() { # aplica servidor-imagem/contas-admin.txt (conta_antiga;conta
 	done < "$arq"
 }
 
+cmd_contas() { # lista as contas e personagens (as senhas ficam guardadas so como codigo, nao da para ler)
+	info "Contas do servidor (tipo 5 = administrador). Contas 'robo...' sao dos testes automaticos."
+	sql -e "SELECT CONCAT(RPAD(a.name, 22, ' '), IF(a.type >= 5, ' [ADMIN] ', '         '),
+	               IFNULL(GROUP_CONCAT(CONCAT(p.name, ' (lv ', p.level, ')') SEPARATOR ', '), '-'))
+	        FROM accounts a LEFT JOIN players p ON p.account_id = a.id
+	        GROUP BY a.id ORDER BY (a.name LIKE 'robo%'), a.type DESC, a.id" </dev/null
+	echo
+	info "Para trocar a senha de qualquer conta: sudo jvbaiak senha <conta> <nova-senha>"
+}
+
+cmd_limpar_robos() { # apaga as contas criadas pelos robos de teste (conta robo + 8 letras, personagem "Robo ...")
+	local n
+	n="$(sql -e "SELECT COUNT(*) FROM accounts a WHERE a.name REGEXP '^robo[a-z0-9]{8}$'
+	        AND NOT EXISTS (SELECT 1 FROM players p WHERE p.account_id = a.id AND p.name NOT LIKE 'Robo %')" </dev/null)"
+	sql -e "DELETE a FROM accounts a WHERE a.name REGEXP '^robo[a-z0-9]{8}$' AND a.type < 5
+	        AND NOT EXISTS (SELECT 1 FROM players p WHERE p.account_id = a.id AND p.name NOT LIKE 'Robo %')" </dev/null
+	info "Contas de teste dos robos apagadas: ${n:-0}"
+}
+
 cmd_reparar_banco() { # cria tabelas que o Baiak Thunder usa mas o schema original nao cria
 	# Sem player_inboxitems o servidor NAO SALVA o personagem (level, itens, posicao) ao sair.
 	sql <<-'SQL'
@@ -430,6 +449,7 @@ cmd_ajuda() {
 		  jvbaiak parar | iniciar           desliga / liga servidor e site
 		  jvbaiak backup                    backup agora (tambem roda todo dia as 05:30)
 		  jvbaiak restaurar <arquivo>       volta o banco para um backup
+		  jvbaiak contas                    lista todas as contas e personagens
 		  jvbaiak admin                     cria ou renomeia uma conta de administrador (pergunta tudo)
 		  jvbaiak gm "Nome"                 transforma um personagem em GM
 		  jvbaiak criar-gm conta senha Nome cria/atualiza uma conta GM
@@ -458,6 +478,8 @@ case "$acao" in
 	restaurar) cmd_restaurar "$@" ;;
 	admin) cmd_admin ;;
 	reparar-banco) cmd_reparar_banco ;;
+	contas) cmd_contas ;;
+	limpar-robos) cmd_limpar_robos ;;
 	admins-kit) cmd_admins_kit ;;
 	criar-gm) cmd_criar_gm "$@" ;;
 	gm) cmd_gm "$@" ;;

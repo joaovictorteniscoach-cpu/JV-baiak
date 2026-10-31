@@ -13,9 +13,10 @@ pcall(function()
     if rotulo then rotulo:hide() end
 end)
 
--- Celular: tela do jogo mais limpa ao entrar. A janela do bot (vBot) fica fechada;
--- ela abre pelo botao "Bot" do menu quando o jogador quiser.
-if g_platform.isMobile() then
+-- Tela do jogo como no Tibia original ao entrar: a janela do bot (vBot) fica fechada
+-- (abre pelo botao "Bot" do menu quando o jogador quiser) e, no celular, o joystick
+-- comeca escondido: anda tocando no mapa, como no Tibia.
+do
     local function fecharBot()
         local bot = modules.game_bot
         if not bot then return end
@@ -26,10 +27,14 @@ if g_platform.isMobile() then
             if bot.botButton then bot.botButton:setOn(false) end
         end)
     end
+    local function esconderJoystick()
+        local j = modules.game_joystick
+        if g_platform.isMobile() and j and j.hide then pcall(j.hide) end
+    end
     connect(g_game, {
         onGameStart = function()
-            scheduleEvent(fecharBot, 1500)
-            scheduleEvent(fecharBot, 4000)
+            scheduleEvent(function() fecharBot(); esconderJoystick() end, 1500)
+            scheduleEvent(function() fecharBot(); esconderJoystick() end, 4000)
         end
     })
 end
