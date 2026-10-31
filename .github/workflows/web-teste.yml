@@ -71,12 +71,16 @@ jobs:
           ls -la "$B/web/www/jogar" >> "$F/montagem.txt"
           [ "$ok" = 1 ]
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Testar como iPhone deitado
         run: |
           F="$RUNNER_TEMP/fotos"; mkdir -p "$F"
-          python3 -m venv "$RUNNER_TEMP/venv"
+          python -m venv "$RUNNER_TEMP/venv"
           . "$RUNNER_TEMP/venv/bin/activate"
-          pip install -q playwright==1.48.0 > "$F/instalacao.txt" 2>&1
+          pip install -q playwright > "$F/instalacao.txt" 2>&1
           python -m playwright install --with-deps chromium >> "$F/instalacao.txt" 2>&1
           python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$F" > "$F/teste.txt" 2>&1 || echo "falhou: veja teste.txt" >> "$F/teste.txt"
           ls -la "$F"
