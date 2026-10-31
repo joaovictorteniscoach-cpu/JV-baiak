@@ -17,6 +17,7 @@ RUN cd /workspace \
  && cp /tmp/jv/shell.html browser/shell.html \
  && cat /tmp/jv/otclientrc-extra.lua >> otclientrc.lua \
  && if [ -f /tmp/jv/fundo-login.png ]; then cp /tmp/jv/fundo-login.png data/images/background.png; fi \
+ && if [ -d /tmp/jv/imagens ]; then cp /tmp/jv/imagens/*.png data/images/options/; fi \
  && source /opt/emsdk/emsdk_env.sh \
  && touch /workspace/src/framework/net/jv_web_config.h \
  && rm -f ${BUILD_DIR}/bin/otclient.* \

@@ -114,7 +114,7 @@ def main():
             pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
             time.sleep(2)
             foto("7b-sem-janela.png")
-            pg.touchscreen.tap(422 + 70, 170)  # toque no mapa: anda
+            pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)
             foto("8-depois-do-toque.png")
             # chat: abre o teclado pelo botao fixo e manda uma fala
@@ -124,6 +124,16 @@ def main():
             pg.keyboard.press("Enter")
             time.sleep(2)
             foto("8b-falou-oi.png")
+            # segurar o dedo no proprio personagem: menu com "Set Outfit" (trocar roupa)
+            cdp = ctx.new_cdp_session(pg)
+            ponto = [{"x": 400, "y": 150}]
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": ponto})
+            time.sleep(0.6)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+            time.sleep(2)
+            foto("8c-segurar-no-personagem.png")
+            pg.keyboard.press("Escape")
+            time.sleep(1)
             pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
             time.sleep(6)
             foto("9-em-pe.png")

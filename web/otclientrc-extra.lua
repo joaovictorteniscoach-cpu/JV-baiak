@@ -33,3 +33,17 @@ if g_platform.isMobile() then
         end
     })
 end
+
+-- Botao "Trocar roupa": abre a janela de outfits a qualquer hora (como "Set Outfit"
+-- ao segurar o dedo no proprio personagem). Mostra os outfits e addons liberados.
+pcall(function()
+    local painel = modules.game_mainpanel
+    if painel and painel.addToggleButton then
+        local botao
+        botao = painel.addToggleButton('jvRoupaButton', tr('Trocar roupa (outfit)'), '/images/options/jv_roupa',
+            function()
+                if g_game.isOnline() then g_game.requestOutfit() end
+                if botao then botao:setOn(false) end
+            end, false, 5)
+    end
+end)

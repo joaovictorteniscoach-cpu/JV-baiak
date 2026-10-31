@@ -153,6 +153,9 @@ pagina="$(cat "$WEB/shell.html")"
 printf '%s\n' "${pagina//__JV_NOME__/$NOME_HTML}" > "$CTX/jv/shell.html"
 cp "$WEB/otclientrc-extra.lua" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login.png" ] && cp "$WEB/visual/fundo-login.png" "$CTX/jv/"
+if ls "$WEB"/imagens-jogo/*.png >/dev/null 2>&1; then
+	mkdir -p "$CTX/jv/imagens" && cp "$WEB"/imagens-jogo/*.png "$CTX/jv/imagens/"
+fi
 
 DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg BASE_IMG="$IMG" \
 	-t jvbaiak/web-build:local "$CTX" >>"$LOG" 2>&1 \
