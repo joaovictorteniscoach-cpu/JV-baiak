@@ -1,0 +1,191 @@
+{
+  "mapa": "BaiakChaito",
+  "cabecalho": {
+    "version": 2,
+    "width": 2048,
+    "height": 2048,
+    "items_major": 3,
+    "items_minor": 17
+  },
+  "tiles": 1263629,
+  "monstros_cadastrados": 381,
+  "posicoes_monstros": 7915,
+  "especies_no_mapa": 173,
+  "erros_arquivos_monstros": [
+    {
+      "tipo": "arquivo_monstro",
+      "nome": "merlin",
+      "arquivo": "Boss_System/merlin.xml",
+      "erro": "not well-formed (invalid token): line 67, column 42"
+    }
+  ],
+  "spawns_sem_cadastro": [
+    "battlemaster zunzu",
+    "demon (goblin)",
+    "draken abomination",
+    "draken spellweaver",
+    "draken warmaster",
+    "ghastly dragon",
+    "insect swarm",
+    "killer caiman",
+    "lizard chosen",
+    "lizard dragon priest",
+    "lizard high guard",
+    "lizard legionnaire",
+    "lizard zaogun",
+    "training monk"
+  ],
+  "spawns_sem_tile": [],
+  "posicoes_sobrepostas": [],
+  "npcs_sem_arquivo": [
+    "athan",
+    "blesser man",
+    "dark rodo",
+    "dufi",
+    "eremo",
+    "especialista of soft",
+    "frodo",
+    "henricus",
+    "lector",
+    "lola",
+    "mad",
+    "obi",
+    "perac",
+    "rashid",
+    "roy",
+    "seller",
+    "varkhal"
+  ],
+  "tempos_invalidos": [],
+  "casas_sem_definicao": [
+    32,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    107,
+    108,
+    109,
+    110,
+    111,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    127,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    1380,
+    1381,
+    1382,
+    1383,
+    1460,
+    1462,
+    1463,
+    1464,
+    1465,
+    1466,
+    1467,
+    1468,
+    1469,
+    1470,
+    1471,
+    1473,
+    1474,
+    1478,
+    1479,
+    1480,
+    1481,
+    1482,
+    1484,
+    1485,
+    1486,
+    1487,
+    1488
+  ],
+  "templos_sem_tile": [],
+  "amostra_monstros_modernos": {
+    "cobra assassin": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "cobra scout": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "falcon knight": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "falcon paladin": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "gazer spectre": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "burster spectre": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "ripper spectre": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "lavafungus": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "turbulent elemental": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "bony sea devil": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "many faces": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "branchy crawler": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "rotten golem": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "cloak of terror": {
+      "cadastrado": false,
+      "spawns": 0
+    }
+  },
+  "limites": "Auditoria estática da cópia informada. Não verifica walkability, scripts em execução, sprites, loot, quests, banco ou a instância Oracle.",
+  "base_avaliada": "moviebr/baiakthunder@265d45805c5d2204262ffd55b8fc67d97b829916",
+  "aprovado_para_ativar": false
+}

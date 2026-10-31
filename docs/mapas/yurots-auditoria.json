@@ -1,0 +1,196 @@
+{
+  "mapa": "Baiak Yurots",
+  "cabecalho": {
+    "version": 2,
+    "width": 32513,
+    "height": 32503,
+    "items_major": 3,
+    "items_minor": 19
+  },
+  "tiles": 3015576,
+  "monstros_cadastrados": 381,
+  "posicoes_monstros": 18680,
+  "especies_no_mapa": 248,
+  "erros_arquivos_monstros": [
+    {
+      "tipo": "arquivo_monstro",
+      "nome": "merlin",
+      "arquivo": "Boss_System/merlin.xml",
+      "erro": "not well-formed (invalid token): line 67, column 42"
+    }
+  ],
+  "spawns_sem_cadastro": [
+    "abominator",
+    "apocalypse",
+    "arabian",
+    "battlemaster zunzu",
+    "bazir",
+    "bossing of baiak",
+    "bugzin",
+    "castle guardian",
+    "dark abominator",
+    "demon vip",
+    "demon vip ii",
+    "dragon lord vip ii",
+    "dragon lord vip iii",
+    "draken spellweaver",
+    "draken warmaster",
+    "eternal guardian",
+    "fada",
+    "frost dragon vip",
+    "frost dragon vip ii",
+    "frost dragon vip iii",
+    "ghastly dragon",
+    "grim reaper vip",
+    "grim reaper vip ii",
+    "guardian of the sea",
+    "harry potter",
+    "hydra vip",
+    "hydra vip ii",
+    "hydra vip iii",
+    "infernalist vip",
+    "infernatil",
+    "insect swarm",
+    "killer caiman",
+    "king carniphila",
+    "king hunter",
+    "king knight",
+    "king magician",
+    "king minotaur",
+    "king of baiak",
+    "king pirate",
+    "lizard chosen",
+    "lizard dragon priest",
+    "lizard high guard",
+    "lizard legionnaire",
+    "lizard zaogun",
+    "lobisomen",
+    "lord of demon",
+    "magebomb",
+    "magician",
+    "medusa vip",
+    "medusa vip ii",
+    "medusa vip iii",
+    "quara abominator",
+    "shadow warrior",
+    "spirit of jack",
+    "the fire elemental",
+    "the spirit",
+    "training monk",
+    "treiner",
+    "vip trainer",
+    "warlock vip",
+    "yakchal",
+    "zarabustor"
+  ],
+  "spawns_sem_tile": [],
+  "posicoes_sobrepostas": [],
+  "npcs_sem_arquivo": [
+    "athan",
+    "bankeiro",
+    "blesser man",
+    "bulma",
+    "celest",
+    "comerciante",
+    "dark rodo",
+    "dodgeseller",
+    "donald",
+    "dove",
+    "dufi",
+    "eremo",
+    "especialista of sotf",
+    "johnny",
+    "lector",
+    "mad",
+    "magnus",
+    "obi",
+    "perac",
+    "raphael",
+    "rashid",
+    "seller",
+    "updade seller",
+    "varkhal",
+    "warmaster addon 1",
+    "warmaster addon 2"
+  ],
+  "tempos_invalidos": [
+    {
+      "nome": "ghoul",
+      "tempo": "33554432"
+    }
+  ],
+  "casas_sem_definicao": [],
+  "templos_sem_tile": [
+    [
+      214,
+      73,
+      5
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "amostra_monstros_modernos": {
+    "cobra assassin": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "cobra scout": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "falcon knight": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "falcon paladin": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "gazer spectre": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "burster spectre": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "ripper spectre": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "lavafungus": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "turbulent elemental": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "bony sea devil": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "many faces": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "branchy crawler": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "rotten golem": {
+      "cadastrado": false,
+      "spawns": 0
+    },
+    "cloak of terror": {
+      "cadastrado": false,
+      "spawns": 0
+    }
+  },
+  "limites": "Auditoria estática da cópia informada. Não verifica walkability, scripts em execução, sprites, loot, quests, banco ou a instância Oracle.",
+  "base_avaliada": "moviebr/baiakthunder@265d45805c5d2204262ffd55b8fc67d97b829916",
+  "aprovado_para_ativar": false
+}

@@ -1,0 +1,49 @@
+{
+  "familia_escolhida": "Baiak / Yurots, cidade Central",
+  "candidata_publica": "BaiakChaito",
+  "estado": "BLOQUEADA_POR_INCOMPATIBILIDADES",
+  "mapa_principal_ativo": "preservar o atual até aprovação dos testes e migração",
+  "cidade_inicial": {
+    "id": 1,
+    "nome": "Central",
+    "templo": {
+      "x": 160,
+      "y": 54,
+      "z": 7
+    }
+  },
+  "fonte": {
+    "repositorio": "https://github.com/otservme/baiak860",
+    "commit": "d0f85243747b8008552fd29b14de8752e770a652",
+    "pasta": "data/world"
+  },
+  "arquivos": [
+    {
+      "arquivo": "BaiakChaito-house.xml",
+      "sha256": "11a29226e851d2e14ba86b76bc4da9b13a97177379e8f6a05df796e19fb3fb41",
+      "bytes": 5107
+    },
+    {
+      "arquivo": "BaiakChaito-spawn.xml",
+      "sha256": "04ca2e037b5bd4ea4d68e150a3841b68b20212fbf2ab86324f35b46e81950144",
+      "bytes": 668732
+    },
+    {
+      "arquivo": "BaiakChaito.otbm",
+      "sha256": "9945eafff811a0db6eea83136216d29fd1ef596f481604bca6812008a13f9acb",
+      "bytes": 12117509
+    }
+  ],
+  "bloqueios": {
+    "monstros_nao_cadastrados": 14,
+    "npcs_sem_arquivo": 17,
+    "casas_sem_definicao": 67
+  },
+  "popularidade": "Família encontrada em vários servidores BR. Não foi possível verificar um arquivo específico como o mais utilizado e mais jogado do Brasil.",
+  "restricoes": [
+    "Não modificar config.lua/mapName automaticamente.",
+    "Não mover jogadores/casas nem limpar o banco.",
+    "Não substituir scripts de eventos sem adaptar as coordenadas.",
+    "Não considerar esta auditoria estática prova de jogabilidade."
+  ]
+}
