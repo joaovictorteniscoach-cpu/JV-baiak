@@ -1,7 +1,10 @@
--- JV Baiak: AUTO ATAQUE (jogo no navegador e aplicativos PC/Android)
--- Ligado: quando voce nao esta atacando ninguem, o jogo ataca sozinho o monstro
--- mais perto (ate 7 quadrados, no mesmo andar). Nunca ataca jogadores.
--- Liga/desliga pelo botao de espada no menu. No celular comeca ligado.
+-- JV Baiak: CACA AUTOMATICA, no estilo dos "Tibia idle" (jogo no navegador e apps PC/Android)
+-- Ligada (botao de espada no menu; no celular ja comeca ligada):
+--  * ataca sozinho o monstro mais perto (ate 7 quadrados, mesmo andar) e vai atras dele;
+--  * cura sozinho: vida abaixo de 60% -> pocao de vida (se estiver numa mochila aberta)
+--    ou a magia "exura"; mana abaixo de 35% -> pocao de mana;
+--  * nunca ataca jogadores e nao faz nada em zona de protecao.
+-- O loot de moedas vai sozinho para a mochila pelo autoloot do servidor.
 -- Mesmo arquivo em web/ e em clientes/visual/mods/jv_autoataque/ (o teste confere).
 JVAutoAtaque = JVAutoAtaque or {}
 local A = JVAutoAtaque
@@ -41,6 +44,40 @@ end
 
 A.ignorar = {}
 A.tentativa = nil
+A.ultimaCura = 0
+A.ultimaMana = 0
+
+local POCOES_VIDA = {8473, 7591, 7588, 7618}   -- ultimate, great, strong, health
+local POCOES_MANA = {7590, 7589, 7620}         -- great, strong, mana
+
+local function acharPocao(lista)
+    for _, id in ipairs(lista) do
+        local ok, item = pcall(function() return g_game.findPlayerItem(id, -1) end)
+        if ok and item then return item end
+    end
+    return nil
+end
+
+local function cuidar(player)
+    local agora = g_clock.millis()
+    local vida = player:getHealth() / math.max(1, player:getMaxHealth())
+    if vida < 0.6 and agora - A.ultimaCura > 1100 then
+        local pocao = acharPocao(POCOES_VIDA)
+        if pocao then
+            g_game.useWith(pocao, player)
+        elseif player:getMana() >= 20 then
+            g_game.talk('exura')
+        end
+        A.ultimaCura = agora
+        return
+    end
+    local mana = player:getMana() / math.max(1, player:getMaxMana())
+    if mana < 0.35 and agora - A.ultimaMana > 1100 then
+        local pocao = acharPocao(POCOES_MANA)
+        if pocao then g_game.useWith(pocao, player) end
+        A.ultimaMana = agora
+    end
+end
 
 local function maisPerto(player)
     local pos = player:getPosition()
@@ -67,6 +104,7 @@ local function ciclo()
     if not A.ligado or not g_game.isOnline() then return end
     local player = g_game.getLocalPlayer()
     if not player or naProtecao(player) then return end
+    pcall(cuidar, player)
     if g_game.isAttacking() then
         A.tentativa = nil -- deu certo: esta atacando
         return
@@ -81,6 +119,7 @@ local function ciclo()
         return
     end
     A.tentativa = id
+    pcall(function() g_game.setChaseMode(1) end) -- vai atras do monstro
     g_game.attack(alvo)
 end
 
@@ -89,7 +128,7 @@ function A.definir(ligado)
     g_settings.set('jvAutoAtaque', ligado and 'true' or 'false')
     marcar(A.botao, ligado)
     if g_game.isOnline() then
-        aviso(ligado and 'Auto ataque LIGADO' or 'Auto ataque DESLIGADO')
+        aviso(ligado and 'Caca automatica LIGADA (ataca e cura sozinho)' or 'Caca automatica DESLIGADA')
     end
 end
 
@@ -101,10 +140,10 @@ function A.iniciar()
         local menu = modules.client_topmenu
         local painel = modules.game_mainpanel
         if menu and menu.addLeftGameToggleButton then -- aplicativos PC/Android (OTClientV8)
-            A.botao = menu.addLeftGameToggleButton('jvAutoAtaque', tr('Auto ataque'),
+            A.botao = menu.addLeftGameToggleButton('jvAutoAtaque', tr('Caca automatica'),
                 '/images/topbuttons/combatcontrols', alternar)
         elseif painel and painel.addToggleButton then -- navegador
-            A.botao = painel.addToggleButton('jvAutoAtaqueButton', tr('Auto ataque'),
+            A.botao = painel.addToggleButton('jvAutoAtaqueButton', tr('Caca automatica'),
                 '/images/options/jv_autoataque', alternar, false, 6)
         end
         marcar(A.botao, A.ligado)
