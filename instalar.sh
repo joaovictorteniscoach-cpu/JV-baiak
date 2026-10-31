@@ -410,6 +410,24 @@ main() {
 		PY
 		ok "respawn: 40s nos comuns e 50s nos bosses e raros"
 	fi
+	if ! grep -qx 'mapa-limpo-v1' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Tira a sujeira decorativa do chao dos templos/cidades (pedrinhas, ferragens,
+		# rachaduras, poeira). Casas, paredes, moveis, hunts e areas sem PZ nao mudam.
+		# O mapa original fica guardado como <mapa>.otbm.original
+		MAPA="$(sed -n 's/^mapName[ \t]*=[ \t]*"\([^"]*\)".*/\1/p' "$SRV/config.lua" | head -n1)"
+		ARQ_MAPA="$SRV/data/world/${MAPA:-real02}.otbm"
+		if [ -f "$ARQ_MAPA" ]; then
+			[ -f "$ARQ_MAPA.original" ] || cp -a "$ARQ_MAPA" "$ARQ_MAPA.original"
+			if python3 "$BASE/servidor-imagem/ferramentas/limpar_mapa.py" "$ARQ_MAPA.original" \
+				"$SRV/data/items/items.otb" "$SRV/data/items/items.xml" "$ARQ_MAPA.limpo" "$SRV/data/world/limpeza.txt" >/dev/null; then
+				mv -f "$ARQ_MAPA.limpo" "$ARQ_MAPA"
+				echo 'mapa-limpo-v1' >> "$AJUSTES"; REINICIAR_SERVIDOR=1
+				ok "mapa limpo: $(head -n1 "$SRV/data/world/limpeza.txt")"
+			else
+				rm -f "$ARQ_MAPA.limpo"; cor "1;35" "   Aviso: nao consegui limpar o mapa agora (o mapa original continua)"
+			fi
+		fi
+	fi
 	if ! grep -qx 'admin-total' "$AJUSTES" && command -v python3 >/dev/null; then
 		# Administrador (grupo 5) com capacidade infinita: criar/clonar item sem limite de peso
 		python3 - "$SRV/data/XML/groups.xml" <<-'PY' && echo 'admin-total' >> "$AJUSTES" && REINICIAR_SERVIDOR=1

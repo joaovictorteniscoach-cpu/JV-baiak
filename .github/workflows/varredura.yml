@@ -40,7 +40,7 @@ jobs:
           { echo "== shellcheck (erros) =="; shellcheck -S error instalar.sh jvbaiak empacotar.sh web/*.sh clientes/*.sh testes/*.sh && echo ok || falhas=1
             echo "== shellcheck (avisos) =="; shellcheck -S warning instalar.sh jvbaiak web/*.sh testes/*.sh | head -n 80 || true
             echo "== Lua =="; { find servidor-imagem/extras -name '*.lua' -print0 | xargs -0 -n1 luac5.1 -p && luac5.1 -p web/otclientrc-extra.lua; } && echo "ok (todos)" || falhas=1
-            echo "== treino automatico (teste) =="; lua5.1 testes/teste_treino.lua && echo ok || falhas=1
+            echo "== treino automatico (teste) =="; lua5.1 testes/teste_treino.lua servidor-imagem/extras/data/scripts/custom/treino_automatico.lua && echo ok || falhas=1
             echo "== XML =="; find servidor-imagem/extras -name '*.xml' -print0 | xargs -0 xmllint --noout && echo "ok (todos)" || falhas=1
             echo "== contas-admin.txt so com hash =="; if grep -vE '^#|^[a-z0-9]*;[a-z0-9]{4,20};[0-9a-f]{40};[A-Za-z ]{3,25}$' servidor-imagem/contas-admin.txt; then falhas=1; else echo ok; fi
             echo "== testes do site =="; pip install -q -r portal/requirements.txt && python -m unittest discover -s testes -p 'teste_portal.py' 2>&1 | tail -n 5
