@@ -98,7 +98,9 @@ def main():
             if visivel:
                 pg.tap("#digitar")
             else:
-                pg.tap("#abrir-teclado")
+                pg.tap("#menu-botao"); time.sleep(0.5)
+            foto("8a-menu.png")
+            pg.tap("#abrir-teclado")
             time.sleep(1)
             log.write(f"campo do teclado com foco: {pg.evaluate('document.activeElement && document.activeElement.id')}\n")
             pg.keyboard.type(conta, delay=60)
@@ -121,6 +123,8 @@ def main():
             time.sleep(4)
             foto("8-depois-do-toque.png")
             # chat: abre o teclado pelo botao fixo e manda uma fala
+            pg.tap("#menu-botao"); time.sleep(0.5)
+            foto("8a-menu.png")
             pg.tap("#abrir-teclado")
             time.sleep(1)
             pg.keyboard.type("oi", delay=80)
