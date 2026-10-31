@@ -11,6 +11,7 @@ import base64
 import hashlib
 import hmac
 import json
+import math
 import os
 import re
 import secrets
@@ -38,7 +39,7 @@ URL_WEB = os.environ.get("URL_WEB", "")  # cliente web (modo HTTPS), se ativado
 ATRAS_DE_PROXY = os.environ.get("ATRAS_DE_PROXY") == "1"
 # Identidade do site: os fundadores e a familia (mude no .env se quiser)
 FUNDADORES = os.environ.get("FUNDADORES", "João Victor e Henrique")
-FAMILIA = os.environ.get("FAMILIA", "Carnicini Soubhi")
+FAMILIA = os.environ.get("FAMILIA", "Carnicini Soubihe")
 # "Entrar com Google": so liga se os dois valores existirem (jvbaiak google ...)
 GOOGLE_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
 GOOGLE_SEGREDO = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
@@ -158,7 +159,7 @@ class LimiteDeTaxa:
     def _fila(self, chave):
         agora = time.monotonic()
         fila = self._hist[chave]
-        while fila and agora - fila[0] > self.janela:
+        while fila and agora - fila[0] >= self.janela:
             fila.popleft()
         return fila, agora
 
@@ -175,6 +176,20 @@ class LimiteDeTaxa:
         """So consulta, sem contar tentativa."""
         with self._trava:
             return len(self._fila(chave)[0]) >= self.maximo
+
+    def espera(self, chave):
+        """Segundos até liberar a próxima tentativa; não altera a contagem."""
+        with self._trava:
+            fila, agora = self._fila(chave)
+            if len(fila) < self.maximo:
+                return 0
+            return max(1, math.ceil(self.janela - (agora - fila[0])))
+
+
+def resposta_limite(template, espera, motivo, **contexto):
+    minutos = math.ceil(espera / 60)
+    erro = f"{motivo} Tente novamente em {minutos} min."
+    return render_template(template, erro=erro, **contexto), 429, {"Retry-After": str(espera)}
 
 
 limite_criacao = LimiteDeTaxa(maximo=10, janela_s=3600)  # contas/personagens criados com sucesso por IP
@@ -362,8 +377,9 @@ def criar_conta():
     email = (f.get("email") or "").strip()[:255]
     if not erro and email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         erro = "E-mail invalido (ou deixe em branco)."
-    if not erro and limite_criacao.esgotado(ip_cliente()):
-        erro = "Muitas contas criadas a partir da sua internet na última hora. Tente de novo mais tarde."
+    espera = limite_criacao.espera(ip_cliente())
+    if not erro and espera:
+        return resposta_limite("criar_conta.html", espera, "Muitas contas criadas pela sua conexão.", f=f)
     if not erro:
         try:
             with banco.transacao() as cur:
@@ -397,10 +413,12 @@ def novo_personagem():
     vocacao, sexo, erro_v = ler_escolhas(f)
     erro = erro or erro_v
     ip = ip_cliente()
-    if not erro and limite_login.esgotado(ip):
-        erro = "Muitas senhas erradas seguidas. Espere 15 minutos e tente de novo."
-    if not erro and limite_criacao.esgotado(ip):
-        erro = "Muitos personagens criados a partir da sua internet na última hora. Tente de novo mais tarde."
+    espera_login = limite_login.espera(ip)
+    espera_criacao = limite_criacao.espera(ip)
+    if not erro and espera_login:
+        return resposta_limite("novo_personagem.html", espera_login, "Muitas senhas incorretas.", f=f)
+    if not erro and espera_criacao:
+        return resposta_limite("novo_personagem.html", espera_criacao, "Muitos personagens criados pela sua conexão.", f=f)
     if not erro:
         try:
             with banco.transacao() as cur:
@@ -551,8 +569,9 @@ def conta():
         nome = (request.form.get("conta") or "").strip().lower()
         senha = request.form.get("senha") or ""
         ip = ip_cliente()
-        if limite_login.esgotado(ip):
-            return render_template("login.html", erro="Muitas tentativas erradas. Espere 15 minutos.", nome=nome), 429
+        espera = limite_login.espera(ip)
+        if espera:
+            return resposta_limite("login.html", espera, "Muitas senhas incorretas.", nome=nome)
         linha = consulta("SELECT id, name, password FROM accounts WHERE name = %s", (nome,), um=True)
         if not linha or not hmac.compare_digest(linha[2], sha1(senha)):
             limite_login.permite(ip)
@@ -616,8 +635,13 @@ def criar_personagem_logado():
     personagem, erro = validar_personagem(f.get("personagem"))
     vocacao, sexo, erro_v = ler_escolhas(f)
     erro = erro or erro_v
-    if not erro and limite_criacao.esgotado(ip_cliente()):
-        erro = "Muitos personagens criados a partir da sua internet na última hora. Tente de novo mais tarde."
+    espera = limite_criacao.espera(ip_cliente())
+    if not erro and espera:
+        personagens = consulta("SELECT p.name, p.level, p.vocation, p.lastlogin, 0 FROM players p "
+                               "WHERE p.account_id = %s ORDER BY p.level DESC", (c[0],), padrao=[])
+        return resposta_limite("conta.html", espera, "Muitos personagens criados pela sua conexão.",
+                               c=c, personagens=personagens, msg=None, max_personagens=MAX_PERSONAGENS,
+                               f=f, **extras_conta(c))
     if not erro:
         try:
             with banco.transacao() as cur:
@@ -767,9 +791,9 @@ def google_retorno():
                 cur.executa("INSERT INTO jv_google (sub, account_id, email, criado) VALUES (%s, %s, %s, %s)",
                             (sub, conta_id, email, int(time.time())))
             else:
-                if limite_criacao.esgotado(ip_cliente()):
-                    return render_template("login.html", nome="",
-                                           erro="Muitas contas criadas a partir da sua internet na última hora."), 429
+                espera = limite_criacao.espera(ip_cliente())
+                if espera:
+                    return resposta_limite("login.html", espera, "Muitas contas criadas pela sua conexão.", nome="")
                 conta_nome = nome_conta_do_email(
                     email, lambda n: cur.um("SELECT id FROM accounts WHERE name = %s", (n,)) is not None)
                 conta_id = cur.executa(

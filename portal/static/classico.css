@@ -1,0 +1,68 @@
+/* Traditional Tibia framing; original portal components retain their behavior. */
+body { background: #061626 url('tibia/background-artwork.jpg') center top / 1600px auto no-repeat; font: 15px/1.6 Arial, sans-serif; }
+.topo { position: relative; background: none; border: 0; box-shadow: none; height: 218px; display: grid; place-items: center; }
+.marca { display: grid; text-align: center; font: 700 clamp(44px,7vw,70px)/1.1 var(--titulo); color: #efd28e; text-shadow: 0 3px 0 #392312, 0 5px 9px #000; }
+.marca small { font: 15px/2.5 Georgia,serif; letter-spacing: .22em; color: #e8ddc4; }
+.portal-layout { max-width: 1170px; margin: 0 auto 32px; padding: 0 20px; display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 22px; align-items: start; }
+main { width: 100%; min-width: 0; padding: 0; }
+main > h1,.titulo-linha h1 { background: #4c3525; border: 3px ridge #a48960; padding: 14px 18px; font-size: 23px; color: #f4e6c6; margin: 0 0 20px; }
+.menu { display: flex; flex-direction: column; overflow: visible; padding: 0 0 6px; margin: 0 0 18px; border: 3px ridge #977a54; background: #e7d5b3 url('tibia/scroll.gif') repeat; box-shadow: 0 4px 12px #0008; gap: 0; }
+.menu h2 { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; padding: 5px 8px; font-size: 16px; color: #f7e2b7; background: #4a3425 url('tibia/button-background.gif') center / 100% 100%; }
+.menu h2 img { object-fit: contain; image-rendering: pixelated; }
+.menu a { color: #523921; padding: 7px 14px; border-radius: 0; font: 700 14px/1.6 Georgia,serif; white-space: normal; min-height: 36px; }
+.menu a:hover,.menu a.ativa { background: #523921; color: #fff0cb; }
+.menu a.ativa::before { content: '› '; color: #e8bc5a; }
+.assinatura-lateral { text-align: center; color: #d2c2a3; font: 13px/1.7 Georgia,serif; }
+.assinatura-lateral .brasao { margin: 22px auto 12px; width: 65px; }
+.assinatura-lateral b,.assinatura-lateral span { display: block; }
+.destaque { position: relative; overflow: hidden; border: 4px ridge #b39a71; min-height: 310px; padding: 0; text-align: left; background: #15231e; box-shadow: 0 5px 15px #0008; }
+.arte-boas-vindas { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center; inset: 0; }
+.boas-vindas { position: relative; padding: 32px 26px; min-height: 310px; background: linear-gradient(90deg,#081311ed,#08131185 60%,transparent); }
+.destaque h1 { max-width: 420px; font-size: clamp(25px,3.2vw,36px); letter-spacing: 0; color: #fff0c9; background: none; filter: none; text-shadow: 0 2px 3px #000; }
+.boas-vindas > p { color: #e5d6b9; margin: 12px 0; font-size: 14px; }
+.status { border-radius: 2px; padding: 5px 9px; }
+.botoes { justify-content: flex-start; margin-top: 20px; }
+.botao { border-radius: 2px; font: 700 14px/1.5 Georgia,serif; letter-spacing: 0; }
+.botao.secundario { color: #ffebbb; background: #332419e8; }
+.cartao,.cartoes article,.form { background-image: url('tibia/scroll.gif'); border-radius: 0; }
+.cartao > h2:first-child,.cartoes article > h2:first-child { background: #594334; font-size: 16px; }
+.numeros { margin: 20px 0; gap: 6px; }
+.numeros div { border-radius: 0; padding: 7px 4px; background: #36291f; border: 2px ridge #806748; }
+.numeros b { font-size: 22px; }
+.numeros span { font-size: 12px; }
+.grade { gap: 14px; }
+.lista-simples li { font-size: 13px; }
+.vocacoes { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); border-top: 1px solid #8b7357; margin-top: 18px; padding-top: 16px; }
+.vocacoes figure { margin: 0; text-align: center; }
+.vocacoes img { width: 100%; height: 170px; object-fit: contain; filter: drop-shadow(0 6px 6px #000); }
+.vocacoes figcaption { font: 700 16px/2 var(--titulo); color: #ecd6a6; }
+.nota-jogo { text-align: center; font-size: 13px; color: #c8bca3; margin: 20px 0 0; }
+.rodape { background: #04101bb0; padding: 18px 16px 28px; font: 12px/1.6 Georgia,serif; }
+.rodape .selo-cera { width: 40px; height: 40px; }
+.rodape .assinatura { font-size: 14px; }
+.tabela { overflow-wrap: anywhere; }
+.form { max-width: 660px; }
+.form input:not([type='radio']) { font: 16px/1.6 Arial,sans-serif; }
+.dados { grid-template-columns: minmax(80px,max-content) minmax(0,1fr); overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+ body { background-size: auto 420px; }
+ .topo { height: 155px; }
+ .portal-layout { display: block; padding: 0 12px; }
+ .lateral { margin-bottom: 16px; }
+ .menu { flex-direction: row; flex-wrap: wrap; padding: 4px; margin-bottom: 7px; }
+ .menu h2 { display: none; }
+ .menu a { padding: 7px 9px; font-size: 13px; min-height: 38px; }
+ .menu-conta { background: #37291f; }
+ .menu-conta a { color: #eed7ac; }
+ .assinatura-lateral { display: none; }
+ .destaque,.boas-vindas { min-height: 300px; }
+ .boas-vindas { padding: 26px 18px; background: linear-gradient(90deg,#081311e8,#08131185); }
+ .destaque h1 { font-size: 27px; max-width: 300px; }
+ .numeros { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .numeros div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+ .vocacoes { grid-template-columns: repeat(2,minmax(0,1fr)); row-gap: 16px; }
+ .vocacoes img { height: 155px; }
+ .tabela th,.tabela td { padding: 7px 5px; font-size: 12px; }
+ .titulo-linha { align-items: flex-start; flex-wrap: wrap; }
+ .lista-simples li { flex-wrap: wrap; gap: 3px 10px; }
+}

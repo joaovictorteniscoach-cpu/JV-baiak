@@ -4,31 +4,41 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2a190c">
-<meta name="description" content="{{ nome_servidor }}: servidor Baiak 8.60 com PvP, castle war, eventos e treino automático. Jogue no PC, Android e iPhone.">
+<meta name="description" content="{{ nome_servidor }}: servidor Baiak 8.60 com PvP, castle war, eventos e treino automático. Consulte os clientes disponíveis na página de downloads.">
 <title>{% block titulo %}{{ nome_servidor }} · Baiak 8.60{% endblock %}</title>
 <link rel="icon" href="{{ url_for('static', filename='brasao.svg') }}" type="image/svg+xml">
 <link rel="preload" href="{{ url_for('static', filename='fontes/cinzel.woff') }}" as="font" type="font/woff" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='classico.css') }}">
 </head>
 <body>
 <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <header class="topo">
-  <div class="topo-linha">
-    <a class="marca" href="{{ url_for('inicio') }}">
-      {% with classe='mini', id='topo' %}{% include "_brasao.html" %}{% endwith %}
-      <span>{{ nome_servidor }}</span>
-    </a>
-    <a class="botao pequeno" href="{{ url_for('conta') }}">{{ conta_logada or 'Minha conta' }}</a>
-  </div>
+  <a class="marca" href="{{ url_for('inicio') }}"><span>{{ nome_servidor }}</span><small>Tibia OT · 8.60</small></a>
+</header>
+<div class="portal-layout">
+<aside class="lateral">
   <nav class="menu" aria-label="Menu principal">
-    {% for ep, rotulo in [('inicio','Início'), ('online','Online'), ('ranking','Ranking'), ('personagem','Personagens'), ('mortes','Mortes'), ('guilds','Guilds'), ('casas','Casas'), ('servidor','Servidor'), ('baixar','Baixar')] %}
+    <h2><img src="{{ url_for('static', filename='tibia/icon-community.gif') }}" alt="" width="32" height="32">Comunidade</h2>
+    {% for ep, rotulo in [('inicio','Início'), ('online','Jogadores online'), ('ranking','Ranking'), ('personagem','Personagens'), ('mortes','Últimas mortes'), ('guilds','Guilds'), ('casas','Casas'), ('servidor','Servidor'), ('baixar','Baixar o jogo')] %}
     <a href="{{ url_for(ep) }}"{% if pagina == ep or (ep == 'guilds' and pagina == 'guild') %} class="ativa" aria-current="page"{% endif %}>{{ rotulo }}</a>
     {% endfor %}
   </nav>
-</header>
+  <nav class="menu menu-conta" aria-label="Sua conta">
+    <h2><img src="{{ url_for('static', filename='tibia/icon-account.gif') }}" alt="" width="32" height="32">Conta</h2>
+    <a href="{{ url_for('conta') }}">{{ conta_logada or 'Minha conta' }}</a>
+    <a href="{{ url_for('criar_conta') }}">Criar conta</a>
+    <a href="{{ url_for('novo_personagem') }}">Novo personagem</a>
+  </nav>
+  <div class="assinatura-lateral">
+    {% with classe='medio', id='lateral' %}{% include "_brasao.html" %}{% endwith %}
+    <b>{{ fundadores }}</b><span>Família {{ familia }}</span>
+  </div>
+</aside>
 <main id="conteudo">
 {% block conteudo %}{% endblock %}
 </main>
+</div>
 <footer class="rodape">
   {% include "_selo.html" %}
   <p class="assinatura">Família {{ familia }}</p>
