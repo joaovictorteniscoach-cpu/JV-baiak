@@ -255,6 +255,8 @@
         else if (ev.key === "Tab") { ev.preventDefault(); enviarTecla("Tab", "Tab", 9, false); }
       });
       teclado.addEventListener("keyup", function (ev) { ev.stopPropagation(); });
+      // o texto vai so pelo evento "input"; sem isto cada letra chegava duas vezes
+      teclado.addEventListener("keypress", function (ev) { ev.stopPropagation(); });
       function startGame() {
         document.getElementById("capa").style.display = "none";
         document.body.classList.add("jv-jogando");
