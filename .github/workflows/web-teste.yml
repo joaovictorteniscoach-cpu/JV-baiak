@@ -50,6 +50,7 @@ jobs:
 
       - name: Montar como a VPS faz (compilar-web.sh)
         run: |
+          F="$RUNNER_TEMP/fotos"; mkdir -p "$F"
           B="$RUNNER_TEMP/jv"
           mkdir -p "$B/clientes-cache/sprites860" "$B/web/www/jogar"
           cp -a web/. "$B/web/"
@@ -63,24 +64,30 @@ jobs:
           cp Tibia.dat Tibia.spr "$B/clientes-cache/sprites860/"
           cd "$GITHUB_WORKSPACE"
           inicio=$(date +%s)
-          sudo BASE="$B" bash "$B/web/compilar-web.sh" bayakjh.duckdns.org || { sudo tail -n 80 /var/log/jvbaiak-web-build.log; exit 1; }
-          echo "etapa final levou $(( $(date +%s) - inicio )) s"
-          ls -la "$B/web/www/jogar"
+          ok=1
+          sudo BASE="$B" bash "$B/web/compilar-web.sh" bayakjh.duckdns.org > "$F/montagem.txt" 2>&1 || ok=0
+          echo "etapa final levou $(( $(date +%s) - inicio )) s (ok=$ok)" >> "$F/montagem.txt"
+          sudo tail -n 120 /var/log/jvbaiak-web-build.log > "$F/build-final.txt" 2>/dev/null || true
+          ls -la "$B/web/www/jogar" >> "$F/montagem.txt"
+          [ "$ok" = 1 ]
 
       - name: Testar como iPhone deitado
         run: |
-          pip install -q playwright==1.48.0
-          python -m playwright install --with-deps chromium >/dev/null
-          python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$RUNNER_TEMP/fotos" || echo "teste com erro (veja console.txt)"
-          sudo tail -n 30 /var/log/jvbaiak-web-build.log > "$RUNNER_TEMP/fotos/build-final.txt" || true
-          ls -la "$RUNNER_TEMP/fotos"
+          F="$RUNNER_TEMP/fotos"; mkdir -p "$F"
+          python3 -m venv "$RUNNER_TEMP/venv"
+          . "$RUNNER_TEMP/venv/bin/activate"
+          pip install -q playwright==1.48.0 > "$F/instalacao.txt" 2>&1
+          python -m playwright install --with-deps chromium >> "$F/instalacao.txt" 2>&1
+          python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$F" > "$F/teste.txt" 2>&1 || echo "falhou: veja teste.txt" >> "$F/teste.txt"
+          ls -la "$F"
 
       - name: Publicar as fotos no ramo testes-web
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cd "$RUNNER_TEMP/fotos" 2>/dev/null || exit 0
+          mkdir -p "$RUNNER_TEMP/fotos" && cd "$RUNNER_TEMP/fotos"
+          echo "${GITHUB_SHA} $(date -u)" > rodada.txt
           git init -q && git checkout -q -b testes-web
           git config user.name "jv-robo" && git config user.email "actions@users.noreply.github.com"
           git add -A && git commit -qm "Fotos do teste do cliente web (${GITHUB_SHA::7})"
