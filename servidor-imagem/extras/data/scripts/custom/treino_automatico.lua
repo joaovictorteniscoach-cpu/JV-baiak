@@ -130,11 +130,84 @@ local function treinar(player)
 end
 TREINO_AUTO.treinar = treinar
 
+
+-- Bonecos de treino: o mapa nao traz os monstros "Trainer" nas salas. Quando um
+-- jogador para numa sala, aparece um Trainer ao lado dele (para bater de verdade);
+-- quando ninguem mais esta perto, ele some. Nao precisa mexer no mapa.
+TREINO_AUTO.bonecos = TREINO_AUTO.bonecos or {}
+local VIZINHOS = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}, {1, -1}, {1, 1}, {-1, 1}, {-1, -1}}
+local NAO_USAR = {[1387] = true} -- teleporte de saida
+
+local function bonecoPerto(pos)
+	local perto = Game.getSpectators(pos, false, false, 1, 1, 1, 1)
+	for i = 1, #perto do
+		local c = perto[i]
+		if c:isMonster() and c:getName() == "Trainer" then
+			return true
+		end
+	end
+	return false
+end
+
+local function quadradoLivre(p)
+	local tile = Tile(p)
+	if not tile or not tile:getGround() or tile:getCreatureCount() > 0 then
+		return false
+	end
+	if tile:hasProperty(CONST_PROP_BLOCKSOLID) or tile:hasFlag(TILESTATE_PROTECTIONZONE) then
+		return false
+	end
+	local itens = tile:getItems() or {}
+	for i = 1, #itens do
+		if NAO_USAR[itens[i]:getId()] then
+			return false
+		end
+	end
+	return true
+end
+
+local function garantirBoneco(player)
+	if not Game.createMonster then
+		return
+	end
+	local pos = player:getPosition()
+	if bonecoPerto(pos) then
+		return
+	end
+	for i = 1, #VIZINHOS do
+		local p = Position(pos.x + VIZINHOS[i][1], pos.y + VIZINHOS[i][2], pos.z)
+		if quadradoLivre(p) then
+			local m = Game.createMonster("Trainer", p, false, true)
+			if m then
+				TREINO_AUTO.bonecos[m:getId()] = true
+				p:sendMagicEffect(CONST_ME_TELEPORT)
+			end
+			return
+		end
+	end
+end
+
+local function limparBonecos()
+	for cid in pairs(TREINO_AUTO.bonecos) do
+		local m = Monster(cid)
+		if not m then
+			TREINO_AUTO.bonecos[cid] = nil
+		else
+			local alguem = Game.getSpectators(m:getPosition(), false, true, 2, 2, 2, 2)
+			if #alguem == 0 then
+				m:remove()
+				TREINO_AUTO.bonecos[cid] = nil
+			end
+		end
+	end
+end
+
 local function ciclo()
 	if not cfg.ativo then
 		return true
 	end
 
+	limparBonecos()
 	local agora = os.time()
 	local limite = math.ceil(cfg.intervalo / 1000) * 3
 	local jogadores = TREINO_AUTO.jogadores
@@ -148,6 +221,7 @@ local function ciclo()
 			end
 			jogadores[guid] = agora
 			treinar(player)
+			garantirBoneco(player)
 		elseif jogadores[guid] then
 			-- So avisa se acabou de sair (nao depois de relogar em outro lugar)
 			if agora - jogadores[guid] <= limite then
