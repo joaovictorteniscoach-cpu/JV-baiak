@@ -16,14 +16,20 @@ end)
 -- Celular: tela do jogo mais limpa ao entrar. A janela do bot (vBot) fica fechada;
 -- ela abre pelo botao "Bot" do menu quando o jogador quiser.
 if g_platform.isMobile() then
+    local function fecharBot()
+        local bot = modules.game_bot
+        if not bot then return end
+        pcall(function()
+            if bot.botWindow and bot.botWindow:isVisible() then
+                bot.botWindow:close()
+            end
+            if bot.botButton then bot.botButton:setOn(false) end
+        end)
+    end
     connect(g_game, {
         onGameStart = function()
-            scheduleEvent(function()
-                local bot = modules.game_bot
-                if bot and bot.botButton and bot.botButton:isOn() and bot.toggle then
-                    pcall(bot.toggle)
-                end
-            end, 1500)
+            scheduleEvent(fecharBot, 1500)
+            scheduleEvent(fecharBot, 4000)
         end
     })
 end
