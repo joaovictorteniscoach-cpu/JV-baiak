@@ -1,0 +1,7 @@
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Rigulu"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 21, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5739}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [10, 3]}
+OK    falar no chat {"ms": 10}
+OK    sair do jogo {}

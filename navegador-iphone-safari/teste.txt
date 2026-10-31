@@ -1,0 +1,7 @@
+OK    baixou e preparou o jogo {"s": 7}
+OK    conta de teste criada no site {"conta": "roboc95u61zi"}
+FALHA toque no campo mostra 'Toque para digitar' {}
+OK    teclado do celular abriu (campo com foco) {"foco": "teclado"}
+OK    andou pelo mapa {"quadros_por_segundo_na_tela": null}
+FALHA sem erros de pagina {"erros": ["TypeError: undefined is not an object (evaluating 'GLctx.viewport')", "TypeError: undefined is not an object (evaluating 'GLctx.getParameter')"]}
+OK    tempo ate a tela de login {"s": 8}

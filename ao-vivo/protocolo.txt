@@ -1,0 +1,7 @@
+OK    login 7171 {"ms": 325, "erro": null, "personagens": ["Robo Cunatu"]}
+OK    lista aponta para o servidor certo {"ip": "35.247.198.29", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 517, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5732}
+FALHA andar (resposta do servidor) {"passos": 0, "ms_por_passo": []}
+OK    falar no chat {"ms": 167}
+OK    sair do jogo {}

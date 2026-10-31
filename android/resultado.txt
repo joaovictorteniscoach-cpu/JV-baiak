@@ -1,0 +1,7 @@
+apk: JVBaiak-Android.apk (35M), pacote com.otclientv8
+abis: native-code: 'arm64-v8a'
+emulador: x86_64,x86,arm64-v8a,armeabi-v7a,armeabi
+instalar: Success
+processo vivo depois de 40 s: sim
+tela: 1080x2280
+processo vivo no fim (115 s): NAO

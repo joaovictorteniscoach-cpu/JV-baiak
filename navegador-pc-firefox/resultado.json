@@ -1,0 +1,33 @@
+{
+ "perfil": "pc-firefox",
+ "etapas": [
+  {
+   "etapa": "baixou e preparou o jogo",
+   "ok": true,
+   "s": 8
+  },
+  {
+   "etapa": "conta de teste criada no site",
+   "ok": true,
+   "conta": "roborm9vxquw"
+  },
+  {
+   "etapa": "andou pelo mapa",
+   "ok": true,
+   "quadros_por_segundo_na_tela": null
+  },
+  {
+   "etapa": "sem erros de pagina",
+   "ok": false,
+   "erros": [
+    "can't access property \"viewport\", GLctx is undefined"
+   ]
+  },
+  {
+   "etapa": "tempo ate a tela de login",
+   "ok": true,
+   "s": 8
+  }
+ ],
+ "ok": false
+}

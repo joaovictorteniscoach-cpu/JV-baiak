@@ -1,0 +1,71 @@
+{
+ "host": "127.0.0.1",
+ "etapas": [
+  {
+   "etapa": "login 7171",
+   "ok": true,
+   "ms": 2,
+   "erro": null,
+   "personagens": [
+    "Robo Gm"
+   ]
+  },
+  {
+   "etapa": "lista aponta para o servidor certo",
+   "ok": true,
+   "ip": "127.0.0.1",
+   "porta": 7172,
+   "mundo": "JV Baiak"
+  },
+  {
+   "etapa": "entrar no mundo 7172",
+   "ok": true,
+   "ms": 21,
+   "erro": null,
+   "primeiro_opcode": "0xa"
+  },
+  {
+   "etapa": "recebeu o mapa",
+   "ok": true,
+   "bytes": 5340
+  },
+  {
+   "etapa": "andar (resposta do servidor)",
+   "ok": true,
+   "passos": 2,
+   "ms_por_passo": [
+    10,
+    4
+   ]
+  },
+  {
+   "etapa": "falar no chat",
+   "ok": true,
+   "ms": 1
+  },
+  {
+   "etapa": "admin: /comandos abre a lista",
+   "ok": true
+  },
+  {
+   "etapa": "admin: /i cria item",
+   "ok": true,
+   "pacotes": 11
+  },
+  {
+   "etapa": "admin: /clonar copia o item da mao",
+   "ok": true,
+   "resposta": "Clonado: 2x magic sword.Ý\u0003»\u0004\u0007á\u0003»\u0004\u0007\u0004á\u0003¸",
+   "pediu_item_na_mao": false
+  },
+  {
+   "etapa": "admin: /a teletransporta",
+   "ok": true
+  },
+  {
+   "etapa": "sair do jogo",
+   "ok": true
+  }
+ ],
+ "ok": true
+}

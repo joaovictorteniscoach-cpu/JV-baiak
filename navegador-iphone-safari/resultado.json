@@ -1,0 +1,43 @@
+{
+ "perfil": "iphone-safari",
+ "etapas": [
+  {
+   "etapa": "baixou e preparou o jogo",
+   "ok": true,
+   "s": 7
+  },
+  {
+   "etapa": "conta de teste criada no site",
+   "ok": true,
+   "conta": "roboc95u61zi"
+  },
+  {
+   "etapa": "toque no campo mostra 'Toque para digitar'",
+   "ok": false
+  },
+  {
+   "etapa": "teclado do celular abriu (campo com foco)",
+   "ok": true,
+   "foco": "teclado"
+  },
+  {
+   "etapa": "andou pelo mapa",
+   "ok": true,
+   "quadros_por_segundo_na_tela": null
+  },
+  {
+   "etapa": "sem erros de pagina",
+   "ok": false,
+   "erros": [
+    "TypeError: undefined is not an object (evaluating 'GLctx.viewport')",
+    "TypeError: undefined is not an object (evaluating 'GLctx.getParameter')"
+   ]
+  },
+  {
+   "etapa": "tempo ate a tela de login",
+   "ok": true,
+   "s": 8
+  }
+ ],
+ "ok": false
+}

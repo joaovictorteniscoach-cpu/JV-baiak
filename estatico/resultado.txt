@@ -1,0 +1,37 @@
+== shellcheck (erros) ==
+ok
+== shellcheck (avisos) ==
+
+In testes/experimento_crash.sh line 6:
+cd /opt/jvbaiak
+^-------------^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+
+Did you mean:
+cd /opt/jvbaiak || exit
+
+
+In testes/experimento_crash.sh line 9:
+	for i in $(seq 1 60); do (exec 3<>/dev/tcp/127.0.0.1/7171) 2>/dev/null && return 0; sleep 3; done
+        ^-^ SC2034 (warning): i appears unused. Verify use (or export if used externally).
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2034 -- i appears unused. Verify use (or ...
+  https://www.shellcheck.net/wiki/SC2164 -- Use 'cd ... || exit' or 'cd ... |...
+== Lua ==
+ok (todos)
+== treino automatico (teste) ==
+OK: 17 verificacoes passaram
+ok
+== auto ataque igual no navegador e nos aplicativos ==
+ok
+== XML ==
+ok (todos)
+== contas-admin.txt so com hash ==
+ok
+== testes do site ==
+...........................
+----------------------------------------------------------------------
+Ran 27 tests in 0.633s
+
+OK
+falhas=0

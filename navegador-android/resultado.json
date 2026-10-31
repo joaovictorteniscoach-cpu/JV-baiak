@@ -1,0 +1,40 @@
+{
+ "perfil": "android",
+ "etapas": [
+  {
+   "etapa": "baixou e preparou o jogo",
+   "ok": true,
+   "s": 7
+  },
+  {
+   "etapa": "conta de teste criada no site",
+   "ok": true,
+   "conta": "robojkawdtas"
+  },
+  {
+   "etapa": "toque no campo mostra 'Toque para digitar'",
+   "ok": true
+  },
+  {
+   "etapa": "teclado do celular abriu (campo com foco)",
+   "ok": true,
+   "foco": "teclado"
+  },
+  {
+   "etapa": "andou pelo mapa",
+   "ok": true,
+   "quadros_por_segundo_na_tela": 1.0
+  },
+  {
+   "etapa": "sem erros de pagina",
+   "ok": true,
+   "erros": []
+  },
+  {
+   "etapa": "tempo ate a tela de login",
+   "ok": true,
+   "s": 8
+  }
+ ],
+ "ok": true
+}

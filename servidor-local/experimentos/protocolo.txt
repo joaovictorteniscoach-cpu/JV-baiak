@@ -1,0 +1,34 @@
+== 1-jogador novo entra 2x
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+== 2-gm sem clonar + jogador novo
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+== 3-gm com clonar + jogador novo
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+== 4-tres logins de jogadores
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Vokebu"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 20, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5756}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [2, 1]}
+OK    falar no chat {"ms": 9}
+OK    sair do jogo {}
+--
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Filide"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 21, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5756}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [4, 6]}
+OK    falar no chat {"ms": 2}
+OK    sair do jogo {}
+--

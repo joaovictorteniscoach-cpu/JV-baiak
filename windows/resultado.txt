@@ -1,0 +1,4 @@
+zip: JVBaiak-Windows.zip (40 MB)
+tela do Windows: 1024x768
+otclient_dx.exe aberto depois de 25 s: True
+cliente ainda aberto no fim: True

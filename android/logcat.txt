@@ -1,0 +1,118 @@
+10-31 22:27:51.022  1440  1465 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.otclientv8. Reason: op android:read_external_storage
+10-31 22:27:51.030  1440  1465 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.otclientv8. Reason: op android:read_external_storage
+10-31 22:27:51.076   493   548 V BackupManagerService: [UserID:0] restoreAtInstall pkg=com.otclientv8 token=1 restoreSet=0
+10-31 22:27:51.301  1440  1440 I MediaProvider: Invalidating LocalCallingIdentity cache for package com.otclientv8. Reason: package android.intent.action.PACKAGE_ADDED
+10-31 22:27:51.304   685   685 D AvrcpMediaPlayerList: Name of package changed: com.otclientv8
+10-31 22:27:51.304  1519  1519 I GsaVoiceInteractionSrv: O received Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) }
+10-31 22:27:51.375   685   685 D AvrcpMediaPlayerList: Name of package changed: com.otclientv8
+10-31 22:27:52.533  1151  3286 W GCM     : Unexpected forwarded intent: Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 cmp=com.google.android.gms/.chimera.PersistentIntentOperationService (has extras) }
+10-31 22:27:52.533  1151  3244 W GCM     : Unexpected forwarded intent: Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 cmp=com.google.android.gms/.chimera.PersistentIntentOperationService (has extras) }
+10-31 22:27:52.535  1151  2387 I Fitness : OnPackageChangedOperation got intent: Intent { act=android.intent.action.PACKAGE_CHANGED dat=package:com.otclientv8 flg=0x5000010 cmp=com.google.android.gms/.chimera.PersistentIntentOperationService (has extras) } [CONTEXT service_id=17 ]
+10-31 22:27:52.578  1769  2386 I FontsPackageChangeOp: Package com.otclientv8 has no metadata
+10-31 22:27:52.613  1769  2648 I ChromeSync: [Sync,SyncIntentOperation] Handling the intent: Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 cmp=com.google.android.gms/.chimera.GmsIntentOperationService (has extras) }.
+10-31 22:27:52.619  1769  2648 I ChromeSync: [Persistence,AffiliationManager] One of affiliation or grouping data for android://OhIpnZAEb8Urk2ZDXG1eOCvP7uzA4JMg1nm1Io9AkWZNj5NrfGxOQWdH5gyeZ2k0jCxKMFRygAKgpI1A7jxbdA==@com.otclientv8/ was not found. Marking affiliation data as stale...
+10-31 22:27:54.762  2950  3068 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils
+10-31 22:27:54.772   493   616 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) } to com.google.android.packageinstaller/com.android.packageinstaller.PackageInstalledReceiver
+10-31 22:27:54.772   493   532 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) } to com.google.android.gms/.games.chimera.GamesSystemBroadcastReceiverProxy
+10-31 22:27:54.772   493   532 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) } to com.google.android.gms/.gass.chimera.PackageChangeBroadcastReceiver
+10-31 22:27:54.772   493   532 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) } to com.google.android.gms/.chimera.GmsIntentOperationService$PersistentTrustedReceiver
+10-31 22:27:54.772   493   532 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) } to com.google.android.googlequicksearchbox/com.google.android.apps.gsa.googlequicksearchbox.GelStubAppWatcher
+10-31 22:27:54.772   493   532 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.PACKAGE_ADDED dat=package:com.otclientv8 flg=0x4000010 (has extras) } to com.google.android.ims/.receivers.RcsAutoStartReceiver
+10-31 22:27:55.253  1151  2625 I Fitness : OnPackageChangedOperation got intent: Intent { act=android.intent.action.PACKAGE_CHANGED dat=package:com.otclientv8 flg=0x5000010 cmp=com.google.android.gms/.chimera.PersistentIntentOperationService (has extras) } [CONTEXT service_id=17 ]
+10-31 22:27:55.282  3451  3451 W Monkey  : args: [-p, com.otclientv8, -c, android.intent.category.LAUNCHER, 1]
+10-31 22:27:55.282  3451  3451 W Monkey  :  arg: "com.otclientv8"
+10-31 22:27:55.282  3451  3451 W Monkey  : data="com.otclientv8"
+10-31 22:27:55.408   493   532 W BroadcastQueue: Skipping deliver [background] BroadcastRecord{d1249e1 u-1 android.net.conn.CONNECTIVITY_CHANGE} to ReceiverList{8523306 3451 (unknown name)/2000/u-1 remote:2244c65}: process gone or crashing
+10-31 22:27:55.419   493  2120 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.otclientv8/.OTClientV8} from uid 2000
+10-31 22:27:55.585   493   524 V WindowManager: Orientation start waiting for draw, mDrawState=DRAW_PENDING in Window{ec7fb9a u0 Splash Screen com.otclientv8}, surfaceController Surface(name=Splash Screen com.otclientv8)/@0x8f549e2
+10-31 22:27:55.620   493   533 I ActivityManager: Start proc 3600:com.otclientv8/u0a167 for pre-top-activity {com.otclientv8/com.otclientv8.OTClientV8}
+10-31 22:27:55.825  3600  3600 I com.otclientv8: Late-enabling -Xcheck:jni
+10-31 22:27:55.842  3600  3600 I com.otclientv8: Unquickening 12 vdex files!
+10-31 22:27:55.985  3600  3600 W com.otclientv8: Unexpected CPU variant for X86 using defaults: x86_64
+10-31 22:27:56.063  1693  2200 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:27:58.124  3600  3686 I OTCLIENTV8: GPU Android Emulator OpenGL ES Translator (Google SwiftShader) (Google (Google Inc.))
+10-31 22:27:58.127  3600  3686 I OTCLIENTV8: OpenGL OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+10-31 22:27:58.162  3600  3686 I OTCLIENTV8: [Atlas] Texture size is: 4096x4096 (max: 8192x8192)
+10-31 22:27:58.434  3600  3686 I OTCLIENTV8: Found work dir inside binary
+10-31 22:27:58.452  3600  3686 I OTCLIENTV8: == application started at Oct 31 2026 22:27:58
+10-31 22:27:58.453  3600  3686 I OTCLIENTV8: JV Baiak 3.2 rev 0 (dev) made by otclient.net built on Feb 26 2023 for arch unknown
+10-31 22:27:58.938  3600  3686 E OTCLIENTV8: ERROR: unable to load cursor text
+10-31 22:27:58.938  3600  3686 E OTCLIENTV8: ERROR: unable to load cursor target
+10-31 22:27:58.939  3600  3686 E OTCLIENTV8: ERROR: unable to load cursor horizontal
+10-31 22:27:58.939  3600  3686 E OTCLIENTV8: ERROR: unable to load cursor vertical
+10-31 22:27:58.939  3600  3686 E OTCLIENTV8: ERROR: unable to load cursor pointer
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: FATAL ERROR: Unable to load module 'game_healthinfo': /modules/game_healthinfo/healthinfo.lua:99: attempt to index global 'healthInfoButton' (a nil value)
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: stack traceback:
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: 	[C]: in function '__index'
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: 	/modules/game_healthinfo/healthinfo.lua:99: in function 'init'
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: 	/modules/game_healthinfo/healthinfo.otmod:8:[@onLoad]:1: in main chunk
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: 	[C]: in function 'ensureModuleLoaded'
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: 	/init.lua:60: in function 'loadModules'
+10-31 22:28:00.154  3600  3686 F OTCLIENTV8: 	/init.lua:81: in main chunk
+10-31 22:28:02.204  1693  2101 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:02.804   493   531 W system_server: Failed to determine oat file name for dex location /data/app/~~S7FS7Pm2yurqV2cNags1oA==/com.otclientv8-FHe_9_1DURcKnTfknfbmZQ==/base.apk: Dalvik cache directory does not exist
+10-31 22:28:02.829   493   531 D ArtManagerInternalImpl: /data/misc/iorapd/com.otclientv8/1/com.otclientv8.OTClientV8/compiled_traces/compiled_trace.pb doesn't exist
+10-31 22:28:02.829   493   531 I ActivityTaskManager: Displayed com.otclientv8/.OTClientV8: +2s54ms
+10-31 22:28:03.664   424  3580 I iorapd  : Perfetto TraceBuffer saved to file: /data/misc/iorapd/com.otclientv8/1/com.otclientv8.OTClientV8/raw_traces/1793485683073676681.perfetto_trace.pb
+10-31 22:28:06.034   493   548 W ActivityManager: Scheduling restart of crashed service com.google.android.gm/.job.GmailInitialSetupJob$GmailInitialSetupJobService in 1000ms for connection
+10-31 22:28:12.058  1693  2117 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:12.378  5174  5200 W DynamiteModule: Local module descriptor class for com.google.android.gms.crash not found.
+10-31 22:28:12.379  5174  5200 I DynamiteModule: Considering local module com.google.android.gms.crash:0 and remote module com.google.android.gms.crash:215
+10-31 22:28:12.379  5174  5200 I DynamiteModule: Selected remote version of com.google.android.gms.crash, version >= 215
+10-31 22:28:12.379  5174  5200 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils
+10-31 22:28:12.420  5174  5200 I FirebaseCrashApiImpl: FirebaseCrashApiImpl created by ClassLoader ax[DexPathList[[zip file "/data/user_de/0/com.google.android.gms/app_chimera/m/00000004/DynamiteModulesC.apk"],nativeLibraryDirectories=[/data/user_de/0/com.google.android.gms/app_chimera/m/00000004/n/x86_64, /data/user_de/0/com.google.android.gms/app_chimera/m/00000004/n/arm64-v8a, /system/lib64, /system_ext/lib64]]]
+10-31 22:28:12.420  5174  5200 I FirebaseCrash: FirebaseCrash reporting loaded - esr@bda5350
+10-31 22:28:12.425  5174  5201 W DynamiteModule: Local module descriptor class for com.google.android.gms.crash not found.
+10-31 22:28:12.445  5174  5201 I FirebaseCrashApiImpl: FirebaseCrash reporting API initialized
+10-31 22:28:12.445  5174  5201 I FirebaseCrash: FirebaseCrash reporting initialized esr@bda5350
+10-31 22:28:12.445  5174  5201 W FirebaseCrashAnalytics: Unable to log event, missing Google Analytics for Firebase library
+10-31 22:28:12.552  1693  2104 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:12.645  4636  5212 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils
+10-31 22:28:12.749  5218  5247 W DynamiteModule: Local module descriptor class for com.google.android.gms.crash not found.
+10-31 22:28:12.750  5218  5247 I DynamiteModule: Considering local module com.google.android.gms.crash:0 and remote module com.google.android.gms.crash:215
+10-31 22:28:12.750  5218  5247 I DynamiteModule: Selected remote version of com.google.android.gms.crash, version >= 215
+10-31 22:28:12.750  5218  5247 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils
+10-31 22:28:12.786  5218  5247 I FirebaseCrashApiImpl: FirebaseCrashApiImpl created by ClassLoader ax[DexPathList[[zip file "/data/user_de/0/com.google.android.gms/app_chimera/m/00000004/DynamiteModulesC.apk"],nativeLibraryDirectories=[/data/user_de/0/com.google.android.gms/app_chimera/m/00000004/n/x86_64, /data/user_de/0/com.google.android.gms/app_chimera/m/00000004/n/arm64-v8a, /system/lib64, /system_ext/lib64]]]
+10-31 22:28:12.786  5218  5247 I FirebaseCrash: FirebaseCrash reporting loaded - cxy@bda5350
+10-31 22:28:12.790  5218  5248 W DynamiteModule: Local module descriptor class for com.google.android.gms.crash not found.
+10-31 22:28:12.814  5218  5248 I FirebaseCrashApiImpl: FirebaseCrash reporting API initialized
+10-31 22:28:12.814  5218  5248 I FirebaseCrash: FirebaseCrash reporting initialized cxy@bda5350
+10-31 22:28:12.814  5218  5248 W FirebaseCrashAnalytics: Unable to log event, missing Google Analytics for Firebase library
+10-31 22:28:13.180  1693  2101 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:13.643  1693  2116 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:14.665  1693  2117 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:15.296  1693  2116 W PhenotypeToGsaConfigs: Can't format flag AndroidGsaVelourJars__velour_crashtest_jar__name to integer.
+10-31 22:28:20.515  5218  5400 I FirebaseCrash: Sending crashes
+10-31 22:28:24.682  5174  5404 I FirebaseCrash: Sending crashes
+10-31 22:28:33.412   493  5412 I PackageDexOptimizer: Running dexopt (dexoptNeeded=1) on: /data/app/~~S7FS7Pm2yurqV2cNags1oA==/com.otclientv8-FHe_9_1DURcKnTfknfbmZQ==/base.apk pkg=com.otclientv8 isa=x86_64 dexoptFlags=boot_complete,debuggable,public,enable_hidden_api_checks targetFilter=verify oatDir=/data/app/~~S7FS7Pm2yurqV2cNags1oA==/com.otclientv8-FHe_9_1DURcKnTfknfbmZQ==/oat classLoaderContext=PCL[]{PCL[/system/framework/android.test.base.jar]}
+10-31 22:28:33.413   422   422 V installd: DexInv: --- BEGIN '/data/app/~~S7FS7Pm2yurqV2cNags1oA==/com.otclientv8-FHe_9_1DURcKnTfknfbmZQ==/base.apk' ---
+10-31 22:28:33.421  5417  5417 I dex2oat32: /apex/com.android.art/bin/dex2oat32 --input-vdex-fd=-1 --output-vdex-fd=9 --updatable-bcp-packages-file=/system/etc/updatable-bcp-packages.txt --resolve-startup-const-strings=true --max-image-block-size=524288 --compiler-filter=verify --debuggable --classpath-dir=/data/app/~~S7FS7Pm2yurqV2cNags1oA==/com.otclientv8-FHe_9_1DURcKnTfknfbmZQ== --class-loader-context=PCL[]{PCL[/system/framework/android.test.base.jar]} --generate-mini-debug-info --compact-dex-level=none --compilation-reason=boot
+10-31 22:28:33.444   422   422 V installd: DexInv: --- END '/data/app/~~S7FS7Pm2yurqV2cNags1oA==/com.otclientv8-FHe_9_1DURcKnTfknfbmZQ==/base.apk' (success) ---
+10-31 22:28:33.485   493  5412 I BackgroundDexOptService: Pinning optimized code {android, com.otclientv8}
+10-31 22:28:33.491   493  5412 D IorapForwardingService: onPackagesUpdated: com.otclientv8
+--------- beginning of crash
+10-31 22:29:00.931  3600  3686 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 3686 (Thread-2), pid 3600 (com.otclientv8)
+10-31 22:29:00.989  5741  5741 I crash_dump64: obtaining output fd from tombstoned, type: kDebuggerdTombstone
+10-31 22:29:00.995   278   278 I tombstoned: received crash request for pid 3686
+10-31 22:29:00.996  5741  5741 I crash_dump64: performing dump of process 3600 (target tid = 3686)
+10-31 22:29:01.004  5741  5741 F DEBUG   : pid: 3600, tid: 3686, name: Thread-2  >>> com.otclientv8 <<<
+10-31 22:29:01.005  5741  5741 F DEBUG   : Abort message: 'FATAL ERROR: Unable to load module 'game_healthinfo': /modules/game_healthinfo/healthinfo.lua:99: attempt to index global 'healthInfoButton' (a nil value)
+10-31 22:29:01.383   493  5749 W ActivityTaskManager:   Force finishing activity com.otclientv8/.OTClientV8
+10-31 22:29:01.387   493   585 W InputDispatcher: channel 'b818e1c com.otclientv8/com.otclientv8.OTClientV8 (server)' ~ Consumer closed input channel or an error occurred.  events=0x9
+10-31 22:29:01.387   493   585 E InputDispatcher: channel 'b818e1c com.otclientv8/com.otclientv8.OTClientV8 (server)' ~ Channel is unrecoverably broken and will be disposed!
+10-31 22:29:01.387   493  5751 I DropBoxManagerService: add tag=data_app_native_crash isTagEnabled=true flags=0x2
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.wm.ActivityStack.finishTopCrashedActivityLocked(ActivityStack.java:2217)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.wm.RootWindowContainer.finishTopCrashedActivities(RootWindowContainer.java:2275)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.wm.ActivityTaskManagerService$LocalService.finishTopCrashedActivities(ActivityTaskManagerService.java:7271)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.am.AppErrors.handleAppCrashLocked(AppErrors.java:759)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.am.AppErrors.makeAppCrashingLocked(AppErrors.java:606)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.am.AppErrors.crashApplicationInner(AppErrors.java:489)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.am.AppErrors.crashApplication(AppErrors.java:419)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.am.ActivityManagerService.handleApplicationCrashInner(ActivityManagerService.java:9894)
+10-31 22:29:01.398   493  5749 W ActivityTaskManager: 	at com.android.server.am.NativeCrashListener$NativeCrashReporter.run(NativeCrashListener.java:84)
+10-31 22:29:01.408   493  1481 I WindowManager: WIN DEATH: Window{b818e1c u0 com.otclientv8/com.otclientv8.OTClientV8}
+10-31 22:29:01.408   493  1481 W InputDispatcher: Attempted to unregister already unregistered input channel 'b818e1c com.otclientv8/com.otclientv8.OTClientV8 (server)'
+10-31 22:29:01.430   493   999 I ActivityManager: Process com.otclientv8 (pid 3600) has died: fg  TOP 
+10-31 22:29:02.088   493   526 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{a609ebf u0 com.otclientv8/.OTClientV8 t-1 f}}
+10-31 22:29:07.013  1693  1693 E chromium: [ERROR:filesystem_posix.cc(62)] mkdir /data/user/0/com.google.android.googlequicksearchbox/cache/WebView/Crashpad: No such file or directory (2)
+10-31 22:29:12.891  1693  2277 V DynamiteModule: Dynamite loader version >= 2, using loadModule2NoCrashUtils

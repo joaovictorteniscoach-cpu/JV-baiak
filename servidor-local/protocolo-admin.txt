@@ -1,0 +1,11 @@
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Gm"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 21, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5340}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [10, 4]}
+OK    falar no chat {"ms": 1}
+OK    admin: /comandos abre a lista {}
+OK    admin: /i cria item {"pacotes": 11}
+OK    admin: /clonar copia o item da mao {"resposta": "Clonado: 2x magic sword.Ý\u0003»\u0004\u0007á\u0003»\u0004\u0007\u0004á\u0003¸", "pediu_item_na_mao": false}
+OK    admin: /a teletransporta {}
+OK    sair do jogo {}

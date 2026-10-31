@@ -1,0 +1,5 @@
+OK    baixou e preparou o jogo {"s": 7}
+OK    conta de teste criada no site {"conta": "robo9foaq6mu"}
+OK    andou pelo mapa {"quadros_por_segundo_na_tela": 4.4}
+OK    sem erros de pagina {"erros": []}
+OK    tempo ate a tela de login {"s": 8}

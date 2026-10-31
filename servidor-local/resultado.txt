@@ -1,0 +1,61 @@
+instalacao: codigo 0 em 222 s
+NAME                 IMAGE                    COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+jvbaiak-db-1         mariadb:10.11            "docker-entrypoint.s…"   db         51 seconds ago   Up 48 seconds (healthy)   3306/tcp
+jvbaiak-portal-1     jvbaiak/portal:local     "gunicorn --bind 0.0…"   portal     49 seconds ago   Up 37 seconds (healthy)   0.0.0.0:80->8000/tcp, [::]:80->8000/tcp
+jvbaiak-servidor-1   jvbaiak/servidor:local   "/usr/local/bin/tfs"     servidor   49 seconds ago   Up 33 seconds (healthy)   0.0.0.0:7171-7172->7171-7172/tcp, [::]:7171-7172->7171-7172/tcp
+[1;32mGM pronto: conta 'robogm', personagem 'Robo Gm'.[0m
+== contas de administrador ==
+name	type	name	group_id
+joaoadm	5	Joao Victor	5
+henriqueadm	5	Henrique	5
+robogm	5	Robo Gm	5
+OK    personagem salvo ao sair (ultimo login gravado)
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Gm"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 21, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5340}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [10, 4]}
+OK    falar no chat {"ms": 1}
+OK    admin: /comandos abre a lista {}
+OK    admin: /i cria item {"pacotes": 11}
+OK    admin: /clonar copia o item da mao {"resposta": "Clonado: 2x magic sword.Ý\u0003»\u0004\u0007á\u0003»\u0004\u0007\u0004á\u0003¸", "pediu_item_na_mao": false}
+OK    admin: /a teletransporta {}
+OK    sair do jogo {}
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Rigulu"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 21, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5739}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [10, 3]}
+OK    falar no chat {"ms": 10}
+OK    sair do jogo {}
+OK    pagina / {"status": 200, "ms": 43, "kb": 7, "erros": null}
+OK    pagina /criar-conta {"status": 200, "ms": 5, "kb": 6, "erros": null}
+OK    pagina /novo-personagem {"status": 200, "ms": 2, "kb": 5, "erros": null}
+OK    pagina /ranking {"status": 200, "ms": 8, "kb": 5, "erros": null}
+OK    pagina /online {"status": 200, "ms": 6, "kb": 4, "erros": null}
+OK    pagina /mortes {"status": 200, "ms": 3, "kb": 4, "erros": null}
+OK    pagina /guilds {"status": 200, "ms": 5, "kb": 4, "erros": null}
+OK    pagina /casas {"status": 200, "ms": 8, "kb": 53, "erros": null}
+OK    pagina /servidor {"status": 200, "ms": 5, "kb": 8, "erros": null}
+OK    pagina /conta {"status": 200, "ms": 2, "kb": 5, "erros": null}
+OK    pagina /baixar {"status": 200, "ms": 3, "kb": 5, "erros": null}
+OK    pagina /saude {"status": 200, "ms": 0, "kb": 0, "erros": null}
+OK    link /personagem {"status": 200, "ms": 7}
+OK    link /static/arte/druid.png {"status": 200, "ms": 1}
+OK    link /static/arte/knight.png {"status": 200, "ms": 1}
+OK    link /static/arte/mundo-tibia.jpg {"status": 200, "ms": 1}
+OK    link /static/arte/paladin.png {"status": 200, "ms": 1}
+OK    link /static/arte/sorcerer.png {"status": 200, "ms": 1}
+OK    link /static/brasao.svg {"status": 200, "ms": 1}
+OK    link /static/classico.css {"status": 200, "ms": 1}
+OK    link /static/estilo.css {"status": 200, "ms": 1}
+OK    link /static/fontes/cinzel.woff {"status": 200, "ms": 1}
+OK    link /static/tibia/icon-account.gif {"status": 200, "ms": 1}
+OK    link /static/tibia/icon-community.gif {"status": 200, "ms": 1}
+OK    criar conta pelo site {"status": 200, "ms": 4, "conta": "roboou6tgunb"}
+OK    entrar em Minha conta {"status": 200, "ms": 10}
+OK    pagina do personagem novo {"status": 200, "ms": 4}
+OK    links de download na pagina {"arquivos": ["JVBaiak-Android.apk", "JVBaiak-Windows.zip"]}
+OK    download JVBaiak-Android.apk {"status": 200, "mb": 36.1, "s": 0.0, "tem_sprites_860": true, "assinado": true, "servidor_no_cliente": ["127.0.0.1:7171:860"], "zip_integro": true}
+OK    download JVBaiak-Windows.zip {"status": 200, "mb": 42.0, "s": 0.0, "tem_sprites_860": true, "exe": ["otclient_gl.exe", "otclient_dx.exe"], "servidor_no_cliente": ["127.0.0.1:7171:860"], "zip_integro": true}
+linhas suspeitas no log do servidor: 2

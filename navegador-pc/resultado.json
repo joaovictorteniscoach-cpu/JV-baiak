@@ -1,0 +1,31 @@
+{
+ "perfil": "pc",
+ "etapas": [
+  {
+   "etapa": "baixou e preparou o jogo",
+   "ok": true,
+   "s": 7
+  },
+  {
+   "etapa": "conta de teste criada no site",
+   "ok": true,
+   "conta": "robo9foaq6mu"
+  },
+  {
+   "etapa": "andou pelo mapa",
+   "ok": true,
+   "quadros_por_segundo_na_tela": 4.4
+  },
+  {
+   "etapa": "sem erros de pagina",
+   "ok": true,
+   "erros": []
+  },
+  {
+   "etapa": "tempo ate a tela de login",
+   "ok": true,
+   "s": 8
+  }
+ ],
+ "ok": true
+}

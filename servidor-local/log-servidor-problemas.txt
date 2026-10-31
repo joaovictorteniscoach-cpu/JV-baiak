@@ -1,0 +1,2 @@
+52:servidor-1  | [Error - mysql_real_query] Query: SET GLOBAL sql_mode='';
+88:servidor-1  | [Error - mysql_real_query] Query: SET GLOBAL sql_mode='';

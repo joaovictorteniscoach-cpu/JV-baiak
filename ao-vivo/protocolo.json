@@ -1,0 +1,49 @@
+{
+ "host": "bayakjh.duckdns.org",
+ "etapas": [
+  {
+   "etapa": "login 7171",
+   "ok": true,
+   "ms": 325,
+   "erro": null,
+   "personagens": [
+    "Robo Cunatu"
+   ]
+  },
+  {
+   "etapa": "lista aponta para o servidor certo",
+   "ok": true,
+   "ip": "35.247.198.29",
+   "porta": 7172,
+   "mundo": "JV Baiak"
+  },
+  {
+   "etapa": "entrar no mundo 7172",
+   "ok": true,
+   "ms": 517,
+   "erro": null,
+   "primeiro_opcode": "0xa"
+  },
+  {
+   "etapa": "recebeu o mapa",
+   "ok": true,
+   "bytes": 5732
+  },
+  {
+   "etapa": "andar (resposta do servidor)",
+   "ok": false,
+   "passos": 0,
+   "ms_por_passo": []
+  },
+  {
+   "etapa": "falar no chat",
+   "ok": true,
+   "ms": 167
+  },
+  {
+   "etapa": "sair do jogo",
+   "ok": true
+  }
+ ],
+ "ok": false
+}

@@ -1,0 +1,36 @@
+OK    pagina / {"status": 200, "ms": 728, "kb": 7, "erros": null}
+OK    pagina /criar-conta {"status": 200, "ms": 502, "kb": 6, "erros": null}
+OK    pagina /novo-personagem {"status": 200, "ms": 685, "kb": 5, "erros": null}
+OK    pagina /ranking {"status": 200, "ms": 511, "kb": 12, "erros": null}
+OK    pagina /online {"status": 200, "ms": 771, "kb": 4, "erros": null}
+OK    pagina /mortes {"status": 200, "ms": 549, "kb": 4, "erros": null}
+OK    pagina /guilds {"status": 200, "ms": 625, "kb": 4, "erros": null}
+OK    pagina /casas {"status": 200, "ms": 839, "kb": 53, "erros": null}
+OK    pagina /servidor {"status": 200, "ms": 522, "kb": 8, "erros": null}
+OK    pagina /conta {"status": 200, "ms": 500, "kb": 5, "erros": null}
+OK    pagina /baixar {"status": 200, "ms": 751, "kb": 6, "erros": null}
+OK    pagina /saude {"status": 200, "ms": 490, "kb": 0, "erros": null}
+OK    link /personagem {"status": 200, "ms": 592}
+OK    link /static/arte/druid.png {"status": 200, "ms": 1457}
+OK    link /static/arte/knight.png {"status": 200, "ms": 1486}
+OK    link /static/arte/mundo-tibia.jpg {"status": 200, "ms": 968}
+OK    link /static/arte/paladin.png {"status": 200, "ms": 1292}
+OK    link /static/arte/sorcerer.png {"status": 200, "ms": 1444}
+OK    link /static/brasao.svg {"status": 200, "ms": 492}
+OK    link /static/classico.css {"status": 200, "ms": 651}
+OK    link /static/estilo.css {"status": 200, "ms": 901}
+OK    link /static/fontes/cinzel.woff {"status": 200, "ms": 653}
+OK    link /static/tibia/icon-account.gif {"status": 200, "ms": 491}
+OK    link /static/tibia/icon-community.gif {"status": 200, "ms": 494}
+OK    criar conta pelo site {"status": 200, "ms": 507, "conta": "robojqk4vtbk"}
+OK    entrar em Minha conta {"status": 200, "ms": 1009}
+OK    pagina do personagem novo {"status": 200, "ms": 501}
+OK    links de download na pagina {"arquivos": ["JVBaiak-Android.apk", "JVBaiak-Windows.zip"]}
+OK    download JVBaiak-Android.apk {"status": 200, "mb": 36.1, "s": 3.1, "tem_sprites_860": true, "assinado": true, "servidor_no_cliente": ["bayakjh.duckdns.org:7171:860"], "zip_integro": true}
+OK    download JVBaiak-Windows.zip {"status": 200, "mb": 42.0, "s": 3.4, "tem_sprites_860": true, "exe": ["otclient_dx.exe", "otclient_gl.exe"], "servidor_no_cliente": ["bayakjh.duckdns.org:7171:860"], "zip_integro": true}
+OK    /jogar abre com isolamento (threads) {"status": 200, "ms": 717}
+OK    /jogar/otclient.js {"status": 200, "mb": 0.6, "s": 1.3}
+OK    /jogar/otclient.wasm {"status": 200, "mb": 12.28, "s": 2.1}
+OK    /jogar/otclient.data {"status": 200, "mb": 90.41, "s": 5.5}
+OK    /jogar/manifest.webmanifest {"status": 200, "mb": 0.0, "s": 0.5}
+OK    /jogar/atualizacao.txt {"status": 200, "mb": 0.0, "s": 0.5}

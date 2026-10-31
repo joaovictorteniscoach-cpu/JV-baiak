@@ -1,0 +1,5 @@
+OK    baixou e preparou o jogo {"s": 8}
+OK    conta de teste criada no site {"conta": "roborm9vxquw"}
+OK    andou pelo mapa {"quadros_por_segundo_na_tela": null}
+FALHA sem erros de pagina {"erros": ["can't access property \"viewport\", GLctx is undefined"]}
+OK    tempo ate a tela de login {"s": 8}

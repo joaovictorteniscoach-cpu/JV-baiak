@@ -1,0 +1,230 @@
+{
+ "site": "http://127.0.0.1",
+ "itens": [
+  {
+   "item": "pagina /",
+   "ok": true,
+   "status": 200,
+   "ms": 43,
+   "kb": 7,
+   "erros": null
+  },
+  {
+   "item": "pagina /criar-conta",
+   "ok": true,
+   "status": 200,
+   "ms": 5,
+   "kb": 6,
+   "erros": null
+  },
+  {
+   "item": "pagina /novo-personagem",
+   "ok": true,
+   "status": 200,
+   "ms": 2,
+   "kb": 5,
+   "erros": null
+  },
+  {
+   "item": "pagina /ranking",
+   "ok": true,
+   "status": 200,
+   "ms": 8,
+   "kb": 5,
+   "erros": null
+  },
+  {
+   "item": "pagina /online",
+   "ok": true,
+   "status": 200,
+   "ms": 6,
+   "kb": 4,
+   "erros": null
+  },
+  {
+   "item": "pagina /mortes",
+   "ok": true,
+   "status": 200,
+   "ms": 3,
+   "kb": 4,
+   "erros": null
+  },
+  {
+   "item": "pagina /guilds",
+   "ok": true,
+   "status": 200,
+   "ms": 5,
+   "kb": 4,
+   "erros": null
+  },
+  {
+   "item": "pagina /casas",
+   "ok": true,
+   "status": 200,
+   "ms": 8,
+   "kb": 53,
+   "erros": null
+  },
+  {
+   "item": "pagina /servidor",
+   "ok": true,
+   "status": 200,
+   "ms": 5,
+   "kb": 8,
+   "erros": null
+  },
+  {
+   "item": "pagina /conta",
+   "ok": true,
+   "status": 200,
+   "ms": 2,
+   "kb": 5,
+   "erros": null
+  },
+  {
+   "item": "pagina /baixar",
+   "ok": true,
+   "status": 200,
+   "ms": 3,
+   "kb": 5,
+   "erros": null
+  },
+  {
+   "item": "pagina /saude",
+   "ok": true,
+   "status": 200,
+   "ms": 0,
+   "kb": 0,
+   "erros": null
+  },
+  {
+   "item": "link /personagem",
+   "ok": true,
+   "status": 200,
+   "ms": 7
+  },
+  {
+   "item": "link /static/arte/druid.png",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/arte/knight.png",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/arte/mundo-tibia.jpg",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/arte/paladin.png",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/arte/sorcerer.png",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/brasao.svg",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/classico.css",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/estilo.css",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/fontes/cinzel.woff",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/tibia/icon-account.gif",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "link /static/tibia/icon-community.gif",
+   "ok": true,
+   "status": 200,
+   "ms": 1
+  },
+  {
+   "item": "criar conta pelo site",
+   "ok": true,
+   "status": 200,
+   "ms": 4,
+   "conta": "roboou6tgunb"
+  },
+  {
+   "item": "entrar em Minha conta",
+   "ok": true,
+   "status": 200,
+   "ms": 10
+  },
+  {
+   "item": "pagina do personagem novo",
+   "ok": true,
+   "status": 200,
+   "ms": 4
+  },
+  {
+   "item": "links de download na pagina",
+   "ok": true,
+   "arquivos": [
+    "JVBaiak-Android.apk",
+    "JVBaiak-Windows.zip"
+   ]
+  },
+  {
+   "item": "download JVBaiak-Android.apk",
+   "ok": true,
+   "status": 200,
+   "mb": 36.1,
+   "s": 0.0,
+   "tem_sprites_860": true,
+   "assinado": true,
+   "servidor_no_cliente": [
+    "127.0.0.1:7171:860"
+   ],
+   "zip_integro": true
+  },
+  {
+   "item": "download JVBaiak-Windows.zip",
+   "ok": true,
+   "status": 200,
+   "mb": 42.0,
+   "s": 0.0,
+   "tem_sprites_860": true,
+   "exe": [
+    "otclient_gl.exe",
+    "otclient_dx.exe"
+   ],
+   "servidor_no_cliente": [
+    "127.0.0.1:7171:860"
+   ],
+   "zip_integro": true
+  }
+ ],
+ "ok": true
+}
