@@ -1,6 +1,6 @@
 --- a/src/framework/platform/browserwindow.cpp
 +++ b/src/framework/platform/browserwindow.cpp
-@@ -32,6 +32,19 @@
+@@ -32,6 +32,23 @@
  
  BrowserWindow& g_browserWindow = (BrowserWindow&)g_window;
  
@@ -8,9 +8,13 @@
 +// celular; a interface continua no mesmo tamanho (a escala vem do HUD Scale).
 +static double s_pixelRatio = 1.0;
 +static double jvPixelRatio() {
-+    double pr = MAIN_THREAD_EM_ASM_DOUBLE({ return (window.devicePixelRatio || 1); });
-+    if (!(pr >= 1.0)) pr = 1.0;
-+    if (pr > 2.0) pr = 2.0;
++    // a pagina pode definir window.jvPixelRatio() (zoom da interface escolhido pelo jogador)
++    double pr = MAIN_THREAD_EM_ASM_DOUBLE({
++        if (typeof window.jvPixelRatio === "function") return window.jvPixelRatio();
++        return Math.min(window.devicePixelRatio || 1, 2);
++    });
++    if (!(pr >= 0.75)) pr = 0.75;
++    if (pr > 3.5) pr = 3.5;
 +    return pr;
 +}
 +// JV Baiak: toque - posicao inicial para diferenciar "segurar" de "arrastar"
@@ -20,7 +24,7 @@
  stdext::map<char, Fw::Key> m_keyMapStr;
  EmscriptenWebGLContextAttributes attr;
  
-@@ -158,6 +171,7 @@
+@@ -158,6 +175,7 @@
      emscripten_set_touchend_callback("#canvas", this, EM_TRUE, nullptr);
      emscripten_set_touchstart_callback("#canvas", this, EM_TRUE, nullptr);
      emscripten_set_touchmove_callback("#canvas", this, EM_TRUE, nullptr);
@@ -28,7 +32,7 @@
      EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_get_current_context();
      emscripten_webgl_destroy_context(ctx);
  
-@@ -168,8 +182,10 @@
+@@ -168,8 +186,10 @@
  void BrowserWindow::internalInitGL() {
      double w, h;
      emscripten_get_element_css_size("#canvas", &w, &h);
@@ -41,7 +45,7 @@
  
  
      EmscriptenWebGLContextAttributes attr;
-@@ -180,7 +196,7 @@
+@@ -180,7 +200,7 @@
      emscripten_webgl_make_context_current(ctx);
  
  
@@ -50,7 +54,7 @@
  }
  
  void BrowserWindow::poll() {
-@@ -243,6 +259,11 @@
+@@ -243,6 +263,11 @@
              static_cast<BrowserWindow*>(userData)->handleTouchCallback(eventType, event);
              return EM_TRUE;
          }));
@@ -62,7 +66,7 @@
  
          // clang-format off
          MAIN_THREAD_ASYNC_EM_ASM({
-@@ -366,10 +387,12 @@
+@@ -366,10 +391,12 @@
  void BrowserWindow::handleResizeCallback(const EmscriptenUiEvent* event) {
      double w, h;
      emscripten_get_element_css_size("#canvas", &w, &h);
@@ -79,7 +83,7 @@
          m_onResize(m_size);
      }
  }
-@@ -377,7 +400,7 @@
+@@ -377,7 +404,7 @@
  void BrowserWindow::handleMouseMotionCallback(const EmscriptenMouseEvent* mouseEvent) {
      m_inputEvent.reset();
      m_inputEvent.type = Fw::MouseMoveInputEvent;
@@ -88,7 +92,7 @@
      m_inputEvent.mouseMoved = newMousePos - m_inputEvent.mousePos;
      m_inputEvent.mousePos = newMousePos;
      if (m_onInputEvent)
-@@ -386,32 +409,70 @@
+@@ -386,32 +413,70 @@
  
  void BrowserWindow::handleTouchCallback(int eventType, const EmscriptenTouchEvent* event) {
      m_usingTouch = true;

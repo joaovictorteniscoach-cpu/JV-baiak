@@ -134,6 +134,14 @@ def main():
             foto("8c-segurar-no-personagem.png")
             pg.keyboard.press("Escape")
             time.sleep(1)
+            # tamanho da interface: A+ duas vezes (tudo maior), depois volta
+            pg.tap("#zoom-botao"); time.sleep(0.5)
+            pg.tap("#zoom-mais"); time.sleep(0.5); pg.tap("#zoom-mais"); time.sleep(3)
+            foto("8d-zoom-maior.png")
+            pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(0.5)
+            pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(3)
+            foto("8e-zoom-menor.png")
+            pg.tap("#zoom-mais"); time.sleep(0.5); pg.tap("#zoom-mais"); time.sleep(2)
             pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
             time.sleep(6)
             foto("9-em-pe.png")
