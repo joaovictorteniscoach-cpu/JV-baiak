@@ -2,7 +2,7 @@
 # Envie pelo botao Fazer upload do arquivo no SSH e execute: bash login.sh
 set -Eeuo pipefail
 umask 077
-REVISAO=afa4b295d0a5597b38035595f39e59a388123aad
+REVISAO=045f32f09bedee9e69f1f2bbb065ba6773de3a8c
 REPOSITORIO=https://github.com/joaovictorteniscoach-cpu/JV-baiak.git
 DOMINIO=bayakjh.duckdns.org
 
