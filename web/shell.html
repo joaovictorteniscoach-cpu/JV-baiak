@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="jv-client-revision" content="toque-v2-offscreen" />
+    <meta name="jv-client-revision" content="login-v3" />
     <!-- JV Baiak: pagina do jogo no navegador (iPhone, Android e PC). Baseada no shell do OTClient Redemption. -->
     <meta
       name="viewport"
@@ -336,14 +336,14 @@
       function orientacao() { return window.innerHeight > window.innerWidth ? "em-pe" : "deitado"; }
       function lerZoom() {
         var padrao = TELA_TOQUE ? 1 : (orientacao() === "em-pe" ? 0.8 : 1);
-        try { var v = Number(localStorage.getItem((TELA_TOQUE ? "jvZoom-toque-v2-" : "jvZoom-") + orientacao())); return Number.isFinite(v) && v > 0 ? Math.max(ZOOM_MIN, Math.min(limiteZoom(), v)) : padrao; }
+        try { var v = Number(localStorage.getItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao())); return Number.isFinite(v) && v > 0 ? Math.max(ZOOM_MIN, Math.min(limiteZoom(), v)) : padrao; }
         catch (e) { return padrao; }
       }
-      function gravarZoom(v) { try { localStorage.setItem((TELA_TOQUE ? "jvZoom-toque-v2-" : "jvZoom-") + orientacao(), String(v)); } catch (e) {} }
+      function gravarZoom(v) { try { localStorage.setItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao(), String(v)); } catch (e) {} }
       window.jvPixelRatio = function () {
-        // Nao confundir densidade da tela com tamanho da interface. Em 0.72,
-        // slots de 32 px ocupam pelo menos 44 pontos CSS; o zoom so aumenta.
-        var base = TELA_TOQUE ? 0.72 : Math.min(window.devicePixelRatio || 1, 2);
+        // O tamanho de login/jogo e controlado no HUD, separadamente. O login
+        // nao recebe a ampliacao dos botoes de combate.
+        var base = TELA_TOQUE ? 1 : Math.min(window.devicePixelRatio || 1, 2);
         return base / lerZoom();
       };
       var zoomPainel = document.getElementById("menu-painel");
@@ -516,7 +516,7 @@
           const baseURL =
             window.location.origin +
             window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/"));
-          return baseURL + "/" + path + "?v=toque-v2-offscreen";
+          return baseURL + "/" + path + "?v=login-v3";
         },
         preRun: [
           function () {

@@ -80,8 +80,8 @@ function fixture(mobile=false) {
 console.log('OK: zoom bounds/steps/reset, orientation, single start, menu, keyboard focus, unsupported fullscreen and pinch cancellation');
 for(const dpr of [1,2,3,4]) {
  const f=fixture(true);f.c.devicePixelRatio=dpr;
- assert.equal(f.c.jvPixelRatio(),0.72);
- assert.ok(32/f.c.jvPixelRatio()>=44);
+ assert.equal(f.c.jvPixelRatio(),1);
+ assert.ok(32*1.4/f.c.jvPixelRatio()>=44);
  f.storage.set('jvZoom-em-pe','0.6');
  f.c.innerWidth=390;f.c.innerHeight=844;
  assert.equal(f.c.lerZoom(),1);
@@ -91,7 +91,7 @@ for(const dpr of [1,2,3,4]) {
  f.c.innerWidth=844;f.c.innerHeight=390;
  f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
  f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),1);
- assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v2-offscreen'));
+ assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=login-v3'));
 }
 console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
 

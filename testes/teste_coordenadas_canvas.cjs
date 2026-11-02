@@ -11,7 +11,7 @@ function normalized(rect,x,y){
  vm.runInNewContext(helper[1],{$0:x,$1:y,$2:16,HEAPF64:heap,document:{getElementById:()=>({width:300,height:150,getBoundingClientRect:()=>rect})}});
  return [heap[2],heap[3]];
 }
-for(const z of [0.6,0.8,1,1.15,1.5,2]) for(const density of [1,1.25,1.5,2]){
+for(const z of [0.6,0.8,1,1.15,1.5,2]) for(const density of [1,1.25,1.4,1.5,2]){
  for(const [w,h] of [[844,390],[390,844],[1363,936]]){
   const rect={left:110,top:27,width:w,height:h};
   const pw=Math.floor(w*0.72/z),ph=Math.floor(h*0.72/z);

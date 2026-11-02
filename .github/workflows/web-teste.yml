@@ -83,7 +83,7 @@ jobs:
           . "$RUNNER_TEMP/venv/bin/activate"
           pip install -q playwright > "$F/instalacao.txt" 2>&1
           python -m playwright install --with-deps chromium >> "$F/instalacao.txt" 2>&1
-          python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$F" > "$F/teste.txt" 2>&1 || echo "falhou: veja teste.txt" >> "$F/teste.txt"
+          python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$F" > "$F/teste.txt" 2>&1
           ls -la "$F"
 
       - name: Publicar as fotos no ramo testes-web

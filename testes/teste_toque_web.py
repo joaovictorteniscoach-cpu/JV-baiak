@@ -66,7 +66,7 @@ if __name__ == '__main__':
     '''
     tests=tests.replace('int main(){', r'''
     int main(){
-     for(double density:{1.0,1.25,1.5,2.0}) for(Size size: {Size{607,281},Size{281,607},Size{2726,1872}}) {
+     for(double density:{1.0,1.25,1.4,1.5,2.0}) for(Size size: {Size{607,281},Size{281,607},Size{2726,1872}}) {
       for(double x:{0.,5.,50.,99.,100.}) for(double y:{0.,5.,50.,99.,100.}) {
        auto p=jvInputPosition(x,y,size,density);
        assert(p.x==int(x/100*size.width()/density));

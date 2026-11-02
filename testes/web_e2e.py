@@ -72,7 +72,17 @@ def main():
             user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 "
                        "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
         pg = ctx.new_page()
-        pg.on("console", lambda m: log.write(f"[{m.type}] {m.text}\n"))
+        layouts, game_ready = [], []
+        def console(message):
+            text = message.text
+            log.write(f"[{message.type}] {text}\n")
+            if 'JV_WEB_GAME_READY' in text:
+                game_ready.append(True)
+            if 'JV_LOGIN_LAYOUT ' in text:
+                data = dict(re.findall(r'(root|win|account|password|login)=([0-9,-]+)', text))
+                metrics = {key: tuple(map(int,value.split(','))) for key,value in data.items()}
+                layouts.append(metrics)
+        pg.on("console", console)
         pg.on("pageerror", lambda e: log.write(f"[pageerror] {e}\n"))
         foto = lambda n: pg.screenshot(path=os.path.join(FOTOS, n))
         t0 = time.time()
@@ -86,11 +96,18 @@ def main():
         foto("3-login.png")
         pg.set_viewport_size({"width": 390, "height": 844}); time.sleep(4)
         foto("3b-login-em-pe.png")
+        assert len(layouts)>=2, 'Faltam medidas nativas do login nas duas orientacoes'
+        for geometry in layouts:
+            rw,rh=geometry['root'];wx,wy,ww,wh=geometry['win']
+            assert wx>=0 and wy>=0 and wx+ww<=rw+1 and wy+wh<=rh+1, geometry
+            for name in ('account','password','login'):
+                x,y,w,h=geometry[name]
+                assert w>=44 and h>=44 and x>=wx and y>=wy and x+w<=wx+ww+1 and y+h<=wy+wh+1, (name,geometry)
         pg.set_viewport_size({"width": 844, "height": 390}); time.sleep(4)
         conta, senha, ok = conta_de_teste()
         if ok:
             # como no iPhone: toca no campo da conta, aparece "Toque para digitar", toca nele
-            pg.touchscreen.tap(440, 140)
+            pg.touchscreen.tap(440, 100)
             time.sleep(2)
             foto("4a-pediu-teclado.png")
             visivel = pg.is_visible("#digitar")
@@ -115,6 +132,7 @@ def main():
             pg.keyboard.press("Enter")  # entra com o personagem
             time.sleep(20)
             foto("7-no-jogo.png")
+            assert game_ready, 'O teste nao entrou no jogo; rever login e teclado'
             pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
             time.sleep(2)
             foto("7b-sem-janela.png")
@@ -175,6 +193,8 @@ def main():
             pg.set_viewport_size({"width": 844, "height": 390})
             time.sleep(4)
             foto("10-deitado-de-novo.png")
+        if not ok:
+            raise AssertionError('Nao foi possivel criar a conta de teste')
         nav.close()
     srv.shutdown()
     log.close()

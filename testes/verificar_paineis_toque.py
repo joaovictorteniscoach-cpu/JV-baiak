@@ -56,7 +56,7 @@ modules={game_interface={getMainRightPanel=function()return main end,getRightPan
 g_game={isOnline=function()return true end,setSafeFight=nothing,isSafeFight=function()return true end,cancelAttack=nothing,cancelFollow=nothing}
 ''')
 s=(Path(__file__).resolve().parents[1]/'web/otclientrc-extra.lua').read_text()
-lua.execute(s[s.index('-- Interface de toque:'):])
+lua.execute(s[s.index('-- Interface de toque:'):s.index('-- A escala de combate nao pode ampliar')])
 lua.execute('''
 events[g_game].onGameStart()
 for _,fn in ipairs(timers)do fn() end
@@ -68,11 +68,11 @@ for _,page in ipairs({'maininventorypanel','mainmappanel','mainoptionspanel','jv
  local visible=0
  for _,child in ipairs(main.children)do if child.visible then visible=visible+1;assert(child.id==page) end end
  assert(visible==1 and rightPanel.clipping)
- assert(main.height<=235) -- 235/.72 + faixa dos atalhos (42/.72) cabe em 390 pontos
+ assert(main.height<=235) -- 235*1.4 + faixa dos atalhos (42*1.4) cabe em 390 pontos
 end
 for _,parent in ipairs({options,specials,store,main.jvCombate}) do
  for _,b in ipairs(parent.children)do
-  assert(b.width/.72>=44 and b.height/.72>=44)
+  assert(b.width*1.4>=44 and b.height*1.4>=44)
  end
 end
 -- Os botoes criados no mesmo painel nao se sobrepoem.

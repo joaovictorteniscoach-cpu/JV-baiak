@@ -1,0 +1,38 @@
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -318,7 +318,7 @@
+ 
+ function show()
+     -- O tamanho minimo dos controles mobile parte de uma escala HUD conhecida.
+-    if g_platform.isMobile() then g_app.setHUDScale(1) end
++    if g_platform.isMobile() then g_app.setHUDScale(1.4) end
+     connect(g_app, {
+         onClose = tryExit
+     })
+--- a/modules/client_entergame/entergame.otui
++++ b/modules/client_entergame/entergame.otui
+@@ -214,6 +214,7 @@
+     margin-top: 6
+ 
+   QtButton
++    id: jvLoginButton
+     !text: tr('Login')
+     anchors.right: parent.right
+     anchors.top: prev.bottom
+--- a/modules/client_options/data_options.lua
++++ b/modules/client_options/data_options.lua
+@@ -459,12 +459,12 @@
+             end
+ 
+             options.hudScale.event = scheduleEvent(function()
+-                g_app.setHUDScale(math.max(value + 0.5, 1))
++                g_app.setHUDScale(g_platform.isMobile() and (g_game.isOnline() and 1.4 or 1) or math.max(value + 0.5, 1))
+                 options.hudScale.event = nil
+             end, 250)
+ 
+             local hudWidget = panels.interfaceHUD:recursiveGetChildById('hudScale')
+-            hudWidget:setText(string.format('HUD Scale: %sx', math.max(value + 0.5, 1)))
++            hudWidget:setText(string.format('HUD Scale: %sx', g_platform.isMobile() and (g_game.isOnline() and 1.4 or 1) or math.max(value + 0.5, 1)))
+         end
+     },
+     creatureInformationScale          = {

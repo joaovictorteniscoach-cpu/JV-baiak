@@ -200,3 +200,69 @@ if g_platform.isMobile() then
         scheduleEvent(function() JVToque.selecionar(JVToque.pagina) end, 4200)
     end})
 end
+
+-- A escala de combate nao pode ampliar o formulario de entrada.
+if g_platform.isMobile() then
+    JVLogin = {}
+    local function posicionar(widget, leftId, topId, topEdge, top, height)
+        widget:breakAnchors()
+        widget:addAnchor(AnchorLeft, leftId, AnchorLeft)
+        widget:addAnchor(AnchorRight, 'parent', AnchorRight)
+        widget:addAnchor(AnchorTop, topId, topEdge)
+        widget:setMarginTop(top); widget:setHeight(height)
+    end
+    function JVLogin.ajustar()
+        if g_game.isOnline() then return end
+        if math.abs(g_app.getHUDScale() - 1) > 0.001 then g_app.setHUDScale(1) end
+        local win = rootWidget:recursiveGetChildById('enterGame')
+        if not win or not win:isVisible() then return end
+        local width, height = rootWidget:getWidth(), rootWidget:getHeight()
+        local compact = height < 360
+        win:setText('Entrar no JV Baiak')
+        win:setWidth(math.max(160, math.min(360, width - 24)))
+        win:setHeight(compact and 200 or 304)
+        local accountLabel, passwordLabel = win.emailLabel, win.passwordLabel
+        local account, password = win.accountNameTextEdit, win.accountPasswordTextEdit
+        local remember, auto, login = win.rememberEmailBox, win.autoLoginBox, win.jvLoginButton
+        if not (accountLabel and passwordLabel and account and password and remember and auto and login) then return end
+        local keep = {emailLabel=true,passwordLabel=true,accountNameTextEdit=true,accountPasswordTextEdit=true,rememberEmailBox=true,autoLoginBox=true,jvLoginButton=true}
+        for _, child in ipairs(win:getChildren()) do if not keep[child:getId()] then child:hide() end end
+        accountLabel:breakAnchors(); accountLabel:addAnchor(AnchorLeft,'parent',AnchorLeft); accountLabel:addAnchor(AnchorTop,'parent',AnchorTop)
+        accountLabel:setText('Conta'); accountLabel:setWidth(62); accountLabel:setHeight(44)
+        passwordLabel:breakAnchors(); passwordLabel:addAnchor(AnchorLeft,'parent',AnchorLeft); passwordLabel:addAnchor(AnchorTop,'emailLabel',AnchorBottom)
+        passwordLabel:setMarginTop(8); passwordLabel:setText('Senha'); passwordLabel:setWidth(62); passwordLabel:setHeight(44)
+        for _, row in ipairs({{account,'emailLabel'}, {password,'passwordLabel'}}) do
+            local input, label = row[1], row[2]
+            input:breakAnchors(); input:addAnchor(AnchorLeft,label,AnchorRight); input:addAnchor(AnchorRight,'parent',AnchorRight); input:addAnchor(AnchorTop,label,AnchorTop)
+            input:setMarginLeft(8); input:setHeight(44)
+            for _, child in ipairs(input:getChildren()) do
+                if child:getClassName() == 'UIButton' then child:setSize({width=44,height=44}); child:setImageRepeated(false); input:setPaddingRight(48) end
+            end
+        end
+        remember:setText('Salvar conta'); auto:setText('Entrar automaticamente')
+        remember:setVisible(not compact); auto:setVisible(not compact)
+        posicionar(remember,'parent','passwordLabel',AnchorBottom,8,44)
+        posicionar(auto,'parent','rememberEmailBox',AnchorBottom,4,44)
+        posicionar(login,'parent',compact and 'passwordLabel' or 'autoLoginBox',AnchorBottom,8,44)
+        login:setText('Entrar'); login:show()
+        win:setPosition({x=math.floor((width-win:getWidth())/2),y=math.floor((height-win:getHeight())/2)})
+        win:bindRectToParent()
+        -- Diagnostico local de geometria; nao registra texto, conta nem senha.
+        local assinatura = width .. ':' .. height .. ':' .. win:getWidth() .. ':' .. win:getHeight()
+        if JVLogin.ultimaGeometria ~= assinatura and g_logger and g_logger.info then
+            JVLogin.ultimaGeometria = assinatura
+            scheduleEvent(function()
+                local function rect(w) return string.format('%d,%d,%d,%d',w:getX(),w:getY(),w:getWidth(),w:getHeight()) end
+                g_logger.info(string.format('JV_LOGIN_LAYOUT root=%d,%d win=%s account=%s password=%s login=%s',
+                    rootWidget:getWidth(),rootWidget:getHeight(),rect(win),rect(account),rect(password),rect(login)))
+            end, 100)
+        end
+    end
+    -- As opcoes antigas aplicam HUD Scale com atraso de 250 ms. Conferir somente
+    -- fora do jogo evita que esse atraso volte a cortar a tela de login.
+    cycleEvent(JVLogin.ajustar, 300)
+    connect(g_app, {onRun=function() addEvent(JVLogin.ajustar) end})
+    connect(g_game, {onGameEnd=function() addEvent(JVLogin.ajustar) end, onGameStart=function()
+        if g_logger and g_logger.info then g_logger.info('JV_WEB_GAME_READY') end
+    end})
+end
