@@ -27,12 +27,13 @@ function w(id, width, height, class, parent)
  function x:setOn(v)self.on=v end
  function x:setClipping(v)self.clipping=v end
  function x:setDraggable(v)self.draggable=v end
+ function x:setImageRepeated(v)self.repeated=v end
  function x:getLayout()return {setCellSize=function(_,size)self.cell=size end} end
  if parent then x.parent=parent;table.insert(parent.children,x);parent[id]=x end
  return x
 end
 rootWidget=w('root')
-main=w('main'); inv=w('maininventorypanel',176,162,nil,main)
+rightPanel=w('rightPanel');main=w('main'); inv=w('maininventorypanel',176,162,nil,main)
 on=w('onPanel',176,162,nil,inv);w('slot',32,32,'UIItem',on);w('tinyCombat',20,20,'UIButton',on)
 mini=w('mainmappanel',176,116,nil,main);w('minimapBorder',115,111,nil,mini);w('zoomIn',20,20,'UIButton',mini)
 opts=w('mainoptionspanel',176,28,nil,main);op=w('onPanel',176,160,nil,opts);w('offPanel',176,28,nil,opts)
@@ -49,7 +50,7 @@ connect=function(obj,t)events[obj]=t end
 scheduleEvent=function(fn)timers[#timers+1]=fn end
 updates=0
 local function nothing()end
-modules={game_interface={getMainRightPanel=function()return main end,updateStretchShrink=function()updates=updates+1 end},
+modules={game_interface={getMainRightPanel=function()return main end,getRightPanel=function()return rightPanel end,updateStretchShrink=function()updates=updates+1 end},
  game_inventory={changeInventorySize=nothing,selectCombat=nothing,selectPosture=nothing},
  game_minimap={zoomIn=nothing,zoomOut=nothing,resetMap=nothing,upLayer=nothing,downLayer=nothing}}
 g_game={isOnline=function()return true end,setSafeFight=nothing,isSafeFight=function()return true end,cancelAttack=nothing,cancelFollow=nothing}
@@ -66,7 +67,7 @@ for _,page in ipairs({'maininventorypanel','mainmappanel','mainoptionspanel','jv
  JVToque.selecionar(page)
  local visible=0
  for _,child in ipairs(main.children)do if child.visible then visible=visible+1;assert(child.id==page) end end
- assert(visible==1)
+ assert(visible==1 and rightPanel.clipping)
  assert(main.height<=235) -- 235/.72 + faixa dos atalhos (42/.72) cabe em 390 pontos
 end
 for _,parent in ipairs({options,specials,store,main.jvCombate}) do

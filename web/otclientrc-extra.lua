@@ -136,11 +136,12 @@ if g_platform.isMobile() then
             local count = 0
             for _, child in ipairs(group:getChildren()) do
                 child:setSize({width = 32, height = 32})
+                child:setImageRepeated(false)
                 if child:isVisible() then count = count + 1 end
             end
             counts[i] = count
         end
-        for _, child in ipairs(store:getChildren()) do child:setHeight(32) end
+        for _, child in ipairs(store:getChildren()) do child:setHeight(32); child:setImageRepeated(false) end
         store:setHeight(32)
         local resizer = on:getChildById('resizer')
         if resizer then resizer:hide() end
@@ -162,6 +163,9 @@ if g_platform.isMobile() then
         escolhido:setHeight(escolhido.jvAltura or 162)
         main:setHeight(escolhido:getHeight() + 1)
         main:setClipping(true)
+        -- Janelas antigas nao podem desenhar sobre a faixa dos quatro atalhos.
+        local right = modules.game_interface.getRightPanel()
+        if right then right:setClipping(true) end
         modules.game_interface.updateStretchShrink()
     end
     local function prepararCombate()
