@@ -1,0 +1,210 @@
+--- a/src/framework/platform/browserwindow.cpp
++++ b/src/framework/platform/browserwindow.cpp
+@@ -35,17 +35,22 @@
+ // JV Baiak: o canvas usa os pixels reais da tela (ate 2x) para ficar nitido no
+ // celular; a interface continua no mesmo tamanho (a escala vem do HUD Scale).
+ static double s_pixelRatio = 1.0;
+-static Point jvInputPosition(double clientX, double clientY, double density) {
++static Point jvInputPosition(double clientX, double clientY, const Size& renderSize, double density) {
+     double point[2] = {0, 0};
+     MAIN_THREAD_EM_ASM({
+         const c = document.getElementById('canvas');
+         const r = c.getBoundingClientRect();
+-        const x = r.width > 0 ? ($0 - r.left) * c.width / r.width : -10000;
+-        const y = r.height > 0 ? ($1 - r.top) * c.height / r.height : -10000;
++        // O HTMLCanvasElement pode continuar em 300x150 apos transferControlToOffscreen.
++        const x = r.width > 0 ? ($0 - r.left) / r.width : -1;
++        const y = r.height > 0 ? ($1 - r.top) / r.height : -1;
+         HEAPF64[$2 >> 3] = x;
+         HEAPF64[($2 >> 3) + 1] = y;
+     }, clientX, clientY, point);
+-    return Point(int(point[0] / density), int(point[1] / density));
++    if (point[0] < 0 || point[1] < 0 || point[0] > 1 || point[1] > 1 ||
++        renderSize.width() <= 0 || renderSize.height() <= 0 || !(density > 0))
++        return Point(-10000, -10000);
++    // A mesma dimensao enviada a GraphicalApplication::resize, nao o canvas do DOM.
++    return Point(int(point[0] * renderSize.width() / density), int(point[1] * renderSize.height() / density));
+ }
+ static double jvPixelRatio() {
+     // a pagina pode definir window.jvPixelRatio() (zoom da interface escolhido pelo jogador)
+@@ -53,7 +58,7 @@
+         if (typeof window.jvPixelRatio === "function") return window.jvPixelRatio();
+         return Math.min(window.devicePixelRatio || 1, 2);
+     });
+-    if (!(pr >= 0.75)) pr = 0.75;
++    if (!(pr >= 0.5)) pr = 0.5;
+     if (pr > 3.5) pr = 3.5;
+     return pr;
+ }
+@@ -361,7 +366,7 @@
+ void BrowserWindow::handleMouseCallback(int eventType, const EmscriptenMouseEvent* mouseEvent) {
+     if (!m_usingTouch) {
+         int button = mouseEvent->button;
+-        const Point pos = jvInputPosition(mouseEvent->clientX, mouseEvent->clientY, m_displayDensity);
++        const Point pos = jvInputPosition(mouseEvent->clientX, mouseEvent->clientY, m_size, m_displayDensity);
+         g_dispatcher.addEvent([this, eventType, button, pos] {
+             m_inputEvent.reset();
+             m_inputEvent.mousePos = pos;
+@@ -420,7 +425,7 @@
+ void BrowserWindow::handleMouseMotionCallback(const EmscriptenMouseEvent* mouseEvent) {
+     m_inputEvent.reset();
+     m_inputEvent.type = Fw::MouseMoveInputEvent;
+-    Point newMousePos = jvInputPosition(mouseEvent->clientX, mouseEvent->clientY, m_displayDensity);
++    Point newMousePos = jvInputPosition(mouseEvent->clientX, mouseEvent->clientY, m_size, m_displayDensity);
+     m_inputEvent.mouseMoved = newMousePos - m_inputEvent.mousePos;
+     m_inputEvent.mousePos = newMousePos;
+     if (m_onInputEvent)
+@@ -475,7 +480,7 @@
+     }
+     const EmscriptenTouchPoint& toque = event->touches[0];
+     const double cssX = toque.targetX, cssY = toque.targetY;
+-    const Point pos = jvInputPosition(toque.clientX, toque.clientY, m_displayDensity);
++    const Point pos = jvInputPosition(toque.clientX, toque.clientY, m_size, m_displayDensity);
+ 
+     g_dispatcher.addEvent([this, pos] {
+         m_inputEvent.reset();
+@@ -536,9 +541,10 @@
+ }
+ 
+ void BrowserWindow::updateTouchPosition(const EmscriptenTouchEvent* event) {
+-    g_dispatcher.addEvent([this, event] {
++    if (!event || event->numTouches <= 0) return;
++    const Point newMousePos = jvInputPosition(event->touches[0].clientX, event->touches[0].clientY, m_size, m_displayDensity);
++    g_dispatcher.addEvent([this, newMousePos] {
+         m_inputEvent.reset();
+-        Point newMousePos(event->touches->targetX / m_displayDensity, event->touches->targetY / m_displayDensity);
+         m_inputEvent.mouseMoved = newMousePos - m_inputEvent.mousePos;
+         m_inputEvent.mousePos = newMousePos;
+         m_inputEvent.type = Fw::MouseMoveInputEvent;
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -152,6 +152,7 @@
+ 
+     bottomSplitter = gameRootPanel:getChildById('bottomSplitter')
+     gameMapPanel = gameRootPanel:getChildById('gameMapPanel')
++    if g_platform.isMobile() then gameMapPanel.onGeometryChange = updateStretchShrink end
+     gameMainRightPanel = gameRootPanel:getChildById('gameMainRightPanel')
+     gameRightPanel = gameRootPanel:getChildById('gameRightPanel')
+     gameRightExtraPanel = gameRootPanel:getChildById('gameRightExtraPanel')
+@@ -316,6 +317,8 @@
+ end
+ 
+ function show()
++    -- O tamanho minimo dos controles mobile parte de uma escala HUD conhecida.
++    if g_platform.isMobile() then g_app.setHUDScale(1) end
+     connect(g_app, {
+         onClose = tryExit
+     })
+@@ -510,6 +513,23 @@
+         if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
+         bottomSplitter:setEnabled(false)
+         gameBottomPanel:setDraggable(false)
++        -- Preserva quadrados e personagens em retrato e paisagem. A janela
++        -- mostra menos colunas quando estreita, sem esticar 15x11 pela tela.
++        if gameMapPanel then
++            local width, height = gameMapPanel:getWidth() - 10, gameMapPanel:getHeight() - 10
++            if width > 0 and height > 0 then
++                local cols, rows = 15, 11
++                local function odd(n) return math.max(3, 2 * math.floor((n - 1) / 2) + 1) end
++                if width / height < 15 / 11 then cols = odd(11 * width / height)
++                else rows = odd(15 * height / width) end
++                local dim = gameMapPanel:getVisibleDimension()
++                if dim.width ~= cols or dim.height ~= rows then
++                    gameMapPanel:setZoom(rows)
++                    gameMapPanel:setVisibleDimension({width = cols, height = rows})
++                end
++                gameMapPanel:setKeepAspectRatio(true)
++            end
++        end
+     end
+     if not g_platform.isMobile() and modules.client_options.getOption('dontStretchShrink') and not alternativeView then
+         gameMapPanel:setVisibleDimension({
+@@ -1808,6 +1828,7 @@
+     -- No celular, chat/hotkeys ficam fora da área clicável do mapa.
+     if g_platform.isMobile() and mode == 2 then mode = 1 end
+     if mode == currentViewMode then
++        if g_platform.isMobile() then addEvent(updateStretchShrink) end
+         return
+     end
+ 
+@@ -1842,7 +1863,7 @@
+             height = 11
+         })
+     elseif mode == 1 then
+-        gameMapPanel:setKeepAspectRatio(false)
++        gameMapPanel:setKeepAspectRatio(g_platform.isMobile())
+         gameMapPanel:setLimitVisibleRange(true)
+         gameMapPanel:setZoom(11)
+         gameMapPanel:setVisibleDimension({
+@@ -1875,6 +1896,12 @@
+     end
+ 
+     applyMobileMargins()
++    if g_platform.isMobile() then
++        -- O joystick comeca oculto; nao reservar uma coluna vazia inteira.
++        setSidePanelVisible(gameLeftPanel, false)
++        setSidePanelVisible(gameLeftExtraPanel, false)
++        setSidePanelVisible(gameRightExtraPanel, false)
++    end
+     currentViewMode = mode
+     applyExtendedViewLayout(mode == 2)
+     if g_platform.isMobile() then addEvent(updateStretchShrink) end
+--- a/modules/game_shortcuts/shortcuts.otui
++++ b/modules/game_shortcuts/shortcuts.otui
+@@ -1,10 +1,10 @@
+ GameAction < UIButton
+-  size: 64 64
++  size: 34 34
+   phantom: false
+ 
+   UIButton
+     id: image
+-    size: 48 48
++    size: 30 30
+     anchors.horizontalCenter: parent.horizontalCenter
+     anchors.verticalCenter: parent.verticalCenter
+     phantom: true
+@@ -22,7 +22,7 @@
+ 
+   UIWidget
+     id: shortcuts
+-    size: 175 150
++    size: 80 80
+     anchors.bottom: parent.bottom
+     anchors.right: parent.right
+     phantom: false
+@@ -39,27 +39,27 @@
+         id: attack
+         anchors.left: parent.left
+         anchors.top: parent.top
+-        margin-left: 15
++        margin-left: 4
+         margin-top: 4
+         @onSetup: self.image:setImageSource("/images/game/mobile/attack")
+       GameAction
+         id: look
+         anchors.left: parent.left
+         anchors.top: attack.bottom
+-        margin-left: 15
+-        margin-top: 14
++        margin-left: 4
++        margin-top: 8
+         @onSetup: self.image:setImageSource("/images/game/mobile/look")
+       GameAction
+         id: follow
+         anchors.right: parent.right
+         anchors.top: parent.top
+-        margin-right: 15
++        margin-right: 4
+         margin-top: 4
+         @onSetup: self.image:setImageSource("/images/game/mobile/follow")
+       GameAction
+         id: use
+         anchors.right: parent.right
+         anchors.top: follow.bottom
+-        margin-right: 15
+-        margin-top: 14
++        margin-right: 4
++        margin-top: 8
+         @onSetup: self.image:setImageSource("/images/game/mobile/use")
+\ No newline at end of file

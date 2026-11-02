@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const html = fs.readFileSync(require('node:path').join(__dirname, '../web/shell.html'), 'utf8');
 const script = html.match(/<script type="text\/javascript">([\s\S]*?)<\/script>/)[1];
-function fixture() {
+function fixture(mobile=false) {
   const nodes = new Map();
   const listeners = {};
   class Element {
@@ -19,9 +19,9 @@ function fixture() {
   const storage = new Map();
   let calls=0;
   const dispatched=[];
-  const context = {console, navigator:{}, Number, Math, JSON, FS:{}, IDBFS:{}, setTimeout:()=>1,clearTimeout:()=>{}, callMain:()=>calls++,
+  const context = {console, navigator:mobile?{userAgent:'iPhone',maxTouchPoints:5}:{}, Number, Math, JSON, FS:{}, IDBFS:{}, setTimeout:()=>1,clearTimeout:()=>{}, callMain:()=>calls++,
     Event:class {constructor(type){this.type=type;}},KeyboardEvent:class{constructor(type,opts){this.type=type;Object.assign(this,opts);}},
-    innerWidth:844,innerHeight:390,devicePixelRatio:3,
+    innerWidth:844,innerHeight:390,devicePixelRatio:3,location:{origin:'https://teste.example',pathname:'/jogar/'},
     localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)},
     document:{getElementById:id=>nodes.get(id),querySelector:()=>new Element(),body:new Element(),documentElement:{},visibilityState:'visible',addEventListener:()=>{}},
     addEventListener:(n,f)=>(listeners[n] ||= []).push(f),dispatchEvent:e=>{dispatched.push(e);}};
@@ -78,3 +78,17 @@ function fixture() {
  assert.equal(f.nodes.get('capa').style.display,'flex');
 }
 console.log('OK: zoom bounds/steps/reset, orientation, single start, menu, keyboard focus, unsupported fullscreen and pinch cancellation');
+for(const dpr of [1,2,3,4]) {
+ const f=fixture(true);f.c.devicePixelRatio=dpr;
+ assert.equal(f.c.jvPixelRatio(),0.72);
+ assert.ok(32/f.c.jvPixelRatio()>=44);
+ f.storage.set('jvZoom-em-pe','0.6');
+ f.c.innerWidth=390;f.c.innerHeight=844;
+ assert.equal(f.c.lerZoom(),1);
+ f.click('zoom-menos');assert.equal(f.c.lerZoom(),1);
+ f.c.aplicarPinca(0.1);assert.equal(f.c.lerZoom(),1);
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
+ f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),1);
+ assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v2-offscreen'));
+}
+console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');

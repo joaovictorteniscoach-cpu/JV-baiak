@@ -13,7 +13,10 @@ if __name__ == '__main__':
     match = re.search(r'void BrowserWindow::handleTouchCallback\(.*?\n}\n', source, re.S)
     if not match:
         raise SystemExit('Função de toque não encontrada')
-    header = r'''
+    helper = re.search(r'static Point jvInputPosition[\s\S]*?\n}', source)[0]
+    helper = re.sub(r'MAIN_THREAD_EM_ASM\(\{[\s\S]*?\}, clientX, clientY, point\);',
+                    'testNormalize(clientX, clientY, point);', helper)
+    header = r''' 
     #include <cassert>
     #include <cmath>
     #include <functional>
@@ -28,11 +31,13 @@ if __name__ == '__main__':
     struct Timer {bool active=false;int elapsed=0;void stop(){active=false;}void restart(){active=true;elapsed=0;}bool running(){return active;}int ticksElapsed(){return elapsed;}};
     struct Dispatcher {std::vector<std::function<void()>> q;template<class T>void addEvent(T f){q.push_back(f);}void run(){while(!q.empty()){auto f=q.front();q.erase(q.begin());f();}}}g_dispatcher;
     static bool s_pinca=false;
-    static double s_pixelRatio=1,s_touchStartX=0,s_touchStartY=0;
-    Point jvInputPosition(double x,double y,double density){return Point(int(x*s_pixelRatio/density),int(y*s_pixelRatio/density));}
+    static double s_touchStartX=0,s_touchStartY=0;
+    struct Size {int w=100,h=100; int width() const{return w;} int height() const{return h;}};
+    void testNormalize(double x,double y,double* point){point[0]=x/100;point[1]=y/100;}
+    // HELPER_REAL
     static constexpr double JV_TOQUE_TOLERANCIA=12;
     struct BrowserWindow {
-     bool m_usingTouch=false;double m_displayDensity=1;unsigned m_mouseButtonStates=0;Timer m_clickTimer;Input m_inputEvent;
+     Size m_size;bool m_usingTouch=false;double m_displayDensity=1;unsigned m_mouseButtonStates=0;Timer m_clickTimer;Input m_inputEvent;
      std::function<void(Input)> m_onInputEvent;
      void handleTouchCallback(int,const EmscriptenTouchEvent*);
     };
@@ -54,11 +59,25 @@ if __name__ == '__main__':
      events.clear();t.numTouches=1;send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);t.touches[0].targetX+=20;send(EMSCRIPTEN_EVENT_TOUCHMOVE,&t);send(EMSCRIPTEN_EVENT_TOUCHEND,&t);assert(right()==0);
      events.clear();t.numTouches=1;send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);t.numTouches=2;send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);assert(s_pinca);
      send(EMSCRIPTEN_EVENT_TOUCHCANCEL,nullptr);assert(!s_pinca);assert(w.m_mouseButtonStates==0);assert(right()==0);
-     s_pixelRatio=2;t.numTouches=1;t.touches[0]={0,10,true};events.clear();send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);assert(events.back().mousePos.x==0&&events.back().mousePos.y==20);
+     w.m_size={200,200};t.numTouches=1;t.touches[0]={0,10,true};events.clear();send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);assert(events.back().mousePos.x==0&&events.back().mousePos.y==20);
      t.touches[0].targetX=999;g_dispatcher.run();assert(events.back().mousePos.x==0);
      std::cout<<"OK: toque curto, segurar, arrastar, cancelamento 0/1 ponto, cancelamento da pinça e coordenadas escaladas\n";
     }
     '''
+    tests=tests.replace('int main(){', r'''
+    int main(){
+     for(double density:{1.0,1.25,1.5,2.0}) for(Size size: {Size{607,281},Size{281,607},Size{2726,1872}}) {
+      for(double x:{0.,5.,50.,99.,100.}) for(double y:{0.,5.,50.,99.,100.}) {
+       auto p=jvInputPosition(x,y,size,density);
+       assert(p.x==int(x/100*size.width()/density));
+       assert(p.y==int(y/100*size.height()/density));
+      }
+     }
+     assert(jvInputPosition(50,50,Size{0,0},1).x==-10000);
+     assert(jvInputPosition(50,50,Size{100,100},0).x==-10000);
+     assert(jvInputPosition(-1,50,Size{100,100},1).x==-10000);
+    ''')
+    header=header.replace('// HELPER_REAL',helper)
     with tempfile.TemporaryDirectory() as tmp:
         cpp=Path(tmp)/'toque.cpp';exe=Path(tmp)/'toque'
         cpp.write_text(header+match[0]+tests)

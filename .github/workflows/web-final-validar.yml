@@ -1,0 +1,65 @@
+name: Validar compilacao final do cliente web
+on:
+  push:
+    branches: [main]
+    paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: web-final-validar
+  cancel-in-progress: true
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Liberar espaco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h /
+      - name: Baixar base oficial do projeto e conferir hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          . web/versao-base.env
+          tag="web-base-${OTC_COMMIT:0:7}-emsdk${EMSDK_VERSION}-r${BASE_REV}"
+          echo "BASE_IMG=jvbaiak/web-base:$tag" >> "$GITHUB_ENV"
+          cd "$RUNNER_TEMP"
+          url="https://github.com/$KIT_GITHUB/releases/download/$tag"
+          curl -fsSL --retry 3 "$url/SHA256SUMS" -o SHA256SUMS
+          for p in $(awk '{print $2}' SHA256SUMS); do
+            [[ "$p" =~ ^base\.tar\.zst\.part[0-9]+$ ]]
+            curl -fsSL --retry 3 "$url/$p" -o "$p"
+          done
+          sha256sum -c SHA256SUMS
+          cat base.tar.zst.part* | zstd -dc | docker load
+          rm base.tar.zst.part*
+      - name: Compilar todos os patches finais com sprites de teste
+        shell: bash
+        run: |
+          set -euo pipefail
+          ctx="$RUNNER_TEMP/final"
+          mkdir -p "$ctx/jv/patches"
+          cp web/Dockerfile.final "$ctx/Dockerfile"
+          head -c 4096 /dev/urandom > "$ctx/Tibia.dat"
+          head -c 4096 /dev/urandom > "$ctx/Tibia.spr"
+          printf '#pragma once\n#define JV_WS_BASE "wss://teste.example.org/ws/"\n' > "$ctx/jv_web_config.h"
+          docker run --rm --entrypoint cat "$BASE_IMG" /workspace/init.lua > "$ctx/init.lua"
+          cp web/patches-final/*.patch "$ctx/jv/patches/"
+          cp web/shell.html web/otclientrc-extra.lua web/jv_autoataque.lua "$ctx/jv/"
+          DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg BASE_IMG="$BASE_IMG" -t teste-final "$ctx" 2>&1 | tee "$RUNNER_TEMP/cliente-build.log"
+          docker create --name cliente-teste teste-final
+          docker cp cliente-teste:/otclient-web "$RUNNER_TEMP/saida"
+          test -s "$RUNNER_TEMP/saida/otclient.wasm"
+          test -s "$RUNNER_TEMP/saida/otclient.html"
+          grep -q 'toque-v2-offscreen' "$RUNNER_TEMP/saida/otclient.html"
+          if grep -q 'c.width/r.width' "$RUNNER_TEMP/saida/otclient.js"; then
+            echo 'ERRO: conversao anterior ainda esta no JS'; exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: log-compilacao-cliente
+          path: ${{ runner.temp }}/cliente-build.log

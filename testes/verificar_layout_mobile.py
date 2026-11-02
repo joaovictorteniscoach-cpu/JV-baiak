@@ -7,9 +7,14 @@ fonte=Path(sys.argv[1])
 lua=LuaRuntime(unpack_returned_tuples=True)
 lua.execute((fonte/'modules/game_interface/gameinterface.lua').read_text())
 lua.execute('''
-function widget(h)
- local w={h=h or 0, margin=0,enabled=true,draggable=true}
+function widget(h,width)
+ local w={h=h or 0,w=width or 500,margin=0,enabled=true,draggable=true,dim={width=15,height=11}}
  function w:getHeight() return self.h end
+ function w:getWidth() return self.w end
+ function w:getVisibleDimension() return self.dim end
+ function w:setVisibleDimension(d) self.dim=d end
+ function w:setZoom(n) self.zoom=n end
+ function w:setKeepAspectRatio(n) self.keep=n end
  function w:getMarginBottom() return self.margin end
  function w:setMarginBottom(n) self.margin=n end
  function w:setEnabled(n) self.enabled=n end
@@ -24,7 +29,11 @@ for _,height in ipairs({300,390,600,844}) do
  for _,count in ipairs({0,1,2,3}) do
   bars=count
   gameRootPanel=widget(height);gameBottomPanel=widget();gameBottomStatsBarPanel=widget(0);bottomSplitter=widget()
+  gameMapPanel=widget(height-130,300)
   updateStretchShrink()
+  assert(gameMapPanel.keep)
+  assert(gameMapPanel.dim.width>=3 and gameMapPanel.dim.width<=15 and gameMapPanel.dim.width%2==1)
+  assert(gameMapPanel.dim.height>=3 and gameMapPanel.dim.height<=11 and gameMapPanel.dim.height%2==1)
   assert(not gameBottomPanel.draggable)
   assert(not bottomSplitter.enabled)
   assert(bottomSplitter.margin==math.min(80+35*count,math.max(64,height-160)))
@@ -35,6 +44,7 @@ for _,height in ipairs({300,390,600,844}) do
 end
 assert(optionCalls==0)
 -- Um modo estendido salvo também é convertido em acoplado.
+addEvent=function(fn) fn() end
 currentViewMode=1
 setupViewMode(2)
 assert(currentViewMode==1)
@@ -42,6 +52,17 @@ assert(currentViewMode==1)
 mobile=false
 updateStretchShrink()
 assert(optionCalls==1)
+-- Mais alto ou mais largo: conserva quadrados sem impor 15x11 esticado.
+mobile=true
+for _,size in ipairs({{150,650},{500,220},{800,250},{300,600}}) do
+ gameMapPanel=widget(size[2],size[1])
+ updateStretchShrink()
+ local d=gameMapPanel.dim
+ assert(gameMapPanel.keep and d.width%2==1 and d.height%2==1)
+ local before=gameMapPanel.dim
+ updateStretchShrink()
+ assert(before==gameMapPanel.dim)
+end
 ''')
 # Syntax-check the actual console module without evaluating unrelated initializers.
 lua.compile((fonte/'modules/game_console/console.lua').read_text())
