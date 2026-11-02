@@ -213,7 +213,7 @@ if g_platform.isMobile() then
     end
     function JVLogin.ajustar()
         if g_game.isOnline() then return end
-        if math.abs(g_app.getHUDScale() - 1) > 0.001 then g_app.setHUDScale(1) end
+        if math.abs(g_window.getDisplayDensity() - 1) > 0.001 then g_app.setHUDScale(1) end
         local win = rootWidget:recursiveGetChildById('enterGame')
         if not win or not win:isVisible() then return end
         local width, height = rootWidget:getWidth(), rootWidget:getHeight()

@@ -39,7 +39,8 @@ AnchorLeft=1;AnchorRight=2;AnchorTop=3;AnchorBottom=4
 g_platform={isMobile=function()return true end}
 online=false;hud=1.5;resizes=0
 g_game={isOnline=function()return online end}
-g_app={getHUDScale=function()return hud end,setHUDScale=function(n)hud=n;resizes=resizes+1 end}
+g_window={getDisplayDensity=function()return hud end}
+g_app={setHUDScale=function(n)hud=n;resizes=resizes+1 end}
 cycleEvent=function(fn)tick=fn end
 connect=function()end
 addEvent=function(fn)fn()end
