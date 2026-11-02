@@ -19,13 +19,16 @@ cmp -s "$SRC/web/versao-base.env" "$BASE/web/versao-base.env" || falha 'A base d
 for patch in 0001-celular-tela-e-toque.patch 0002-portugues-padrao.patch 0003-porta-do-jogo.patch 0004-teclado-iphone.patch 0005-toque-cancelado-nao-clica.patch; do
   cmp -s "$SRC/web/patches-final/$patch" "$BASE/web/patches-final/$patch" || falha "Patch instalado diferente: $patch. Nada alterado."
 done
-NOVOS=(patches-final/0006-chat-mobile-acoplado.patch patches-final/0007-coordenadas-canvas-real.patch patches-final/0008-offscreen-e-proporcao.patch shell.html)
+NOVOS=(patches-final/0006-chat-mobile-acoplado.patch patches-final/0007-coordenadas-canvas-real.patch patches-final/0008-offscreen-e-proporcao.patch shell.html otclientrc-extra.lua)
 for patch in "${NOVOS[@]}"; do
   [ -s "$SRC/web/$patch" ] || falha "Falta patch novo: $patch"
   if [ -f "$BASE/web/$patch" ]; then
     if [ "$patch" = shell.html ]; then
       atual=$(sha256sum "$BASE/web/$patch" | awk '{print $1}')
       [ "$atual" = 8d58e747eb3923db7a53e7a377f291d706b1cca1889603260f6f1f10b23bf1a4 ] || cmp -s "$SRC/web/$patch" "$BASE/web/$patch" || falha 'A pagina instalada mudou. Revisao manual necessaria.'
+    elif [ "$patch" = otclientrc-extra.lua ]; then
+      atual=$(sha256sum "$BASE/web/$patch" | awk '{print $1}')
+      [ "$atual" = dd5a907f9953a366ddb480f38eb1fdfa5d228c31e67f29cf6066dda0c62ee017 ] || cmp -s "$SRC/web/$patch" "$BASE/web/$patch" || falha 'Os ajustes Lua instalados mudaram. Revisao manual necessaria.'
     else
       cmp -s "$SRC/web/$patch" "$BASE/web/$patch" || falha "Patch novo ja existe com outra versao: $patch"
     fi

@@ -13,8 +13,8 @@ copia os valores antes de enfileirar o evento, sem reter o ponteiro do navegador
 O mapa mantém a proporção e ajusta quantas linhas/colunas mostra, com limites de
 15 x 11 e dimensões ímpares. O chat permanece acoplado; a coluna vazia da esquerda
 fica oculta. A escala inicial mobile independe do DPR, com slots de 32 px ocupando
-44,4 pontos CSS e os quatro atalhos ocupando 47,2 pontos CSS. O zoom mobile não
-reduz abaixo dessa escala. Esses tamanhos não comprovam que todos os botões
+44,4 pontos CSS e os quatro atalhos ocupando 47,2 pontos CSS, em uma faixa de 42 pixels logicos. O zoom mobile não
+reduz abaixo dessa escala. Equipamento, minimapa, combate e opcoes sao paginas laterais exclusivas, acessiveis pelo menu HTML. Os botoes novos de combate/minimapa e os icones de opcoes usam pelo menos 32 pixels logicos (44,4 pontos CSS); controles pequenos do equipamento ficam na pagina Combate. Esses tamanhos não comprovam que todos os botões
 auxiliares das janelas antigas já tenham 44 pontos: ainda precisam de auditoria
 visual no aparelho. Os controles HTML têm área mínima de 44 pontos.
 

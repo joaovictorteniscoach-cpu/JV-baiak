@@ -32,7 +32,7 @@
          return Math.min(window.devicePixelRatio || 1, 2);
      });
 -    if (!(pr >= 0.75)) pr = 0.75;
-+    if (!(pr >= 0.5)) pr = 0.5;
++    if (!(pr >= 0.25)) pr = 0.25;
      if (pr > 3.5) pr = 3.5;
      return pr;
  }
@@ -110,8 +110,8 @@
 +                else rows = odd(15 * height / width) end
 +                local dim = gameMapPanel:getVisibleDimension()
 +                if dim.width ~= cols or dim.height ~= rows then
-+                    gameMapPanel:setZoom(rows)
 +                    gameMapPanel:setVisibleDimension({width = cols, height = rows})
++                    gameMapPanel:setZoom(rows)
 +                end
 +                gameMapPanel:setKeepAspectRatio(true)
 +            end
@@ -169,7 +169,7 @@
    UIWidget
      id: shortcuts
 -    size: 175 150
-+    size: 80 80
++    size: 176 42
      anchors.bottom: parent.bottom
      anchors.right: parent.right
      phantom: false
@@ -183,28 +183,32 @@
          @onSetup: self.image:setImageSource("/images/game/mobile/attack")
        GameAction
          id: look
-         anchors.left: parent.left
-         anchors.top: attack.bottom
+-        anchors.left: parent.left
+-        anchors.top: attack.bottom
 -        margin-left: 15
 -        margin-top: 14
-+        margin-left: 4
-+        margin-top: 8
++        anchors.top: parent.top
++        anchors.left: follow.right
++        margin-left: 6
++        margin-top: 4
          @onSetup: self.image:setImageSource("/images/game/mobile/look")
        GameAction
          id: follow
-         anchors.right: parent.right
+-        anchors.right: parent.right
++        anchors.left: attack.right
          anchors.top: parent.top
 -        margin-right: 15
-+        margin-right: 4
++        margin-left: 6
          margin-top: 4
          @onSetup: self.image:setImageSource("/images/game/mobile/follow")
        GameAction
          id: use
          anchors.right: parent.right
-         anchors.top: follow.bottom
+-        anchors.top: follow.bottom
 -        margin-right: 15
 -        margin-top: 14
++        anchors.top: parent.top
 +        margin-right: 4
-+        margin-top: 8
++        margin-top: 4
          @onSetup: self.image:setImageSource("/images/game/mobile/use")
 \ No newline at end of file

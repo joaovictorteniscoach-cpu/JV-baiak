@@ -16,7 +16,7 @@ if __name__ == '__main__':
     helper = re.search(r'static Point jvInputPosition[\s\S]*?\n}', source)[0]
     helper = re.sub(r'MAIN_THREAD_EM_ASM\(\{[\s\S]*?\}, clientX, clientY, point\);',
                     'testNormalize(clientX, clientY, point);', helper)
-    header = r''' 
+    header = r'''
     #include <cassert>
     #include <cmath>
     #include <functional>

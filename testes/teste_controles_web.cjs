@@ -87,8 +87,18 @@ for(const dpr of [1,2,3,4]) {
  assert.equal(f.c.lerZoom(),1);
  f.click('zoom-menos');assert.equal(f.c.lerZoom(),1);
  f.c.aplicarPinca(0.1);assert.equal(f.c.lerZoom(),1);
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),1);
+ f.c.innerWidth=844;f.c.innerHeight=390;
  f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
  f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),1);
  assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v2-offscreen'));
 }
 console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
+
+{
+ const f=fixture(true);
+ f.click('jv-equipamento');
+ assert.deepEqual(f.dispatched.map(e=>[e.type,e.code]),[['keydown','ControlLeft'],['keydown','ShiftLeft'],['keydown','F8'],['keyup','F8'],['keyup','ShiftLeft'],['keyup','ControlLeft']]);
+ assert.equal(f.nodes.get('jv-equipamento').hidden,false);
+ assert.equal(fixture().nodes.get('jv-equipamento').hidden,true);
+}
