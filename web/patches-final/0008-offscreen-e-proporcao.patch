@@ -105,7 +105,7 @@
 +            local width, height = gameMapPanel:getWidth() - 10, gameMapPanel:getHeight() - 10
 +            if width > 0 and height > 0 then
 +                local cols, rows = 15, 11
-+                local function odd(n) return math.max(3, 2 * math.floor((n - 1) / 2) + 1) end
++                local function odd(n) return math.max(3, 2 * math.floor(n / 2) + 1) end
 +                if width / height < 15 / 11 then cols = odd(11 * width / height)
 +                else rows = odd(15 * height / width) end
 +                local dim = gameMapPanel:getVisibleDimension()

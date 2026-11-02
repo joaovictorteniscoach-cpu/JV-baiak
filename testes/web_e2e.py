@@ -118,6 +118,13 @@ def main():
             pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
             time.sleep(2)
             foto("7b-sem-janela.png")
+            # Paginas laterais: navega pelos botoes reais do menu de toque.
+            for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
+                                    ('jv-opcoes', '7e-opcoes.png'), ('jv-equipamento', '7f-equipamento.png')]:
+                pg.tap('#menu-botao')
+                pg.tap('#' + controle)
+                time.sleep(1)
+                foto(nome)
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)
             foto("8-depois-do-toque.png")
@@ -126,10 +133,9 @@ def main():
             foto("8a-menu.png")
             pg.tap("#abrir-teclado")
             time.sleep(1)
-            pg.keyboard.type("oi", delay=80)
-            pg.keyboard.press("Enter")
-            time.sleep(2)
-            foto("8b-falou-oi.png")
+            foto("8b-teclado-aberto.png")
+            pg.tap('#fechar-teclado')
+            time.sleep(1)
             # segurar o dedo no proprio personagem: menu com "Set Outfit" (trocar roupa)
             cdp = ctx.new_cdp_session(pg)
             ponto = [{"x": 400, "y": 150}]

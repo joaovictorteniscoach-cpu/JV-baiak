@@ -36,7 +36,7 @@ em falha da compilação, tenta restaurá-los. A instalação esperada é `/opt/
 
 Espere `ATUALIZACAO CONCLUIDA`. A versão pública pode ser conferida em
 `https://bayakjh.duckdns.org/jogar/versao-cliente.txt`: deve mostrar
-`toque-v2-offscreen`. Feche e reabra o jogo antes de testar.
+`toque-v2-offscreen`. Feche e reabra o jogo antes de testar. No menu ☰, use Equipamento, Minimapa, Combate e Opções do jogo para alternar a coluna lateral. Os atalhos Atacar/Seguir/Olhar/Usar ficam em uma linha reservada abaixo dela.
 
 ## Validação
 

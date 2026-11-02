@@ -26,6 +26,7 @@ function w(id, width, height, class, parent)
  function x:isOn()return self.on end
  function x:setOn(v)self.on=v end
  function x:setClipping(v)self.clipping=v end
+ function x:setDraggable(v)self.draggable=v end
  function x:getLayout()return {setCellSize=function(_,size)self.cell=size end} end
  if parent then x.parent=parent;table.insert(parent.children,x);parent[id]=x end
  return x

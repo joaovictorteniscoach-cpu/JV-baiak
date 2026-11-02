@@ -153,6 +153,8 @@ if g_platform.isMobile() then
         local escolhido = main:getChildById(pagina)
         if not escolhido then return end
         JVToque.pagina = pagina
+        escolhido:show()
+        escolhido:setDraggable(false)
         if pagina == 'maininventorypanel' then prepararEquipamento(escolhido)
         elseif pagina == 'mainmappanel' then prepararMapa(escolhido)
         elseif pagina == 'mainoptionspanel' then prepararOpcoes(escolhido) end
@@ -165,11 +167,10 @@ if g_platform.isMobile() then
     local function prepararCombate()
         local main = modules.game_interface.getMainRightPanel()
         if main:getChildById('jvCombate') then return end
-        local panel = g_ui.createWidget('UIWidget', main)
-        panel:setId('jvCombate'); panel:setHeight(184); panel.jvAltura = 184
-        panel:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-        panel:addAnchor(AnchorRight, 'parent', AnchorRight)
-        panel:addAnchor(AnchorTop, 'parent', AnchorTop)
+        local panel = g_ui.createWidget('PhantomMiniWindow', main)
+        panel:setId('jvCombate'); panel:setHeight(184); panel.jvAltura = 184; panel.panelHeight = 184
+        -- O contenedor usa verticalBox; ele posiciona a janela lateral.
+        panel:setWidth(176)
         local inv = modules.game_inventory
         local acoes = {
             {'Ataque', function() inv.selectCombat('attack') end},
