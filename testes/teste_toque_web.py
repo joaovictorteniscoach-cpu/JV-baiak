@@ -22,13 +22,14 @@ if __name__ == '__main__':
     struct Point { int x=0,y=0; Point()=default; Point(int x,int y):x(x),y(y){} Point operator-(const Point& b)const{return Point(x-b.x,y-b.y);} };
     namespace Fw { enum {NoInputEvent,MouseMoveInputEvent,MousePressInputEvent,MouseReleaseInputEvent}; enum {MouseLeftButton,MouseRightButton}; }
     enum {EMSCRIPTEN_EVENT_TOUCHSTART,EMSCRIPTEN_EVENT_TOUCHMOVE,EMSCRIPTEN_EVENT_TOUCHEND,EMSCRIPTEN_EVENT_TOUCHCANCEL};
-    struct EmscriptenTouchPoint {double targetX=0,targetY=0; bool isChanged=false;};
+    struct EmscriptenTouchPoint {double targetX=0,targetY=0; bool isChanged=false; double clientX=0,clientY=0; EmscriptenTouchPoint()=default; EmscriptenTouchPoint(double x,double y,bool changed):targetX(x),targetY(y),isChanged(changed),clientX(x),clientY(y){} };
     struct EmscriptenTouchEvent {int numTouches=0; EmscriptenTouchPoint touches[3];};
     struct Input {int type=0,mouseButton=0;Point mousePos,mouseMoved;void reset(){*this=Input();}};
     struct Timer {bool active=false;int elapsed=0;void stop(){active=false;}void restart(){active=true;elapsed=0;}bool running(){return active;}int ticksElapsed(){return elapsed;}};
     struct Dispatcher {std::vector<std::function<void()>> q;template<class T>void addEvent(T f){q.push_back(f);}void run(){while(!q.empty()){auto f=q.front();q.erase(q.begin());f();}}}g_dispatcher;
     static bool s_pinca=false;
     static double s_pixelRatio=1,s_touchStartX=0,s_touchStartY=0;
+    Point jvInputPosition(double x,double y,double density){return Point(int(x*s_pixelRatio/density),int(y*s_pixelRatio/density));}
     static constexpr double JV_TOQUE_TOLERANCIA=12;
     struct BrowserWindow {
      bool m_usingTouch=false;double m_displayDensity=1;unsigned m_mouseButtonStates=0;Timer m_clickTimer;Input m_inputEvent;

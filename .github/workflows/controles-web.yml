@@ -1,10 +1,10 @@
 name: Controles web (sem conta ou rede de jogo)
 on:
   pull_request:
-    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'web/patches-final/**', '.github/workflows/controles-web.yml']
+    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'web/patches-final/**', 'web/instalar-correcao-iphone.sh', '.github/workflows/controles-web.yml']
   push:
-    branches: [main, codex/jogabilidade-mobile]
-    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'web/patches-final/**', '.github/workflows/controles-web.yml']
+    branches: [main, codex/jogabilidade-mobile, codex/iphone-layout-toque]
+    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'web/patches-final/**', 'web/instalar-correcao-iphone.sh', '.github/workflows/controles-web.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +18,7 @@ jobs:
         with:
           node-version: '22'
       - run: node testes/teste_controles_web.cjs
+      - run: bash -n web/instalar-correcao-iphone.sh
       - name: Conferir patches e testar tradução de toque
         shell: bash
         run: |
@@ -25,7 +26,7 @@ jobs:
           fonte="$RUNNER_TEMP/otclient-toque"
           mkdir -p "$fonte"
           git -C "$fonte" init -q
-          for arquivo in src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua; do
+          for arquivo in src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua modules/game_interface/gameinterface.lua modules/game_interface/gameinterface.otui modules/game_console/console.lua; do
             mkdir -p "$fonte/$(dirname "$arquivo")"
             curl --fail --silent --show-error --retry 2 "https://raw.githubusercontent.com/opentibiabr/otclient/1fcea26f23ef1d1857103ef446c0190955523ca8/$arquivo" -o "$fonte/$arquivo"
           done
@@ -34,3 +35,6 @@ jobs:
             git -C "$fonte" apply "$patch"
           done
           python testes/teste_toque_web.py "$fonte"
+          node testes/teste_coordenadas_canvas.cjs "$fonte"
+          python -m pip install lupa==2.6
+          python testes/verificar_layout_mobile.py "$fonte"

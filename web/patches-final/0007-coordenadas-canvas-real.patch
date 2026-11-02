@@ -1,0 +1,54 @@
+--- a/src/framework/platform/browserwindow.cpp
++++ b/src/framework/platform/browserwindow.cpp
+@@ -35,6 +35,18 @@
+ // JV Baiak: o canvas usa os pixels reais da tela (ate 2x) para ficar nitido no
+ // celular; a interface continua no mesmo tamanho (a escala vem do HUD Scale).
+ static double s_pixelRatio = 1.0;
++static Point jvInputPosition(double clientX, double clientY, double density) {
++    double point[2] = {0, 0};
++    MAIN_THREAD_EM_ASM({
++        const c = document.getElementById('canvas');
++        const r = c.getBoundingClientRect();
++        const x = r.width > 0 ? ($0 - r.left) * c.width / r.width : -10000;
++        const y = r.height > 0 ? ($1 - r.top) * c.height / r.height : -10000;
++        HEAPF64[$2 >> 3] = x;
++        HEAPF64[($2 >> 3) + 1] = y;
++    }, clientX, clientY, point);
++    return Point(int(point[0] / density), int(point[1] / density));
++}
+ static double jvPixelRatio() {
+     // a pagina pode definir window.jvPixelRatio() (zoom da interface escolhido pelo jogador)
+     double pr = MAIN_THREAD_EM_ASM_DOUBLE({
+@@ -347,10 +359,12 @@
+ }
+ 
+ void BrowserWindow::handleMouseCallback(int eventType, const EmscriptenMouseEvent* mouseEvent) {
+-    if (!m_usingTouch && mouseEvent->screenX != 0 && mouseEvent->screenY != 0 && mouseEvent->clientX != 0 && mouseEvent->clientY != 0 && mouseEvent->targetX != 0 && mouseEvent->targetY != 0) {
++    if (!m_usingTouch) {
+         int button = mouseEvent->button;
+-        g_dispatcher.addEvent([this, eventType, button] {
++        const Point pos = jvInputPosition(mouseEvent->clientX, mouseEvent->clientY, m_displayDensity);
++        g_dispatcher.addEvent([this, eventType, button, pos] {
+             m_inputEvent.reset();
++            m_inputEvent.mousePos = pos;
+             m_inputEvent.type = (eventType == EMSCRIPTEN_EVENT_MOUSEDOWN) ? Fw::MousePressInputEvent : Fw::MouseReleaseInputEvent;
+             switch (button) {
+                 case 0:
+@@ -406,7 +420,7 @@
+ void BrowserWindow::handleMouseMotionCallback(const EmscriptenMouseEvent* mouseEvent) {
+     m_inputEvent.reset();
+     m_inputEvent.type = Fw::MouseMoveInputEvent;
+-    Point newMousePos(mouseEvent->clientX * s_pixelRatio / m_displayDensity, mouseEvent->clientY * s_pixelRatio / m_displayDensity);
++    Point newMousePos = jvInputPosition(mouseEvent->clientX, mouseEvent->clientY, m_displayDensity);
+     m_inputEvent.mouseMoved = newMousePos - m_inputEvent.mousePos;
+     m_inputEvent.mousePos = newMousePos;
+     if (m_onInputEvent)
+@@ -461,7 +475,7 @@
+     }
+     const EmscriptenTouchPoint& toque = event->touches[0];
+     const double cssX = toque.targetX, cssY = toque.targetY;
+-    const Point pos(int(cssX * s_pixelRatio / m_displayDensity), int(cssY * s_pixelRatio / m_displayDensity));
++    const Point pos = jvInputPosition(toque.clientX, toque.clientY, m_displayDensity);
+ 
+     g_dispatcher.addEvent([this, pos] {
+         m_inputEvent.reset();
