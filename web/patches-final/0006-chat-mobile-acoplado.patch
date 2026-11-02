@@ -1,0 +1,65 @@
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -500,7 +500,18 @@
+ end
+ 
+ function updateStretchShrink()
+-    if modules.client_options.getOption('dontStretchShrink') and not alternativeView then
++    if g_platform.isMobile() and bottomSplitter and gameRootPanel then
++        local bars = 0
++        if modules.game_actionbar and modules.game_actionbar.getActiveBottomBars then
++            bars = modules.game_actionbar.getActiveBottomBars()
++        end
++        local stats = gameBottomStatsBarPanel and gameBottomStatsBarPanel:getHeight() or 0
++        local desired = math.min(80 + 35 * bars + stats, math.max(64, gameRootPanel:getHeight() - 160))
++        if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
++        bottomSplitter:setEnabled(false)
++        gameBottomPanel:setDraggable(false)
++    end
++    if not g_platform.isMobile() and modules.client_options.getOption('dontStretchShrink') and not alternativeView then
+         gameMapPanel:setVisibleDimension({
+             width = 15,
+             height = 11
+@@ -1794,6 +1805,8 @@
+ end
+ 
+ function setupViewMode(mode)
++    -- No celular, chat/hotkeys ficam fora da área clicável do mapa.
++    if g_platform.isMobile() and mode == 2 then mode = 1 end
+     if mode == currentViewMode then
+         return
+     end
+@@ -1864,6 +1877,7 @@
+     applyMobileMargins()
+     currentViewMode = mode
+     applyExtendedViewLayout(mode == 2)
++    if g_platform.isMobile() then addEvent(updateStretchShrink) end
+ end
+ 
+ function limitZoom()
+--- a/modules/game_console/console.lua
++++ b/modules/game_console/console.lua
+@@ -2438,11 +2438,11 @@
+         gameBottomPanel:show(true)
+         destroyButtonChat()
+     end
+-    gameBottomPanel:setDraggable(not bool)
++    gameBottomPanel:setDraggable(not g_platform.isMobile() and not bool)
+ end
+ 
+ function extendedViewDraggable(bool)
+-    gameBottomPanel:setDraggable(not bool)
++    gameBottomPanel:setDraggable(not g_platform.isMobile() and not bool)
+ end
+ 
+ function extendedViewCanSee(bool)
+--- a/modules/game_interface/gameinterface.otui
++++ b/modules/game_interface/gameinterface.otui
+@@ -301,6 +301,7 @@
+       end
+     @onGeometryChange: |
+       function(self)
++        if g_platform.isMobile() then return end -- altura controlada por updateStretchShrink
+         local actionBars = modules.game_actionbar.getActiveBottomBars()
+         local maxHeight = 118 + (35 * actionBars)
+         local parentHeight = self:getParent():getHeight()
