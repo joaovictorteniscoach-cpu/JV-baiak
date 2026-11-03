@@ -23,11 +23,13 @@ if __name__ == '__main__':
     #include <vector>
     #include <iostream>
     struct Point { int x=0,y=0; Point()=default; Point(int x,int y):x(x),y(y){} Point operator-(const Point& b)const{return Point(x-b.x,y-b.y);} };
-    namespace Fw { enum {NoInputEvent,MouseMoveInputEvent,MousePressInputEvent,MouseReleaseInputEvent}; enum {MouseLeftButton,MouseRightButton}; }
+    namespace Fw { enum {NoInputEvent,MouseMoveInputEvent,MousePressInputEvent,MouseReleaseInputEvent,MouseWheelInputEvent}; enum {MouseLeftButton,MouseRightButton,MouseMidButton}; enum {MouseWheelDown,MouseWheelUp}; }
     enum {EMSCRIPTEN_EVENT_TOUCHSTART,EMSCRIPTEN_EVENT_TOUCHMOVE,EMSCRIPTEN_EVENT_TOUCHEND,EMSCRIPTEN_EVENT_TOUCHCANCEL};
     struct EmscriptenTouchPoint {double targetX=0,targetY=0; bool isChanged=false; double clientX=0,clientY=0; EmscriptenTouchPoint()=default; EmscriptenTouchPoint(double x,double y,bool changed):targetX(x),targetY(y),isChanged(changed),clientX(x),clientY(y){} };
     struct EmscriptenTouchEvent {int numTouches=0; EmscriptenTouchPoint touches[3];};
-    struct Input {int type=0,mouseButton=0;Point mousePos,mouseMoved;void reset(){*this=Input();}};
+    struct EmscriptenMouseEvent {double clientX=0,clientY=0;};
+    struct EmscriptenWheelEvent {EmscriptenMouseEvent mouse; double deltaY=0;};
+    struct Input {int type=0,mouseButton=0,wheelDirection=0;Point mousePos,mouseMoved;void reset(){*this=Input();}};
     struct Timer {bool active=false;int elapsed=0;void stop(){active=false;}void restart(){active=true;elapsed=0;}bool running(){return active;}int ticksElapsed(){return elapsed;}};
     struct Dispatcher {std::vector<std::function<void()>> q;template<class T>void addEvent(T f){q.push_back(f);}void run(){while(!q.empty()){auto f=q.front();q.erase(q.begin());f();}}}g_dispatcher;
     static bool s_pinca=false;
@@ -40,6 +42,7 @@ if __name__ == '__main__':
      Size m_size;bool m_usingTouch=false;double m_displayDensity=1;unsigned m_mouseButtonStates=0;Timer m_clickTimer;Input m_inputEvent;
      std::function<void(Input)> m_onInputEvent;
      void handleTouchCallback(int,const EmscriptenTouchEvent*);
+     void handleMouseWheelCallback(const EmscriptenWheelEvent*);
     };
     '''
     tests = r'''
@@ -64,7 +67,15 @@ if __name__ == '__main__':
      send(EMSCRIPTEN_EVENT_TOUCHCANCEL,nullptr);assert(!s_pinca);assert(w.m_mouseButtonStates==0);assert(right()==0);
      w.m_size={200,200};t.numTouches=1;t.touches[0]={0,10,true};events.clear();send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);assert(events.back().mousePos.x==0&&events.back().mousePos.y==20);
      t.touches[0].targetX=999;g_dispatcher.run();assert(events.back().mousePos.x==0);
-     std::cout<<"OK: toque curto, segurar, arrastar, cancelamento 0/1 ponto, cancelamento da pinça e coordenadas escaladas\n";
+     // Regressao: roda na borda aceita zero; o evento pode ser reutilizado
+     // antes de o dispatcher executar e a posicao tem que continuar correta.
+     events.clear();EmscriptenWheelEvent wheel;wheel.mouse={0,10};wheel.deltaY=1;
+     w.handleMouseWheelCallback(&wheel);wheel.mouse={90,90};wheel.deltaY=-1;g_dispatcher.run();
+     assert(events.size()==1);assert(events[0].mousePos.x==0&&events[0].mousePos.y==20);
+     assert(events[0].type==Fw::MouseWheelInputEvent&&events[0].wheelDirection==Fw::MouseWheelDown);
+     w.handleMouseWheelCallback(&wheel);g_dispatcher.run();assert(events.back().wheelDirection==Fw::MouseWheelUp);
+     auto count=events.size();wheel.deltaY=0;w.handleMouseWheelCallback(&wheel);w.handleMouseWheelCallback(nullptr);g_dispatcher.run();assert(count==events.size());
+     std::cout<<"OK: scroll com coordenadas capturadas, toque curto, segurar, arrastar, cancelamento 0/1 ponto, cancelamento da pinça e coordenadas escaladas\n";
     }
     '''
     tests=tests.replace('int main(){', r'''
@@ -83,6 +94,7 @@ if __name__ == '__main__':
     header=header.replace('// HELPER_REAL',helper)
     with tempfile.TemporaryDirectory() as tmp:
         cpp=Path(tmp)/'toque.cpp';exe=Path(tmp)/'toque'
-        cpp.write_text(header+match[0]+tests)
+        wheel = re.search(r'void BrowserWindow::handleMouseWheelCallback\(.*?\n}\n', source, re.S)
+        cpp.write_text(header+match[0]+wheel[0]+tests)
         subprocess.run(['g++','-std=c++17','-Wall','-Wextra','-Werror',str(cpp),'-o',str(exe)],check=True)
         subprocess.run([str(exe)],check=True)

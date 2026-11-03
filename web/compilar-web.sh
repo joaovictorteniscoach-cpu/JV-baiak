@@ -155,7 +155,7 @@ cp "$WEB"/patches-final/*.patch "$CTX/jv/patches/" 2>/dev/null || true
 NOME_HTML="${NOME//&/&amp;}"; NOME_HTML="${NOME_HTML//</&lt;}"; NOME_HTML="${NOME_HTML//>/&gt;}"; NOME_HTML="${NOME_HTML//\"/&quot;}"
 pagina="$(cat "$WEB/shell.html")"
 printf '%s\n' "${pagina//__JV_NOME__/$NOME_HTML}" > "$CTX/jv/shell.html"
-cp "$WEB/otclientrc-extra.lua" "$CTX/jv/"
+cp "$WEB/otclientrc-extra.lua" "$WEB/jv_interface.lua" "$WEB/jv_autoloot.lua" "$CTX/jv/"
 cp "$WEB/jv_autoataque.lua" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login.png" ] && cp "$WEB/visual/fundo-login.png" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login-em-pe.png" ] && cp "$WEB/visual/fundo-login-em-pe.png" "$CTX/jv/"

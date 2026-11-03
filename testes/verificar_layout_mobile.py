@@ -19,6 +19,15 @@ function widget(h,width)
  function w:setMarginBottom(n) self.margin=n end
  function w:setEnabled(n) self.enabled=n end
  function w:setDraggable(n) self.draggable=n end
+ function w:setVisible(n) self.visible=n end
+ function w:hide() self.visible=false end
+ function w:setHeight(n) self.h=n end
+ function w:breakAnchors()end
+ function w:removeAnchor()end
+ function w:setLimitVisibleDimension()end
+ function w:setLimitVisibleRange(v)self.limited=v end
+ function w:addAnchor()end
+ function w:setMarginRight(n)self.right=n end
  return w
 end
 mobile=true
@@ -31,13 +40,15 @@ for _,height in ipairs({300,390,600,844}) do
   gameRootPanel=widget(height,height>500 and 278 or 602);gameBottomPanel=widget();gameBottomStatsBarPanel=widget(0);bottomSplitter=widget()
   gameMapPanel=widget(height-130,300)
   updateStretchShrink()
-  assert(gameMapPanel.keep)
-  assert(gameMapPanel.dim.width>=3 and gameMapPanel.dim.width<=15 and gameMapPanel.dim.width%2==1)
-  assert(gameMapPanel.dim.height>=3 and gameMapPanel.dim.height<=11 and gameMapPanel.dim.height%2==1)
+  assert(gameMapPanel.keep==false and gameMapPanel.limited==true)
+  assert(gameMapPanel.dim.width>=3 and gameMapPanel.dim.width<=17 and gameMapPanel.dim.width%2==1)
+  assert(gameMapPanel.dim.height>=3 and gameMapPanel.dim.height<=13 and gameMapPanel.dim.height%2==1)
   assert(not gameBottomPanel.draggable)
   assert(not bottomSplitter.enabled)
-  assert(bottomSplitter.margin==math.min(80+35*count+(height>500 and 42 or 0),math.max(64,height-160)))
-  assert(height-bottomSplitter.margin>=160)
+  assert(bottomSplitter.margin==math.max(42,35*count+2))
+  assert(bottomSplitter.margin>=35*count) -- varias barras tambem cabem
+  if height>=300 then assert(height-bottomSplitter.margin>=100) end
+  assert(gameBottomPanel.visible==false)
   local before=bottomSplitter.margin
   updateStretchShrink();assert(before==bottomSplitter.margin)
  end
@@ -58,7 +69,7 @@ for _,size in ipairs({{150,650},{500,220},{800,250},{300,600}}) do
  gameMapPanel=widget(size[2],size[1])
  updateStretchShrink()
  local d=gameMapPanel.dim
- assert(gameMapPanel.keep and d.width%2==1 and d.height%2==1)
+ assert(gameMapPanel.keep==false and d.width%2==1 and d.height%2==1)
  local before=gameMapPanel.dim
  updateStretchShrink()
  assert(before==gameMapPanel.dim)

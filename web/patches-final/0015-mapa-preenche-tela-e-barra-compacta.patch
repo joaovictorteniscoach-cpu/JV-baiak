@@ -1,0 +1,65 @@
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -509,30 +509,48 @@
+             bars = modules.game_actionbar.getActiveBottomBars()
+         end
+         local stats = gameBottomStatsBarPanel and gameBottomStatsBarPanel:getHeight() or 0
+-        -- A faixa de acoes tem espaco proprio tambem em paisagem.
+-        local footer = 42
+-        gameBottomPanel:setMarginBottom(footer)
+-        local chat = gameRootPanel:getHeight() < 400 and 60 or 80
+-        local desired = math.min(chat + 35 * bars + stats + footer,
+-            math.max(44 + 35 * bars + stats + footer, gameRootPanel:getHeight() - 160))
+-        if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
++        -- So uma faixa de atalhos; chat e equipamento flutuam sobre o mapa.
++        local footer = math.max(42, 35 * bars + 2)
++        local function dock(widget, margin)
++            if not widget or widget.jvDockCompacto then return end
++            widget.jvDockCompacto = true
++            widget:breakAnchors()
++            widget:addAnchor(AnchorLeft, 'parent', AnchorLeft)
++            widget:addAnchor(AnchorRight, 'parent', AnchorRight)
++            widget:addAnchor(AnchorBottom, 'parent', AnchorBottom)
++            widget:setMarginRight(margin or 0)
++        end
++        dock(gameBottomActionPanel, 176)
++        dock(gameBottomStatsBarPanel)
++        if not JVToque or not JVToque.pronto then gameBottomPanel:hide() end
++        if gameBottomStatsBarPanel then gameBottomStatsBarPanel:setMarginBottom(footer) end
++        if gameBottomLockPanel then gameBottomLockPanel:hide() end
++        bottomSplitter:setHeight(0)
++        bottomSplitter:setMarginBottom(footer + stats)
+         bottomSplitter:setEnabled(false)
+         gameBottomPanel:setDraggable(false)
+-        -- Preserva quadrados e personagens em retrato e paisagem. A janela
+-        -- mostra menos colunas quando estreita, sem esticar 15x11 pela tela.
++        if gameTopPanel then gameTopPanel:setHeight(0);gameTopPanel:hide() end
+         if gameMapPanel then
++            if not gameMapPanel.jvTelaCompleta then
++                gameMapPanel.jvTelaCompleta=true
++                gameMapPanel:removeAnchor(AnchorTop)
++                gameMapPanel:addAnchor(AnchorTop,'parent',AnchorTop)
++            end
+             local width, height = gameMapPanel:getWidth() - 10, gameMapPanel:getHeight() - 10
+             if width > 0 and height > 0 then
+-                local cols, rows = 15, 11
+-                local function odd(n) return math.max(3, 2 * math.floor(n / 2) + 1) end
+-                if width / height < 15 / 11 then cols = odd(11 * width / height)
+-                else rows = odd(15 * height / width) end
++                -- UIMap preenche a area; MapView recorta com escala uniforme.
++                local cols, rows = 17, 13
++                local function oddCeil(n) return math.max(3, 2 * math.ceil((n - 1) / 2) + 1) end
++                if width / height < 17 / 13 then cols = math.min(17, oddCeil(13 * width / height))
++                else rows = math.min(13, oddCeil(17 * height / width)) end
+                 local dim = gameMapPanel:getVisibleDimension()
++                gameMapPanel:setLimitVisibleRange(true)
++                gameMapPanel:setLimitVisibleDimension(false)
++                gameMapPanel:setKeepAspectRatio(false)
+                 if dim.width ~= cols or dim.height ~= rows then
+                     gameMapPanel:setVisibleDimension({width = cols, height = rows})
+                     gameMapPanel:setZoom(rows)
+                 end
+-                gameMapPanel:setKeepAspectRatio(true)
+             end
+         end
+     end

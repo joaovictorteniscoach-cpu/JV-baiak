@@ -1,0 +1,33 @@
+--- a/src/framework/platform/browserwindow.cpp
++++ b/src/framework/platform/browserwindow.cpp
+@@ -395,17 +395,19 @@
+ }
+ 
+ void BrowserWindow::handleMouseWheelCallback(const EmscriptenWheelEvent* event) {
+-    if (event->mouse.screenX != 0 && event->mouse.screenY != 0 && event->mouse.clientX != 0 && event->mouse.clientY != 0 && event->mouse.targetX != 0 && event->mouse.targetY != 0) {
+-        g_dispatcher.addEvent([this, event] {
+-            m_inputEvent.reset();
+-            m_inputEvent.type = Fw::MouseReleaseInputEvent;
+-            event->deltaY > 0 ? m_inputEvent.wheelDirection = Fw::MouseWheelDown : m_inputEvent.wheelDirection = Fw::MouseWheelUp;
+-            m_inputEvent.type = Fw::MouseWheelInputEvent;
+-            m_inputEvent.mouseButton = Fw::MouseMidButton;
+-            if (m_inputEvent.type != Fw::NoInputEvent && m_onInputEvent)
+-                m_onInputEvent(m_inputEvent);
+-        });
+-    }
++    if (!event || event->deltaY == 0) return;
++    // O callback do navegador e temporario: capturar valores, nunca o ponteiro.
++    const Point pos = jvInputPosition(event->mouse.clientX, event->mouse.clientY, m_size, m_displayDensity);
++    const auto direction = event->deltaY > 0 ? Fw::MouseWheelDown : Fw::MouseWheelUp;
++    g_dispatcher.addEvent([this, pos, direction] {
++        m_inputEvent.reset();
++        m_inputEvent.mousePos = pos;
++        m_inputEvent.wheelDirection = direction;
++        m_inputEvent.type = Fw::MouseWheelInputEvent;
++        m_inputEvent.mouseButton = Fw::MouseMidButton;
++        if (m_onInputEvent)
++            m_onInputEvent(m_inputEvent);
++    });
+ }
+ 
+ 

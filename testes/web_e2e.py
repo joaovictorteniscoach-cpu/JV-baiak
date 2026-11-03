@@ -165,7 +165,11 @@ def main():
             geometry=game_layouts[-1]
             rw,rh=geometry['root'];mx,my,mw,mh=geometry['map'];cx,cy,cw,ch=geometry['chat'];sx,sy,sw,sh=geometry['shortcuts']
             assert mw>=rw*.9, ('Painel lateral ainda ocupa o mapa',geometry)
-            assert cy>=my+mh-1 and sy>=cy+ch-1, ('Mapa, chat ou acoes se sobrepoem',geometry)
+            assert mh>=rh*.65, ('Mapa nao aproveita a altura',geometry)
+            # Chat flutuante pode cobrir o cenario; somente a faixa de acoes reserva altura.
+            for control in ('equip','bolsas','combate','mapa','chat','loot','opcoes','atalhos'):
+                box=pg.locator('#barra-'+control).bounding_box()
+                assert box and box['x']>=0 and box['x']+box['width']<=390+1, (control,box)
             pg.tap('#menu-botao');pg.tap('#jv-equipamento');pg.wait_for_timeout(1000)
             # Voltar ao mapa precisa desfazer a abertura do equipamento.
             pg.tap('#menu-botao');pg.tap('#jv-fechar-painel');pg.wait_for_timeout(1000)
@@ -195,7 +199,14 @@ def main():
         conta, senha, ok = conta_de_teste()
         if ok:
             # como no iPhone: toca no campo da conta, aparece "Toque para digitar", toca nele
-            pg.touchscreen.tap(440, 100)
+            # A escala inicial varia por orientacao. Usar a geometria do cliente,
+            # sem presumir a posicao do campo em pixels CSS.
+            geometry = layouts[-1]
+            rw, rh = geometry['root']
+            x, y, w, h = geometry['account']
+            rect = pg.locator('#canvas').bounding_box()
+            pg.touchscreen.tap(rect['x'] + (x + w / 2) * rect['width'] / rw,
+                               rect['y'] + (y + h / 2) * rect['height'] / rh)
             time.sleep(2)
             foto("4a-pediu-teclado.png")
             visivel = pg.is_visible("#digitar")
