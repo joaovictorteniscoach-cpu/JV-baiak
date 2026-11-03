@@ -63,6 +63,7 @@ lua.execute('''
 events[g_game].onGameStart()
 for _,fn in ipairs(timers)do fn() end
 assert(inv.visible and not mini.visible and not opts.visible)
+assert(not main.visible and not rightPanel.visible)
 assert(not on.tinyCombat.visible and on.slot.visible)
 for _,key in ipairs({'F8','F9','F10','F11'}) do assert(bindings['Ctrl+Shift+'..key]) end
 for _,page in ipairs({'maininventorypanel','mainmappanel','mainoptionspanel','jvCombate'}) do
@@ -99,11 +100,13 @@ bindings['Ctrl+Shift+F12']()
 assert(not main.visible and main.width==0 and not rightPanel.visible)
 JVToque.selecionar(JVToque.pagina)
 assert(not JVToque.aberto)
--- Paisagem preserva o painel tradicional.
+-- Paisagem tambem devolve a largura ao mapa e permite abrir/fechar.
 rootWidget.width=602;rootWidget.height=278
 JVToque.selecionar(JVToque.pagina)
+assert(not JVToque.aberto and not main.visible and not rightPanel.visible)
+bindings['Ctrl+Shift+F8']()
 assert(JVToque.aberto and main.visible and rightPanel.visible)
 bindings['Ctrl+Shift+F12']()
-assert(JVToque.aberto)
+assert(not JVToque.aberto and not main.visible and not rightPanel.visible)
 ''')
-print('OK: paginas exclusivas, botoes >=44, painel sob demanda em retrato e paisagem preservada')
+print('OK: paginas exclusivas, botoes >=44, painel sob demanda em retrato e paisagem')

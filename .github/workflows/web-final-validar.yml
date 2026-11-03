@@ -3,11 +3,13 @@ on:
   push:
     branches: [main]
     paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
+  pull_request:
+    paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: web-final-validar
+  group: web-final-validar-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   compilar:
@@ -54,7 +56,7 @@ jobs:
           docker cp cliente-teste:/otclient-web "$RUNNER_TEMP/saida"
           test -s "$RUNNER_TEMP/saida/otclient.wasm"
           test -s "$RUNNER_TEMP/saida/otclient.html"
-          grep -q 'toque-v5' "$RUNNER_TEMP/saida/otclient.html"
+          grep -q 'toque-v6' "$RUNNER_TEMP/saida/otclient.html"
           if grep -q 'c.width/r.width' "$RUNNER_TEMP/saida/otclient.js"; then
             echo 'ERRO: conversao anterior ainda esta no JS'; exit 1
           fi

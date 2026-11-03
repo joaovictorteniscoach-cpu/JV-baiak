@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="jv-client-revision" content="toque-v5" />
+    <meta name="jv-client-revision" content="toque-v6" />
     <!-- JV Baiak: pagina do jogo no navegador (iPhone, Android e PC). Baseada no shell do OTClient Redemption. -->
     <meta
       name="viewport"
@@ -231,7 +231,7 @@
     <button type="button" id="fechar-teclado" class="jv-botao-teclado">Fechar teclado</button>
     <button type="button" id="menu-botao" aria-label="Opções da tela" aria-controls="menu-painel" aria-expanded="false">&#9776;</button>
     <div id="menu-painel" aria-label="Ajustes da tela">
-      <div class="linha"><span>Tamanho (ou pinça com 2 dedos)</span></div>
+      <div class="linha"><span>Tamanho da interface (ou pinça)</span></div>
       <div class="linha">
         <button type="button" id="zoom-menos" class="jv-botao-teclado" aria-label="Diminuir">A&minus;</button>
         <span id="zoom-valor">100%</span>
@@ -348,17 +348,31 @@
       // O jogo desenha com window.jvPixelRatio(): quanto MAIOR, mais espaco e tudo MENOR.
       // "A+" aumenta janelas, icones e letras; "A-" diminui. Em pe e deitado guardam cada um o seu.
       var TELA_TOQUE = /Android|iPhone|iPad|iPod/.test(navigator.userAgent || "") || (navigator.maxTouchPoints || 0) > 1;
-      var ZOOM_MIN = TELA_TOQUE ? 1 : 0.6;
+      var ZOOM_MIN = 0.6;
       var ZOOM_PASSOS = [0.6, 0.7, 0.8, 0.9, 1, 1.15, 1.3, 1.5, 1.75, 2];
+      var zoomMemoria = {};
       // Uma coluna lateral e o mapa precisam continuar cabendo depois do zoom.
-      function limiteZoom() { return TELA_TOQUE ? Math.max(1, Math.min(2, window.innerWidth * 0.72 / 300, window.innerHeight * 0.72 / 244)) : 2; }
-      function orientacao() { return window.innerHeight > window.innerWidth ? "em-pe" : "deitado"; }
-      function lerZoom() {
-        var padrao = TELA_TOQUE ? 1 : (orientacao() === "em-pe" ? 0.8 : 1);
-        try { var v = Number(localStorage.getItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao())); return Number.isFinite(v) && v > 0 ? Math.max(ZOOM_MIN, Math.min(limiteZoom(), v)) : padrao; }
-        catch (e) { return padrao; }
+      function limiteZoom() {
+        var r = canvas.getBoundingClientRect();
+        var maximo = TELA_TOQUE ? Math.min(2, r.width * 0.72 / 300, r.height * 0.72 / 244) : 2;
+        return Math.max(ZOOM_MIN, Math.floor(maximo * 100) / 100);
       }
-      function gravarZoom(v) { try { localStorage.setItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao(), String(v)); } catch (e) {} }
+      function orientacao() { return window.innerHeight > window.innerWidth ? "em-pe" : "deitado"; }
+      function zoomPadrao() { return TELA_TOQUE ? (orientacao() === "em-pe" ? 0.8 : 0.7) : (orientacao() === "em-pe" ? 0.8 : 1); }
+      function chaveZoom() { return (TELA_TOQUE ? "jvZoom-mobile-v4-" : "jvZoom-") + orientacao(); }
+      function limitarZoom(v) { return Math.max(ZOOM_MIN, Math.min(limiteZoom(), v)); }
+      function lerZoom() {
+        var chave = chaveZoom(), salvo = zoomMemoria[chave];
+        try { salvo = localStorage.getItem(chave) || salvo; } catch (e) {}
+        var v = Number(salvo);
+        return limitarZoom(Number.isFinite(v) && v > 0 ? v : zoomPadrao());
+      }
+      function gravarZoom(v) {
+        if (!Number.isFinite(v)) return;
+        v = limitarZoom(v);
+        zoomMemoria[chaveZoom()] = v;
+        try { localStorage.setItem(chaveZoom(), String(v)); } catch (e) {}
+      }
       window.jvPixelRatio = function () {
         // O tamanho de login/jogo e controlado no HUD, separadamente. O login
         // nao recebe a ampliacao dos botoes de combate.
@@ -374,16 +388,23 @@
         clearTimeout(zoomTimer);
       }
       function mostrarZoom() {
-        zoomValor.textContent = Math.round(lerZoom() * 100) + "%";
+        atualizarZoom();
         zoomPainel.style.display = "flex";
         document.getElementById("menu-botao").setAttribute("aria-expanded", "true");
         clearTimeout(zoomTimer);
         zoomTimer = setTimeout(fecharPainel, 8000);
       }
+      function atualizarZoom() {
+        var atual = lerZoom();
+        zoomValor.textContent = Math.round(atual * 100) + "%";
+        document.getElementById("zoom-menos").disabled = atual <= ZOOM_MIN + 0.001;
+        document.getElementById("zoom-mais").disabled = atual >= limiteZoom() - 0.001;
+      }
+      window.addEventListener("resize", atualizarZoom);
       function mudarZoom(dir, ev) {
         if (ev) { ev.preventDefault(); ev.stopPropagation(); }
         var atual = lerZoom();
-        var candidatos = ZOOM_PASSOS.filter(function (v) { return v >= ZOOM_MIN && v <= limiteZoom() && (dir > 0 ? v > atual + 0.001 : v < atual - 0.001); });
+        var candidatos = ZOOM_PASSOS.concat([limiteZoom()]).sort(function(a, b) { return a - b; }).filter(function (v) { return v >= ZOOM_MIN && v <= limiteZoom() && (dir > 0 ? v > atual + 0.001 : v < atual - 0.001); });
         if (candidatos.length) gravarZoom(dir > 0 ? candidatos[0] : candidatos[candidatos.length - 1]);
         window.dispatchEvent(new Event("resize"));  // o jogo recalcula o tamanho na hora
         mostrarZoom();
@@ -445,7 +466,7 @@
       }
       window.addEventListener("resize", limparMarcasToque);
       function atualizarBotaoMapa() {
-        document.getElementById("jv-fechar-painel").hidden = !TELA_TOQUE || innerWidth >= innerHeight;
+        document.getElementById("jv-fechar-painel").hidden = !TELA_TOQUE;
       }
       ligar("jv-fechar-painel", function(ev) {
         ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel("F12", 123);
@@ -456,7 +477,7 @@
       ligar("zoom-mais", function (ev) { mudarZoom(1, ev); });
       ligar("zoom-restaurar", function (ev) {
         ev.preventDefault(); ev.stopPropagation();
-        gravarZoom(TELA_TOQUE ? 1 : (orientacao() === "em-pe" ? 0.8 : 1));
+        gravarZoom(zoomPadrao());
         window.dispatchEvent(new Event("resize"));
         mostrarZoom();
       });
@@ -497,6 +518,7 @@
       var pinca = null, avisoZoom = document.getElementById("zoom-aviso"), timerAviso = null, timerPinca = null;
       function distancia(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy); }
       function aplicarPinca(valor) {
+        if (!Number.isFinite(valor)) return;
         valor = Math.max(ZOOM_MIN, Math.min(limiteZoom(), Math.round(valor * 20) / 20));
         if (Math.abs(valor - lerZoom()) < 0.001) return;
         gravarZoom(valor);
@@ -574,7 +596,7 @@
           const baseURL =
             window.location.origin +
             window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/"));
-          return baseURL + "/" + path + "?v=toque-v5";
+          return baseURL + "/" + path + "?v=toque-v6";
         },
         preRun: [
           function () {

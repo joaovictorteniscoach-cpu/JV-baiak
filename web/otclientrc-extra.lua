@@ -157,7 +157,8 @@ if g_platform.isMobile() then
         local retrato = root:getWidth() < root:getHeight()
         if JVToque.retrato ~= retrato then
             JVToque.retrato = retrato
-            JVToque.aberto = not retrato
+            -- Girar nunca deve abrir uma coluna em cima do espaco do mapa.
+            JVToque.aberto = false
         end
         if abrir then JVToque.aberto = true end
         JVToque.pagina = pagina
@@ -172,7 +173,7 @@ if g_platform.isMobile() then
         main:setWidth(JVToque.aberto and 176 or 0)
         main:setVisible(JVToque.aberto)
         main:setClipping(true)
-        -- Em pe, o equipamento abre pelo menu; fechado, devolve a largura ao mapa.
+        -- Equipamento abre pelo menu em ambas as orientacoes.
         local right = modules.game_interface.getRightPanel()
         if right then
             right:setClipping(true)
@@ -188,8 +189,6 @@ if g_platform.isMobile() then
         modules.game_interface.updateStretchShrink()
     end
     function JVToque.fechar()
-        local root = modules.game_interface.getRootPanel()
-        if root:getWidth() >= root:getHeight() then return end
         JVToque.aberto = false
         JVToque.selecionar(JVToque.pagina)
     end

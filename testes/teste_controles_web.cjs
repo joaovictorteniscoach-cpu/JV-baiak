@@ -13,6 +13,7 @@ function fixture(mobile=false) {
     setAttribute(n,v) { this.attributes[n]=v; }
     focus() { this.focused=true; }
     blur() { for(const f of this.listeners.blur || []) f({}); }
+    getBoundingClientRect() { return {left:0,top:0,width:context.innerWidth,height:context.innerHeight}; }
     dispatchEvent(e) { for(const f of this.listeners[e.type] || []) f(e); return true; }
   }
   for(const m of html.matchAll(/id="([^"]+)"/g)) nodes.set(m[1],new Element());
@@ -80,20 +81,20 @@ function fixture(mobile=false) {
 console.log('OK: zoom bounds/steps/reset, orientation, single start, menu, keyboard focus, unsupported fullscreen and pinch cancellation');
 for(const dpr of [1,2,3,4]) {
  const f=fixture(true);f.c.devicePixelRatio=dpr;
- assert.equal(f.c.jvPixelRatio(),1);
- assert.ok(32*1.4/f.c.jvPixelRatio()>=44);
+ assert.equal(f.c.lerZoom(),0.7);
+ assert.equal(f.c.jvPixelRatio(),1/0.7);
  f.storage.set('jvZoom-em-pe','0.6');
  f.c.innerWidth=390;f.c.innerHeight=844;
- assert.equal(f.c.lerZoom(),1);
- f.click('zoom-menos');assert.equal(f.c.lerZoom(),1);
- f.c.aplicarPinca(0.1);assert.equal(f.c.lerZoom(),1);
- f.click('zoom-mais');assert.equal(f.c.lerZoom(),1);
+ assert.equal(f.c.lerZoom(),0.8);
+ f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.7);
+ f.c.aplicarPinca(0.1);assert.equal(f.c.lerZoom(),0.6);
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.7);
  f.c.innerWidth=844;f.c.innerHeight=390;
- f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
- f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),1);
- assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v5'));
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.8);
+ f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),0.7);
+ assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v6'));
 }
-console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
+console.log('OK: escala mobile independente do DPR, reducao abaixo de 100% e versao de assets');
 
 {
  const f=fixture(true);
@@ -120,8 +121,32 @@ console.log('OK: marcadores opcionais, offsets do canvas, escala e ocultacao');
 
 {
  const f=fixture(true);
- assert.equal(f.nodes.get('jv-fechar-painel').hidden,true);
+ assert.equal(f.nodes.get('jv-fechar-painel').hidden,false);
  f.c.innerWidth=390;f.c.innerHeight=844;f.c.atualizarBotaoMapa();
  assert.equal(f.nodes.get('jv-fechar-painel').hidden,false);
  f.click('jv-fechar-painel');assert.ok(f.dispatched.some(e=>e.type==='keydown'&&e.code==='F12'));
 }
+
+// Limites reais, inclusive o limite superior entre dois passos do menu.
+for(const [width,height] of [[844,390],[390,844],[568,320],[932,430]]) {
+ const f=fixture(true);f.c.innerWidth=width;f.c.innerHeight=height;
+ for(let i=0;i<30;i++)f.click('zoom-menos');
+ assert.equal(f.c.lerZoom(),0.6);assert.equal(f.nodes.get('zoom-menos').disabled,true);
+ for(let i=0;i<30;i++)f.click('zoom-mais');
+ assert.equal(f.c.lerZoom(),f.c.limiteZoom());assert.equal(f.nodes.get('zoom-mais').disabled,true);
+ f.c.aplicarPinca(NaN);assert.ok(Number.isFinite(f.c.lerZoom()));
+ // O limite usa a area segura do canvas, nao a tela com recortes.
+ f.nodes.get('canvas').getBoundingClientRect=()=>({width:width-40,height:height-30});
+ assert.ok(f.c.lerZoom()<=f.c.limiteZoom());
+}
+{
+ const f=fixture(true);
+ f.c.localStorage.getItem=()=>{throw Error('bloqueado');};
+ f.c.localStorage.setItem=()=>{throw Error('bloqueado');};
+ f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.6);
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.7);
+ f.c.innerWidth=390;f.c.innerHeight=844;assert.equal(f.c.lerZoom(),0.8);
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.9);
+ f.c.innerWidth=844;f.c.innerHeight=390;assert.equal(f.c.lerZoom(),0.7);
+}
+console.log('OK: limites alcancaveis, area segura e zoom sem localStorage');

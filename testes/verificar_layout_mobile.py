@@ -36,8 +36,10 @@ for _,height in ipairs({300,390,600,844}) do
   assert(gameMapPanel.dim.height>=3 and gameMapPanel.dim.height<=11 and gameMapPanel.dim.height%2==1)
   assert(not gameBottomPanel.draggable)
   assert(not bottomSplitter.enabled)
-  assert(bottomSplitter.margin==math.min(80+35*count+(height>500 and 42 or 0),math.max(64,height-160)))
-  assert(height-bottomSplitter.margin>=160)
+  assert(bottomSplitter.margin==math.min((height<400 and 60 or 80)+35*count+42,math.max(44+35*count+42,height-160)))
+  assert(bottomSplitter.margin-42-35*count>=44) -- chat e acoes nunca se sobrepoem
+  if height>=300 then assert(height-bottomSplitter.margin>=100) end
+  assert(gameBottomPanel.margin==42)
   local before=bottomSplitter.margin
   updateStretchShrink();assert(before==bottomSplitter.margin)
  end

@@ -1,0 +1,17 @@
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -509,9 +509,12 @@
+             bars = modules.game_actionbar.getActiveBottomBars()
+         end
+         local stats = gameBottomStatsBarPanel and gameBottomStatsBarPanel:getHeight() or 0
+-        local footer = gameRootPanel:getWidth() < gameRootPanel:getHeight() and 42 or 0
++        -- A faixa de acoes tem espaco proprio tambem em paisagem.
++        local footer = 42
+         gameBottomPanel:setMarginBottom(footer)
+-        local desired = math.min(80 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 160))
++        local chat = gameRootPanel:getHeight() < 400 and 60 or 80
++        local desired = math.min(chat + 35 * bars + stats + footer,
++            math.max(44 + 35 * bars + stats + footer, gameRootPanel:getHeight() - 160))
+         if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
+         bottomSplitter:setEnabled(false)
+         gameBottomPanel:setDraggable(false)
