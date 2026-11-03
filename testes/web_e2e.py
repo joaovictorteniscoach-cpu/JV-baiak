@@ -195,7 +195,14 @@ def main():
         conta, senha, ok = conta_de_teste()
         if ok:
             # como no iPhone: toca no campo da conta, aparece "Toque para digitar", toca nele
-            pg.touchscreen.tap(440, 100)
+            # A escala inicial varia por orientacao. Usar a geometria do cliente,
+            # sem presumir a posicao do campo em pixels CSS.
+            geometry = layouts[-1]
+            rw, rh = geometry['root']
+            x, y, w, h = geometry['account']
+            rect = pg.locator('#canvas').bounding_box()
+            pg.touchscreen.tap(rect['x'] + (x + w / 2) * rect['width'] / rw,
+                               rect['y'] + (y + h / 2) * rect['height'] / rh)
             time.sleep(2)
             foto("4a-pediu-teclado.png")
             visivel = pg.is_visible("#digitar")
