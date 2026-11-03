@@ -28,7 +28,7 @@ modules={client_options={getOption=function() optionCalls=optionCalls+1;return f
 for _,height in ipairs({300,390,600,844}) do
  for _,count in ipairs({0,1,2,3}) do
   bars=count
-  gameRootPanel=widget(height);gameBottomPanel=widget();gameBottomStatsBarPanel=widget(0);bottomSplitter=widget()
+  gameRootPanel=widget(height,height>500 and 278 or 602);gameBottomPanel=widget();gameBottomStatsBarPanel=widget(0);bottomSplitter=widget()
   gameMapPanel=widget(height-130,300)
   updateStretchShrink()
   assert(gameMapPanel.keep)
@@ -36,7 +36,7 @@ for _,height in ipairs({300,390,600,844}) do
   assert(gameMapPanel.dim.height>=3 and gameMapPanel.dim.height<=11 and gameMapPanel.dim.height%2==1)
   assert(not gameBottomPanel.draggable)
   assert(not bottomSplitter.enabled)
-  assert(bottomSplitter.margin==math.min(80+35*count,math.max(64,height-160)))
+  assert(bottomSplitter.margin==math.min(80+35*count+(height>500 and 42 or 0),math.max(64,height-160)))
   assert(height-bottomSplitter.margin>=160)
   local before=bottomSplitter.margin
   updateStretchShrink();assert(before==bottomSplitter.margin)

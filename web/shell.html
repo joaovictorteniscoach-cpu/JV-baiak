@@ -2,11 +2,11 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="jv-client-revision" content="toque-v4" />
+    <meta name="jv-client-revision" content="toque-v5" />
     <!-- JV Baiak: pagina do jogo no navegador (iPhone, Android e PC). Baseada no shell do OTClient Redemption. -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"
+      content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover"
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -29,17 +29,27 @@
         -webkit-tap-highlight-color: transparent;
         touch-action: none;
       }
+      :root {
+        --jv-safe-top: env(safe-area-inset-top, 0px);
+        --jv-safe-right: env(safe-area-inset-right, 0px);
+        --jv-safe-bottom: env(safe-area-inset-bottom, 0px);
+        --jv-safe-left: env(safe-area-inset-left, 0px);
+      }
       .backbuffer {
         position: fixed;
-        inset: 0;
+        top: var(--jv-safe-top);
+        left: var(--jv-safe-left);
         margin: 0;
         border: 0;
-        width: 100%;
-        height: 100%;
+        width: calc(100vw - var(--jv-safe-left) - var(--jv-safe-right));
+        height: calc(100vh - var(--jv-safe-top) - var(--jv-safe-bottom));
         display: block;
         outline: none;
         /* o jogo desenha em ate 2x a resolucao da tela; suavizar o resto fica melhor que serrilhar */
         image-rendering: pixelated;
+      }
+      @supports (height: 100dvh) {
+        .backbuffer { height: calc(100dvh - var(--jv-safe-top) - var(--jv-safe-bottom)); }
       }
       .title {
         pointer-events: none;
@@ -123,8 +133,8 @@
         -webkit-user-select: none;
         user-select: none;
       }
-      #digitar { left: 50%; top: 12px; transform: translateX(-50%); padding: 10px 20px; }
-      #fechar-teclado { left: 50%; top: 8px; transform: translateX(-50%); padding: 8px 16px; font-size: 14px; }
+      #digitar { left: 50%; top: calc(env(safe-area-inset-top, 0px) + 12px); transform: translateX(-50%); padding: 10px 20px; }
+      #fechar-teclado { left: 50%; top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translateX(-50%); padding: 8px 16px; font-size: 14px; }
       /* um unico botao discreto no canto (por cima do "Store", que nao usamos) */
       #menu-botao {
         position: fixed; z-index: 6; display: none;
@@ -230,6 +240,7 @@
       <button type="button" id="jv-equipamento" class="jv-botao-teclado">Equipamento</button>
       <button type="button" id="jv-minimapa" class="jv-botao-teclado">Minimapa</button>
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
+      <button type="button" id="jv-fechar-painel" class="jv-botao-teclado">Voltar ao mapa</button>
       <button type="button" id="jv-opcoes" class="jv-botao-teclado">Opções do jogo</button>
       <button type="button" id="abrir-teclado" class="jv-botao-teclado">&#9000; Teclado</button>
       <button type="button" id="jv-ver-toque" class="jv-botao-teclado" aria-pressed="false">Mostrar toque</button>
@@ -433,6 +444,14 @@
         box.style.display = "block";
       }
       window.addEventListener("resize", limparMarcasToque);
+      function atualizarBotaoMapa() {
+        document.getElementById("jv-fechar-painel").hidden = !TELA_TOQUE || innerWidth >= innerHeight;
+      }
+      ligar("jv-fechar-painel", function(ev) {
+        ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel("F12", 123);
+      });
+      atualizarBotaoMapa();
+      window.addEventListener("resize", atualizarBotaoMapa);
       ligar("zoom-menos", function (ev) { mudarZoom(-1, ev); });
       ligar("zoom-mais", function (ev) { mudarZoom(1, ev); });
       ligar("zoom-restaurar", function (ev) {
@@ -555,7 +574,7 @@
           const baseURL =
             window.location.origin +
             window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/"));
-          return baseURL + "/" + path + "?v=toque-v4";
+          return baseURL + "/" + path + "?v=toque-v5";
         },
         preRun: [
           function () {

@@ -14,6 +14,13 @@ connect(g_game, {onGameStart = function()
         g_keyboard.bindKeyDown('Ctrl+Shift+F7', function()
             local p = g_game.getLocalPlayer():getPosition()
             local size = rootWidget:getSize()
+            local function rectString(widget)
+                local r = widget:getRect()
+                return string.format('%d,%d,%d,%d',r.x,r.y,r.width,r.height)
+            end
+            g_logger.info(string.format('JV_GAME_LAYOUT root=%d,%d map=%s chat=%s shortcuts=%s right=%s',size.width,size.height,
+                rectString(map),rectString(modules.game_interface.getBottomPanel()),
+                rectString(modules.game_shortcuts.getPanel()),rectString(modules.game_interface.getRightPanel())))
             for dy = -1, 1 do
                 for dx = -1, 1 do
                     local target = {x=p.x+dx,y=p.y+dy,z=p.z}

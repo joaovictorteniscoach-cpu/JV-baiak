@@ -16,6 +16,7 @@ function w(id, width, height, class, parent)
  function x:getHeight()return self.height end
  function x:getWidth()return self.width end
  function x:addAnchor()end
+ function x:breakAnchors()end
  function x:setMarginLeft(n)self.left=n end
  function x:setMarginTop(n)self.top=n end
  function x:setText(t)self.text=t end
@@ -32,7 +33,8 @@ function w(id, width, height, class, parent)
  if parent then x.parent=parent;table.insert(parent.children,x);parent[id]=x end
  return x
 end
-rootWidget=w('root')
+rootWidget=w('root',602,278)
+shortcuts=w('shortcuts',176,42)
 rightPanel=w('rightPanel');main=w('main'); inv=w('maininventorypanel',176,162,nil,main)
 on=w('onPanel',176,162,nil,inv);w('slot',32,32,'UIItem',on);w('tinyCombat',20,20,'UIButton',on)
 mini=w('mainmappanel',176,116,nil,main);w('minimapBorder',115,111,nil,mini);w('zoomIn',20,20,'UIButton',mini)
@@ -43,14 +45,14 @@ for i=1,2 do w('special'..i,20,20,'UIButton',specials) end
 w('storeButton',108,20,'UIButton',store)
 g_platform={isMobile=function()return true end}
 g_ui={createWidget=function(class,parent)return w('',0,0,class,parent)end}
-AnchorLeft=1;AnchorRight=2;AnchorTop=3
+AnchorLeft=1;AnchorRight=2;AnchorTop=3;AnchorBottom=4;AnchorHorizontalCenter=5
 bindings={};events={};timers={}
 g_keyboard={bindKeyDown=function(key,fn)bindings[key]=fn end}
 connect=function(obj,t)events[obj]=t end
 scheduleEvent=function(fn)timers[#timers+1]=fn end
 updates=0
 local function nothing()end
-modules={game_interface={getMainRightPanel=function()return main end,getRightPanel=function()return rightPanel end,updateStretchShrink=function()updates=updates+1 end},
+modules={game_shortcuts={getPanel=function()return shortcuts end},game_interface={getRootPanel=function()return rootWidget end,getMainRightPanel=function()return main end,getRightPanel=function()return rightPanel end,updateStretchShrink=function()updates=updates+1 end},
  game_inventory={changeInventorySize=nothing,selectCombat=nothing,selectPosture=nothing},
  game_minimap={zoomIn=nothing,zoomOut=nothing,resetMap=nothing,upLayer=nothing,downLayer=nothing}}
 g_game={isOnline=function()return true end,setSafeFight=nothing,isSafeFight=function()return true end,cancelAttack=nothing,cancelFollow=nothing}
@@ -84,4 +86,24 @@ for _,parent in ipairs({main.jvCombate,mini}) do
  end end end
 end
 ''')
-print('OK: paginas exclusivas, equipamento acessivel, botoes >=44 pontos e sem sobreposicao')
+lua.execute('''
+-- Retrato: painel fecha ao girar e abre apenas por acao explicita.
+rootWidget.width=278;rootWidget.height=602
+JVToque.selecionar('maininventorypanel')
+assert(not main.visible and main.width==0 and not rightPanel.visible and rightPanel.width==0)
+assert(not JVToque.aberto)
+bindings['Ctrl+Shift+F8']()
+assert(main.visible and rightPanel.visible and main.width==176 and JVToque.aberto)
+-- Uma atualizacao de geometria nao reabre o painel depois de fechar.
+bindings['Ctrl+Shift+F12']()
+assert(not main.visible and main.width==0 and not rightPanel.visible)
+JVToque.selecionar(JVToque.pagina)
+assert(not JVToque.aberto)
+-- Paisagem preserva o painel tradicional.
+rootWidget.width=602;rootWidget.height=278
+JVToque.selecionar(JVToque.pagina)
+assert(JVToque.aberto and main.visible and rightPanel.visible)
+bindings['Ctrl+Shift+F12']()
+assert(JVToque.aberto)
+''')
+print('OK: paginas exclusivas, botoes >=44, painel sob demanda em retrato e paisagem preservada')

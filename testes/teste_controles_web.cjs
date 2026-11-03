@@ -91,7 +91,7 @@ for(const dpr of [1,2,3,4]) {
  f.c.innerWidth=844;f.c.innerHeight=390;
  f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
  f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),1);
- assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v4'));
+ assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v5'));
 }
 console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
 
@@ -117,3 +117,11 @@ console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de
  f.click('jv-ver-toque');assert.equal(box.display,'none');
 }
 console.log('OK: marcadores opcionais, offsets do canvas, escala e ocultacao');
+
+{
+ const f=fixture(true);
+ assert.equal(f.nodes.get('jv-fechar-painel').hidden,true);
+ f.c.innerWidth=390;f.c.innerHeight=844;f.c.atualizarBotaoMapa();
+ assert.equal(f.nodes.get('jv-fechar-painel').hidden,false);
+ f.click('jv-fechar-painel');assert.ok(f.dispatched.some(e=>e.type==='keydown'&&e.code==='F12'));
+}

@@ -73,7 +73,7 @@ def main():
             user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 "
                        "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
         pg = ctx.new_page()
-        layouts, game_ready, map_probes, map_releases = [], [], [], []
+        layouts, game_ready, map_probes, map_releases, game_layouts = [], [], [], [], []
         seen = set()
         def console(message):
             text = message.text
@@ -84,6 +84,8 @@ def main():
             log.write(f"[{message.type}] {text}\n")
             if 'JV_WEB_GAME_READY' in text:
                 game_ready.append(True)
+            if 'JV_GAME_LAYOUT ' in text:
+                game_layouts.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|map|chat|shortcuts|right)=([0-9,-]+)',text)})
             if 'JV_MAP_PROBE ' in text:
                 map_probes.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect|tile)=([0-9,-]+)',text)})
             if 'JV_MAP_RELEASE ' in text:
@@ -140,6 +142,37 @@ def main():
                 log.write(f"tile correto: viewport={pg.viewport_size} esperado={probe['tile']} recebido={actual['tile']}\n")
                 pg.wait_for_timeout(1500)
 
+        def conferir_margens():
+            pg.evaluate("""() => {
+                const s=document.documentElement.style;
+                s.setProperty('--jv-safe-top','12px');s.setProperty('--jv-safe-bottom','18px');
+                s.setProperty('--jv-safe-left','20px');s.setProperty('--jv-safe-right','20px');
+                window.dispatchEvent(new Event('resize'));
+            }""")
+            pg.wait_for_timeout(1500)
+            verificar_quadrados();foto('7b-toque-com-margens.png')
+            pg.evaluate("""() => {
+                const s=document.documentElement.style;
+                ['top','bottom','left','right'].forEach(v=>s.removeProperty('--jv-safe-'+v));
+                window.dispatchEvent(new Event('resize'));
+            }""")
+            pg.wait_for_timeout(1500)
+
+        def conferir_retrato():
+            pg.set_viewport_size({"width":390,"height":844});pg.wait_for_timeout(5000)
+            verificar_quadrados()
+            assert game_layouts, 'Falta geometria do jogo em retrato'
+            geometry=game_layouts[-1]
+            rw,rh=geometry['root'];mx,my,mw,mh=geometry['map'];cx,cy,cw,ch=geometry['chat'];sx,sy,sw,sh=geometry['shortcuts']
+            assert mw>=rw*.9, ('Painel lateral ainda ocupa o mapa',geometry)
+            assert cy>=my+mh-1 and sy>=cy+ch-1, ('Mapa, chat ou acoes se sobrepoem',geometry)
+            pg.tap('#menu-botao');pg.tap('#jv-equipamento');pg.wait_for_timeout(1000)
+            # Voltar ao mapa precisa desfazer a abertura do equipamento.
+            pg.tap('#menu-botao');pg.tap('#jv-fechar-painel');pg.wait_for_timeout(1000)
+            verificar_quadrados()
+            assert game_layouts[-1]['map'][2]>=rw*.9, ('O painel nao fechou',game_layouts[-1])
+            foto('9-retrato-mapa-chat-acoes.png')
+
         t0 = time.time()
         pg.goto("http://127.0.0.1:8080/", wait_until="load")
         foto("1-carregando.png")
@@ -194,6 +227,7 @@ def main():
             pg.tap('#menu-botao');pg.tap('#jv-ver-toque');time.sleep(0.5)
             verificar_quadrados()
             foto("7b-marcadores-toque.png")
+            conferir_margens()
             # Paginas laterais: navega pelos botoes reais do menu de toque.
             for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
                                     ('jv-opcoes', '7e-opcoes.png'), ('jv-equipamento', '7f-equipamento.png')]:
@@ -214,14 +248,14 @@ def main():
             time.sleep(1)
             if engine == 'webkit':
                 # WebKit nao oferece CDP. Aqui usamos toque real nas duas orientacoes.
-                pg.set_viewport_size({"width":390,"height":844});time.sleep(5)
-                verificar_quadrados();foto('9-safari-em-pe.png')
+                conferir_retrato();foto('9-safari-em-pe.png')
                 pg.set_viewport_size({"width":844,"height":390});time.sleep(4)
                 verificar_quadrados();foto('10-safari-deitado.png')
                 nav.close();srv.shutdown();log.close();return
             # segurar o dedo no proprio personagem: menu com "Set Outfit" (trocar roupa)
             cdp = ctx.new_cdp_session(pg)
-            map_probes.clear();pg.keyboard.press('Control+Shift+F7');time.sleep(0.7)
+            map_probes.clear();pg.keyboard.press('Control+Shift+F7');pg.wait_for_timeout(700)
+            assert len(map_probes)==9, ('Faltam quadrados antes do toque longo',map_probes)
             probe=map_probes[4];rw,rh=probe['root'];x,y,w,h=probe['rect']
             rect=pg.locator('#canvas').bounding_box()
             ponto = [{"x": rect['x']+(x+w/2)*rect['width']/rw, "y":rect['y']+(y+h/2)*rect['height']/rh}]
@@ -257,10 +291,8 @@ def main():
             pinca(160, 100)
             foto("8g-pinca-fechar.png")
             log.write(f"zoom depois da pinca: {pg.evaluate('lerZoom()')}\n")
-            pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
-            time.sleep(6)
+            conferir_retrato()
             foto("9-em-pe.png")
-            verificar_quadrados()
             pg.touchscreen.tap(195, 300)
             time.sleep(3)
             foto("9b-em-pe-toque.png")

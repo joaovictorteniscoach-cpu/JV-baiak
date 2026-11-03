@@ -147,12 +147,19 @@ if g_platform.isMobile() then
         if resizer then resizer:hide() end
         panel.jvAltura = 50 + math.max(math.ceil(counts[1] / 3), counts[2]) * 34
     end
-    function JVToque.selecionar(pagina)
+    function JVToque.selecionar(pagina, abrir)
         if not g_game.isOnline() then return end
         local main = modules.game_interface.getMainRightPanel()
         if not main then return end
         local escolhido = main:getChildById(pagina)
         if not escolhido then return end
+        local root = modules.game_interface.getRootPanel()
+        local retrato = root:getWidth() < root:getHeight()
+        if JVToque.retrato ~= retrato then
+            JVToque.retrato = retrato
+            JVToque.aberto = not retrato
+        end
+        if abrir then JVToque.aberto = true end
         JVToque.pagina = pagina
         escolhido:show()
         escolhido:setDraggable(false)
@@ -161,12 +168,30 @@ if g_platform.isMobile() then
         elseif pagina == 'mainoptionspanel' then prepararOpcoes(escolhido) end
         for _, child in ipairs(main:getChildren()) do child:setVisible(child == escolhido) end
         escolhido:setHeight(escolhido.jvAltura or 162)
-        main:setHeight(escolhido:getHeight() + 1)
+        main:setHeight(JVToque.aberto and escolhido:getHeight() + 1 or 0)
+        main:setWidth(JVToque.aberto and 176 or 0)
+        main:setVisible(JVToque.aberto)
         main:setClipping(true)
-        -- Janelas antigas nao podem desenhar sobre a faixa dos quatro atalhos.
+        -- Em pe, o equipamento abre pelo menu; fechado, devolve a largura ao mapa.
         local right = modules.game_interface.getRightPanel()
-        if right then right:setClipping(true) end
+        if right then
+            right:setClipping(true)
+            right:setWidth(JVToque.aberto and 176 or 0)
+            right:setVisible(JVToque.aberto)
+        end
+        local shortcuts = modules.game_shortcuts.getPanel()
+        if shortcuts then
+            shortcuts:breakAnchors()
+            shortcuts:addAnchor(AnchorBottom, 'parent', AnchorBottom)
+            shortcuts:addAnchor(retrato and AnchorHorizontalCenter or AnchorRight, 'parent', retrato and AnchorHorizontalCenter or AnchorRight)
+        end
         modules.game_interface.updateStretchShrink()
+    end
+    function JVToque.fechar()
+        local root = modules.game_interface.getRootPanel()
+        if root:getWidth() >= root:getHeight() then return end
+        JVToque.aberto = false
+        JVToque.selecionar(JVToque.pagina)
     end
     local function prepararCombate()
         local main = modules.game_interface.getMainRightPanel()
@@ -190,8 +215,9 @@ if g_platform.isMobile() then
     end
     for key, pagina in pairs({F8='maininventorypanel', F9='mainmappanel', F10='mainoptionspanel', F11='jvCombate'}) do
         local destino = pagina
-        g_keyboard.bindKeyDown('Ctrl+Shift+' .. key, function() JVToque.selecionar(destino) end, rootWidget)
+        g_keyboard.bindKeyDown('Ctrl+Shift+' .. key, function() JVToque.selecionar(destino, true) end, rootWidget)
     end
+    g_keyboard.bindKeyDown('Ctrl+Shift+F12', JVToque.fechar, rootWidget)
     connect(rootWidget, {onGeometryChange = function()
         scheduleEvent(function() JVToque.selecionar(JVToque.pagina) end, 100)
     end})

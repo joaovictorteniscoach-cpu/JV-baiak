@@ -15,6 +15,7 @@ on:
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py
+      - testes/sonda_mapa.lua
       - .github/workflows/web-teste.yml
   workflow_dispatch:
 

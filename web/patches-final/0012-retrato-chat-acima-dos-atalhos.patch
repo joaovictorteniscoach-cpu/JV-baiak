@@ -1,0 +1,13 @@
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -509,7 +509,9 @@
+             bars = modules.game_actionbar.getActiveBottomBars()
+         end
+         local stats = gameBottomStatsBarPanel and gameBottomStatsBarPanel:getHeight() or 0
+-        local desired = math.min(80 + 35 * bars + stats, math.max(64, gameRootPanel:getHeight() - 160))
++        local footer = gameRootPanel:getWidth() < gameRootPanel:getHeight() and 42 or 0
++        gameBottomPanel:setMarginBottom(footer)
++        local desired = math.min(80 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 160))
+         if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
+         bottomSplitter:setEnabled(false)
+         gameBottomPanel:setDraggable(false)
