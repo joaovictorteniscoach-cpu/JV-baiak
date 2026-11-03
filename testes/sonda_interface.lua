@@ -20,6 +20,8 @@ instalarTransporte()
 g_keyboard.bindKeyDown('Ctrl+Shift+F1',function()
     if not JVToque or not JVToque.pronto then return end
     local size=rootWidget:getSize()
+    local dimension=modules.game_interface.getMapPanel():getVisibleDimension()
+    g_logger.info(string.format('JV_VIEW cols=%d rows=%d',dimension.width,dimension.height))
     for id,w in pairs(JVToque.janelas) do
         g_logger.info(string.format('JV_WINDOW id=%s visible=%d root=%d,%d rect=%s close=%s min=%s',id,w:isVisible() and 1 or 0,size.width,size.height,rect(w),rect(w:getChildById('jvFechar')),rect(w:getChildById('jvMinimizar'))))
     end

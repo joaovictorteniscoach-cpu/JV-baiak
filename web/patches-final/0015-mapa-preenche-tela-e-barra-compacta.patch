@@ -1,6 +1,6 @@
 --- a/modules/game_interface/gameinterface.lua
 +++ b/modules/game_interface/gameinterface.lua
-@@ -509,30 +509,47 @@
+@@ -509,30 +509,48 @@
              bars = modules.game_actionbar.getActiveBottomBars()
          end
          local stats = gameBottomStatsBarPanel and gameBottomStatsBarPanel:getHeight() or 0
@@ -52,6 +52,7 @@
 +                if width / height < 17 / 13 then cols = math.min(17, oddCeil(13 * width / height))
 +                else rows = math.min(13, oddCeil(17 * height / width)) end
                  local dim = gameMapPanel:getVisibleDimension()
++                gameMapPanel:setLimitVisibleRange(true)
 +                gameMapPanel:setLimitVisibleDimension(false)
 +                gameMapPanel:setKeepAspectRatio(false)
                  if dim.width ~= cols or dim.height ~= rows then

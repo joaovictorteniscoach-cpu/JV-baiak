@@ -25,6 +25,7 @@ function widget(h,width)
  function w:breakAnchors()end
  function w:removeAnchor()end
  function w:setLimitVisibleDimension()end
+ function w:setLimitVisibleRange(v)self.limited=v end
  function w:addAnchor()end
  function w:setMarginRight(n)self.right=n end
  return w
@@ -39,7 +40,7 @@ for _,height in ipairs({300,390,600,844}) do
   gameRootPanel=widget(height,height>500 and 278 or 602);gameBottomPanel=widget();gameBottomStatsBarPanel=widget(0);bottomSplitter=widget()
   gameMapPanel=widget(height-130,300)
   updateStretchShrink()
-  assert(gameMapPanel.keep==false)
+  assert(gameMapPanel.keep==false and gameMapPanel.limited==true)
   assert(gameMapPanel.dim.width>=3 and gameMapPanel.dim.width<=17 and gameMapPanel.dim.width%2==1)
   assert(gameMapPanel.dim.height>=3 and gameMapPanel.dim.height<=13 and gameMapPanel.dim.height%2==1)
   assert(not gameBottomPanel.draggable)
