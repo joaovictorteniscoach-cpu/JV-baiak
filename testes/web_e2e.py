@@ -72,12 +72,16 @@ def main():
             user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 "
                        "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
         pg = ctx.new_page()
-        layouts, game_ready = [], []
+        layouts, game_ready, map_probes, map_releases = [], [], [], []
         def console(message):
             text = message.text
             log.write(f"[{message.type}] {text}\n")
             if 'JV_WEB_GAME_READY' in text:
                 game_ready.append(True)
+            if 'JV_MAP_PROBE ' in text:
+                map_probes.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect|tile)=([0-9,-]+)',text)})
+            if 'JV_MAP_RELEASE ' in text:
+                map_releases.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(point|tile|button)=([0-9,-]+)',text)})
             if 'JV_LOGIN_LAYOUT ' in text:
                 data = dict(re.findall(r'(root|win|account|password|login)=([0-9,-]+)', text))
                 metrics = {key: tuple(map(int,value.split(','))) for key,value in data.items()}
@@ -85,6 +89,29 @@ def main():
         pg.on("console", console)
         pg.on("pageerror", lambda e: log.write(f"[pageerror] {e}\n"))
         foto = lambda n: pg.screenshot(path=os.path.join(FOTOS, n))
+
+        def verificar_quadrados():
+            # Nunca deduzir o tile a partir do mesmo conversor de entrada.
+            # O renderer fornece o retangulo de cada tile; o navegador toca nele.
+            for index in (0, 2, 4, 6, 8):
+                map_probes.clear()
+                pg.keyboard.press('Control+Shift+F7')
+                pg.wait_for_timeout(700)
+                assert len(map_probes) == 9, ('Faltam retangulos nativos',map_probes)
+                probe = map_probes[index]
+                rw,rh=probe['root'];x,y,w,h=probe['rect']
+                rect=pg.locator('#canvas').bounding_box()
+                cssx=rect['x']+(x+w/2)*rect['width']/rw
+                cssy=rect['y']+(y+h/2)*rect['height']/rh
+                map_releases.clear()
+                pg.touchscreen.tap(cssx,cssy)
+                pg.wait_for_timeout(500)
+                assert map_releases, ('O toque nao chegou ao mapa',probe,cssx,cssy)
+                actual=map_releases[-1]
+                assert actual['tile']==probe['tile'], ('Quadrado incorreto',probe,actual,cssx,cssy)
+                log.write(f"tile correto: viewport={pg.viewport_size} esperado={probe['tile']} recebido={actual['tile']}\n")
+                pg.wait_for_timeout(1500)
+
         t0 = time.time()
         pg.goto("http://127.0.0.1:8080/", wait_until="load")
         foto("1-carregando.png")
@@ -136,6 +163,7 @@ def main():
             pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
             time.sleep(2)
             foto("7b-sem-janela.png")
+            verificar_quadrados()
             # Paginas laterais: navega pelos botoes reais do menu de toque.
             for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
                                     ('jv-opcoes', '7e-opcoes.png'), ('jv-equipamento', '7f-equipamento.png')]:
@@ -168,6 +196,7 @@ def main():
             pg.tap("#menu-botao"); time.sleep(0.5)
             pg.tap("#zoom-mais"); time.sleep(0.5); pg.tap("#zoom-mais"); time.sleep(2)
             foto("8d-zoom-maior.png")
+            verificar_quadrados()
             pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(2)
             foto("8e-zoom-normal.png")
             # pinça com dois dedos: abre (tudo maior) e depois fecha
@@ -187,6 +216,7 @@ def main():
             pg.set_viewport_size({"width": 390, "height": 844})  # celular em pe
             time.sleep(6)
             foto("9-em-pe.png")
+            verificar_quadrados()
             pg.touchscreen.tap(195, 300)
             time.sleep(3)
             foto("9b-em-pe-toque.png")
