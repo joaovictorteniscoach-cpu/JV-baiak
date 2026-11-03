@@ -1,6 +1,6 @@
 -- Janela nativa: estado confirmado pelo servidor, separado por personagem.
 if not g_platform.isMobile() then return end
-JVAutoloot = {estado=nil,pendente=false}
+JVAutoloot = {estado=nil,pendente=false,confirmado=false}
 local A=JVAutoloot
 local function label(parent,text)
     local w=g_ui.createWidget('Label',parent);w:setText(text);return w
@@ -11,6 +11,9 @@ local function unlock()
 end
 function A.enviar(action,ref)
     if not g_game.isOnline() or A.pendente then return false end
+    if not A.confirmado and not A.transporte then
+        A.status:setText('Ative o script de autoloot no servidor e entre novamente.');return false
+    end
     ref=ref and tostring(ref):match('^%s*(.-)%s*$') or ''
     if (action=='find' or action=='take' or action=='ignore') and (ref=='' or #ref>70) then
         A.status:setText('Digite o nome ou ID do item.');return false
@@ -59,7 +62,7 @@ function A.receber(data)
     end
     if type(data.message or '')~='string' or (data.goldBank~=nil and type(data.goldBank)~='boolean') then return false end
     data.message=data.message or ''
-    unlock();A.estado=data
+    unlock();A.confirmado=true;A.estado=data
     if A.window then A.renderizar(data) end
     return true
 end
@@ -100,6 +103,6 @@ ProtocolGame.registerExtendedOpcode(204,function(_,_,buffer)
 end)
 g_keyboard.bindKeyDown('Ctrl+Shift+F3',A.abrir,rootWidget)
 connect(g_game,{onGameEnd=function()
-    unlock();A.estado=nil
+    unlock();A.confirmado=false;A.estado=nil
     if A.window then A.window:hide();A.lista:destroyChildren();A.status:setText('') end
 end})

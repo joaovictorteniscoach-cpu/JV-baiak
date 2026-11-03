@@ -11,6 +11,7 @@ class Autoloot(unittest.TestCase):
 AUTOLOOT_STORAGE_START=100;AUTOLOOT_STORAGE_END=102;AUTO_LOOT_MAX_ITEMS=3;AUTOLOOT_STORAGE_GOLD=200
 MESSAGE_STATUS_CONSOLE_BLUE=1
 function TalkAction()return {separator=function()end,register=function()end}end
+function CreatureEvent()return {register=function()end}end
 names={[2148]='gold coin',[2152]='platinum coin',[2160]='crystal coin',[2376]='sword',[999]='item "especial"\\nlinha'}
 function ItemType(ref)
  local id=tonumber(ref)

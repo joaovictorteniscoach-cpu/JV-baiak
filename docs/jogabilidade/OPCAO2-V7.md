@@ -24,7 +24,7 @@ sudo bash web/instalar-correcao-toque-v7.sh bayakjh.duckdns.org
 
 O instalador faz backup e restauração automática em caso de falha; reconhece os arquivos anteriores conhecidos e recusa alterações locais não reconhecidas. Atualiza o cliente e copia somente o novo script de configuração do autoloot para `servidor/data/scripts/custom/jv_autoloot_ui.lua`. O script fica legível pelo usuário do processo TFS.
 
-Para ativar esse novo comando no servidor, é necessário `/reload scripts` com GM ou `jvbaiak reiniciar` em uma janela de manutenção. O instalador não reinicia o servidor automaticamente. Até ativar o script, a janela avisa que o servidor não respondeu. A atualização não troca mapa, contas, personagens, config.lua nem a rotina de coleta existente.
+Para ativar esse novo comando no servidor, é necessário `/reload scripts` com GM ou `jvbaiak reiniciar` em uma janela de manutenção. O instalador não reinicia o servidor automaticamente. O servidor confirma suporte ao entrar com o personagem. Até ativar o script e reconectar, a janela avisa que a configuração não está disponível e não envia comandos ao chat. A atualização não troca mapa, contas, personagens, config.lua nem a rotina de coleta existente.
 
 O ambiente desta tarefa não tem SSH para a VPS; alterações no GitHub não publicam o cliente no endereço do jogo.
 

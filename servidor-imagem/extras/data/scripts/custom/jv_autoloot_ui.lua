@@ -70,3 +70,11 @@ end
 local talk=TalkAction('!jvloot')
 function talk.onSay(player,words,param) return A.configurar(player,param) end
 talk:separator(' ');talk:register()
+
+-- A interface nao envia comandos a um servidor antigo sem esta confirmacao.
+local login=CreatureEvent('JVAutolootInterface')
+function login.onLogin(player)
+    if AUTOLOOT_STORAGE_START and AUTOLOOT_STORAGE_END then A.responder(player) end
+    return true
+end
+login:register()

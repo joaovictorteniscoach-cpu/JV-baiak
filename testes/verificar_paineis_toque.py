@@ -77,7 +77,8 @@ char='B';JVToque.posicionar(e);assert(e.x~=14)
 char='A';JVToque.posicionar(e);assert(e.x==14)
 for _,key in ipairs({'F2','F3','F4','F5','F8','F9','F10','F11','F12'})do assert(bindings['Ctrl+Shift+'..key])end
 -- O cliente pede os dados; nunca afirma que uma escolha foi salva antes da resposta.
-requests={};JVAutoloot.transporte=function(a,r)table.insert(requests,{a,r})end
+requests={};JVAutoloot.abrir();assert(not JVAutoloot.pendente and JVAutoloot.estado==nil);JVAutoloot.window:hide()
+JVAutoloot.transporte=function(a,r)table.insert(requests,{a,r})end
 bindings['Ctrl+Shift+F3']();assert(requests[1][1]=='list' and JVAutoloot.pendente)
 local data={message='',goldBank=false,items={{id=2148,name='gold coin',collect=true}}}
 assert(JVAutoloot.receber(data));assert(not JVAutoloot.pendente)
