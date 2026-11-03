@@ -266,3 +266,28 @@ if g_platform.isMobile() then
         if g_logger and g_logger.info then g_logger.info('JV_WEB_GAME_READY') end
     end})
 end
+
+-- Marcadores opcionais para conferir o toque no proprio aparelho, sem enviar dados.
+if g_platform.isMobile() then
+    local mostrarToque = false
+    g_keyboard.bindKeyDown('Ctrl+Shift+F6', function() mostrarToque = not mostrarToque end, rootWidget)
+    connect(g_game, {onGameStart=function()
+        scheduleEvent(function()
+            local map = modules.game_interface.getMapPanel()
+            if not map or map.jvToqueObservado then return end
+            map.jvToqueObservado = true
+            local original = map.onMousePress
+            map.onMousePress = function(self, point, button)
+                if mostrarToque then
+                    local target = self:getPosition(point)
+                    local rect = target and self:getTileRect(target)
+                    if rect and rect.width > 0 and rect.height > 0 then
+                        local size = rootWidget:getSize()
+                        g_logger.info(string.format('JV_TOUCH_TARGET root=%d,%d rect=%d,%d,%d,%d', size.width,size.height,rect.x,rect.y,rect.width,rect.height))
+                    end
+                end
+                return original(self, point, button)
+            end
+        end, 500)
+    end})
+end

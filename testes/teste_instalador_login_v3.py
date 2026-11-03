@@ -19,7 +19,7 @@ class InstaladorLoginV3(unittest.TestCase):
         shutil.copytree(self.kit/'web/patches-final',self.base/'web/patches-final')
         (self.base/'web/patches-final/0009-login-responsivo.patch').unlink()
         shutil.copy(self.kit/'web/versao-base.env',self.base/'web/versao-base.env')
-        old=subprocess.check_output(['git','-C',str(ROOT),'show','HEAD:web/shell.html'])
+        old=(self.kit/'web/shell.html').read_bytes()
         (self.base/'web/shell.html').write_bytes(old)
         shutil.copy(self.kit/'web/otclientrc-extra.lua',self.base/'web/otclientrc-extra.lua')
         self.old=old

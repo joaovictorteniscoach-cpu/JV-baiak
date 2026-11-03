@@ -109,6 +109,9 @@ def main():
                 assert map_releases, ('O toque nao chegou ao mapa',probe,cssx,cssy)
                 actual=map_releases[-1]
                 assert actual['tile']==probe['tile'], ('Quadrado incorreto',probe,actual,cssx,cssy)
+                assert len(map_releases)==1 and actual['button']==(1,), ('Acao duplicada',map_releases)
+                target=pg.locator('#jv-destino').bounding_box()
+                assert target and target['x']<=cssx<=target['x']+target['width'] and target['y']<=cssy<=target['y']+target['height'], ('Marcador nao cobre o dedo',target,cssx,cssy)
                 log.write(f"tile correto: viewport={pg.viewport_size} esperado={probe['tile']} recebido={actual['tile']}\n")
                 pg.wait_for_timeout(1500)
 
@@ -163,7 +166,9 @@ def main():
             pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
             time.sleep(2)
             foto("7b-sem-janela.png")
+            pg.tap('#menu-botao');pg.tap('#jv-ver-toque');time.sleep(0.5)
             verificar_quadrados()
+            foto("7b-marcadores-toque.png")
             # Paginas laterais: navega pelos botoes reais do menu de toque.
             for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
                                     ('jv-opcoes', '7e-opcoes.png'), ('jv-equipamento', '7f-equipamento.png')]:
@@ -184,12 +189,18 @@ def main():
             time.sleep(1)
             # segurar o dedo no proprio personagem: menu com "Set Outfit" (trocar roupa)
             cdp = ctx.new_cdp_session(pg)
-            ponto = [{"x": 400, "y": 150}]
+            map_probes.clear();pg.keyboard.press('Control+Shift+F7');time.sleep(0.7)
+            probe=map_probes[4];rw,rh=probe['root'];x,y,w,h=probe['rect']
+            rect=pg.locator('#canvas').bounding_box()
+            ponto = [{"x": rect['x']+(x+w/2)*rect['width']/rw, "y":rect['y']+(y+h/2)*rect['height']/rh}]
+            map_releases.clear()
             cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": ponto})
             time.sleep(0.6)
             cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
             time.sleep(2)
             foto("8c-segurar-no-personagem.png")
+            assert len(map_releases)==1 and map_releases[0]['button']==(2,), ('Toque longo tambem andou',map_releases)
+            assert map_releases[0]['tile']==probe['tile'], ('Menu no quadrado errado',probe,map_releases)
             pg.keyboard.press("Escape")
             time.sleep(1)
             # tamanho da interface: A+ duas vezes (tudo maior), depois volta
@@ -197,6 +208,7 @@ def main():
             pg.tap("#zoom-mais"); time.sleep(0.5); pg.tap("#zoom-mais"); time.sleep(2)
             foto("8d-zoom-maior.png")
             verificar_quadrados()
+            pg.tap("#menu-botao"); time.sleep(0.5)
             pg.tap("#zoom-menos"); time.sleep(0.5); pg.tap("#zoom-menos"); time.sleep(2)
             foto("8e-zoom-normal.png")
             # pinça com dois dedos: abre (tudo maior) e depois fecha

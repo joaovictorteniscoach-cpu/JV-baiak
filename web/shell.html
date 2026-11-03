@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="jv-client-revision" content="login-v3" />
+    <meta name="jv-client-revision" content="toque-v4" />
     <!-- JV Baiak: pagina do jogo no navegador (iPhone, Android e PC). Baseada no shell do OTClient Redemption. -->
     <meta
       name="viewport"
@@ -195,6 +195,10 @@
       .jv-botao-teclado { cursor: pointer; min-height: 44px; }
       #menu-painel { max-height: calc(100dvh - 76px); overflow-y: auto; box-sizing: border-box; max-width: calc(100vw - 16px); }
       #menu-botao:focus-visible,.jv-botao-teclado:focus-visible { outline: 3px solid #fff0c9; outline-offset: 2px; }
+      .jv-marca-toque { display:none; position:fixed; z-index:8; pointer-events:none; box-sizing:border-box; }
+      #jv-dedo { width:14px; height:14px; border:2px solid #00e5ff; border-radius:50%; transform:translate(-50%,-50%); }
+      #jv-destino { border:2px solid #ffe066; background:#ffe06622; }
+      #jv-toque-legenda { left:8px; bottom:max(4px,env(safe-area-inset-bottom)); padding:5px 8px; color:#fff; background:#000d; font:12px sans-serif; }
     </style>
   </head>
   <body>
@@ -228,10 +232,14 @@
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
       <button type="button" id="jv-opcoes" class="jv-botao-teclado">Opções do jogo</button>
       <button type="button" id="abrir-teclado" class="jv-botao-teclado">&#9000; Teclado</button>
+      <button type="button" id="jv-ver-toque" class="jv-botao-teclado" aria-pressed="false">Mostrar toque</button>
       <button type="button" id="zoom-restaurar" class="jv-botao-teclado">Restaurar tamanho</button>
       <button type="button" id="tela-cheia" class="jv-botao-teclado">Tela cheia</button>
     </div>
     <div id="zoom-aviso" role="status" aria-live="polite">100%</div>
+    <div id="jv-dedo" class="jv-marca-toque"></div>
+    <div id="jv-destino" class="jv-marca-toque"></div>
+    <div id="jv-toque-legenda" class="jv-marca-toque">Azul: dedo · Amarelo: quadrado recebido</div>
     <canvas class="backbuffer" id="canvas" oncontextmenu="event.preventDefault()" tabindex="0"></canvas>
     <script type="text/javascript">
       var canvas = document.getElementById("canvas");
@@ -394,6 +402,37 @@
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
       });
+      var jvVerToque = false;
+      function limparMarcasToque() {
+        ["jv-dedo", "jv-destino", "jv-toque-legenda"].forEach(function(id) { document.getElementById(id).style.display = "none"; });
+      }
+      ligar("jv-ver-toque", function(ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        jvVerToque = !jvVerToque;
+        document.getElementById("jv-ver-toque").setAttribute("aria-pressed", String(jvVerToque));
+        document.getElementById("jv-ver-toque").textContent = jvVerToque ? "Ocultar toque" : "Mostrar toque";
+        limparMarcasToque();
+        enviarAtalhoPainel("F6", 117);
+      });
+      canvas.addEventListener("touchstart", function(ev) {
+        if (!jvVerToque || ev.touches.length !== 1) return;
+        var p = ev.touches[0], dot = document.getElementById("jv-dedo");
+        document.getElementById("jv-destino").style.display = "none";
+        dot.style.left = p.clientX + "px"; dot.style.top = p.clientY + "px"; dot.style.display = "block";
+        document.getElementById("jv-toque-legenda").style.display = "block";
+      }, {capture:true, passive:true});
+      function mostrarDestinoToque(message) {
+        if (!jvVerToque) return;
+        var m = message.match(/JV_TOUCH_TARGET root=(\d+),(\d+) rect=(-?\d+),(-?\d+),(\d+),(\d+)/);
+        if (!m || !Number(m[1]) || !Number(m[2])) return;
+        var c = canvas.getBoundingClientRect(), box = document.getElementById("jv-destino");
+        box.style.left = c.left + Number(m[3])*c.width/Number(m[1]) + "px";
+        box.style.top = c.top + Number(m[4])*c.height/Number(m[2]) + "px";
+        box.style.width = Number(m[5])*c.width/Number(m[1]) + "px";
+        box.style.height = Number(m[6])*c.height/Number(m[2]) + "px";
+        box.style.display = "block";
+      }
+      window.addEventListener("resize", limparMarcasToque);
       ligar("zoom-menos", function (ev) { mudarZoom(-1, ev); });
       ligar("zoom-mais", function (ev) { mudarZoom(1, ev); });
       ligar("zoom-restaurar", function (ev) {
@@ -516,7 +555,7 @@
           const baseURL =
             window.location.origin +
             window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/"));
-          return baseURL + "/" + path + "?v=login-v3";
+          return baseURL + "/" + path + "?v=toque-v4";
         },
         preRun: [
           function () {
@@ -531,7 +570,9 @@
         ],
         postRun: [],
         print: function () {
-          console.log(Array.prototype.slice.call(arguments).join(" "));
+          var message = Array.prototype.slice.call(arguments).join(" ");
+          mostrarDestinoToque(message);
+          console.log(message);
         },
         printErr: function () {
           reportRuntimeError("stderr", Array.prototype.slice.call(arguments).join(" "));

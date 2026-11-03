@@ -91,7 +91,7 @@ for(const dpr of [1,2,3,4]) {
  f.c.innerWidth=844;f.c.innerHeight=390;
  f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
  f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),1);
- assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=login-v3'));
+ assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v4'));
 }
 console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
 
@@ -102,3 +102,18 @@ console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de
  assert.equal(f.nodes.get('jv-equipamento').hidden,false);
  assert.equal(fixture().nodes.get('jv-equipamento').hidden,true);
 }
+
+{
+ const f=fixture(true);const canvas=f.nodes.get('canvas');
+ canvas.getBoundingClientRect=()=>({left:10,top:20,width:800,height:400});
+ f.c.Module.print('JV_TOUCH_TARGET root=400,200 rect=50,40,30,30');
+ assert.equal(f.nodes.get('jv-destino').style.display,undefined);
+ f.click('jv-ver-toque');assert.equal(f.nodes.get('jv-ver-toque').attributes['aria-pressed'],'true');
+ canvas.dispatchEvent({type:'touchstart',touches:[{clientX:120,clientY:110}]});
+ f.c.Module.print('JV_TOUCH_TARGET root=400,200 rect=50,40,30,30');
+ const box=f.nodes.get('jv-destino').style;
+ assert.deepEqual([box.left,box.top,box.width,box.height],['110px','100px','60px','60px']);
+ assert.equal(box.display,'block');
+ f.click('jv-ver-toque');assert.equal(box.display,'none');
+}
+console.log('OK: marcadores opcionais, offsets do canvas, escala e ocultacao');

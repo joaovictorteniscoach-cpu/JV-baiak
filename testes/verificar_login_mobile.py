@@ -46,7 +46,7 @@ connect=function()end
 addEvent=function(fn)fn()end
 ''')
 s=(Path(__file__).resolve().parents[1]/'web/otclientrc-extra.lua').read_text()
-lua.execute(s[s.index('-- A escala de combate nao pode ampliar'):])
+lua.execute(s[s.index('-- A escala de combate nao pode ampliar'):].split('-- Marcadores opcionais para conferir')[0])
 lua.execute('''
 for _,size in ipairs({{390,844},{402,874},{844,390},{874,402},{724,330},{667,280},{320,568}})do
  for _,old in ipairs({1,1.5,2,3})do

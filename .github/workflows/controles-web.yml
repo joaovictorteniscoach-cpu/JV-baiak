@@ -1,10 +1,10 @@
 name: Controles web (sem conta ou rede de jogo)
 on:
   pull_request:
-    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', '.github/workflows/controles-web.yml']
+    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_realce_mapa.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', 'web/instalar-correcao-toque*.sh', 'testes/teste_instalador_toque_v4.py', '.github/workflows/controles-web.yml']
   push:
     branches: [main, codex/jogabilidade-mobile, codex/iphone-layout-toque]
-    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', '.github/workflows/controles-web.yml']
+    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_realce_mapa.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', 'web/instalar-correcao-toque*.sh', 'testes/teste_instalador_toque_v4.py', '.github/workflows/controles-web.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
           node-version: '22'
       - run: node testes/teste_controles_web.cjs
       - run: python -m unittest discover -s testes -p "teste_instalador_*.py"
-      - run: bash -n web/instalar-correcao-iphone.sh && bash -n web/instalar-correcao-iphone-v2.sh && bash -n web/instalar-correcao-login-v3.sh
+      - run: bash -n web/instalar-correcao-iphone.sh && bash -n web/instalar-correcao-iphone-v2.sh && bash -n web/instalar-correcao-login-v3.sh && bash -n web/instalar-correcao-toque-v4.sh
       - name: Conferir patches e testar tradução de toque
         shell: bash
         run: |
@@ -27,7 +27,7 @@ jobs:
           fonte="$RUNNER_TEMP/otclient-toque"
           mkdir -p "$fonte"
           git -C "$fonte" init -q
-          for arquivo in src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua modules/game_interface/gameinterface.lua modules/game_interface/gameinterface.otui modules/game_console/console.lua modules/game_shortcuts/shortcuts.otui modules/client_entergame/entergame.otui modules/client_options/data_options.lua; do
+          for arquivo in src/client/mapview.cpp src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua modules/game_interface/gameinterface.lua modules/game_interface/gameinterface.otui modules/game_console/console.lua modules/game_shortcuts/shortcuts.otui modules/client_entergame/entergame.otui modules/client_options/data_options.lua; do
             mkdir -p "$fonte/$(dirname "$arquivo")"
             curl --fail --silent --show-error --retry 2 "https://raw.githubusercontent.com/opentibiabr/otclient/1fcea26f23ef1d1857103ef446c0190955523ca8/$arquivo" -o "$fonte/$arquivo"
           done
@@ -36,6 +36,7 @@ jobs:
             git -C "$fonte" apply "$patch"
           done
           python testes/teste_toque_web.py "$fonte"
+          python testes/teste_realce_mapa.py "$fonte"
           node testes/teste_coordenadas_canvas.cjs "$fonte"
           python -m pip install lupa==2.6
           python testes/verificar_layout_mobile.py "$fonte"

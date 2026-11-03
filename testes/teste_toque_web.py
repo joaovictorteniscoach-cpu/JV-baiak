@@ -51,6 +51,9 @@ if __name__ == '__main__':
      send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);w.m_clickTimer.elapsed=50;send(EMSCRIPTEN_EVENT_TOUCHEND,&t);
      assert(right()==0);assert(w.m_mouseButtonStates==0);
      events.clear();send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);w.m_clickTimer.elapsed=500;send(EMSCRIPTEN_EVENT_TOUCHEND,&t);assert(right()==1);
+     {int leftReleases=0;for(auto e:events)if(e.mouseButton==Fw::MouseLeftButton&&e.type==Fw::MouseReleaseInputEvent){++leftReleases;assert(e.mousePos.x==-10000&&e.mousePos.y==-10000);}assert(leftReleases==1);}
+     events.clear();send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);w.m_clickTimer.elapsed=300;send(EMSCRIPTEN_EVENT_TOUCHEND,&t);assert(right()==0);assert(events.back().mousePos.x==50);
+
      for(int count:{0,1}){
       events.clear();t.numTouches=1;send(EMSCRIPTEN_EVENT_TOUCHSTART,&t);w.m_clickTimer.elapsed=500;t.numTouches=count;
       send(EMSCRIPTEN_EVENT_TOUCHCANCEL,&t);assert(right()==0);assert(w.m_mouseButtonStates==0);assert(!w.m_clickTimer.running());

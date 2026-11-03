@@ -1,0 +1,15 @@
+--- a/src/framework/platform/browserwindow.cpp
++++ b/src/framework/platform/browserwindow.cpp
+@@ -515,9 +515,11 @@
+         } else if (eventType == EMSCRIPTEN_EVENT_TOUCHEND || eventType == EMSCRIPTEN_EVENT_TOUCHCANCEL) {
+             m_inputEvent.type = Fw::MouseReleaseInputEvent;
+             g_dispatcher.addEvent([this] { m_mouseButtonStates &= ~(1 << Fw::MouseLeftButton); });
+-            segurou = m_clickTimer.running() && m_clickTimer.ticksElapsed() >= 200;
++            segurou = m_clickTimer.running() && m_clickTimer.ticksElapsed() >= 450;
+             m_clickTimer.stop();
+         }
++        // Um toque longo e apenas menu: nao caminhar antes de abrir o menu.
++        if (segurou) m_inputEvent.mousePos = Point(-10000, -10000);
+         if (m_inputEvent.type != Fw::NoInputEvent && m_onInputEvent)
+             m_onInputEvent(m_inputEvent);
+         if (segurou) {
