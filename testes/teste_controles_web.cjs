@@ -8,7 +8,7 @@ function fixture(mobile=false) {
   const nodes = new Map();
   const listeners = {};
   class Element {
-    constructor() { this.style = {}; this.attributes = {}; this.listeners = {}; this.value = ''; this.textContent = ''; this.classes = new Set(); this.classList = {add:n=>this.classes.add(n),contains:n=>this.classes.has(n)}; }
+    constructor() { this.style = {}; this.attributes = {}; this.listeners = {}; this.value = ''; this.textContent = ''; this.classes = new Set(); this.classList = {add:n=>this.classes.add(n),contains:n=>this.classes.has(n),remove:n=>this.classes.delete(n)}; }
     addEventListener(n, f) { (this.listeners[n] ||= []).push(f); }
     setAttribute(n,v) { this.attributes[n]=v; }
     focus() { this.focused=true; }
@@ -81,18 +81,18 @@ function fixture(mobile=false) {
 console.log('OK: zoom bounds/steps/reset, orientation, single start, menu, keyboard focus, unsupported fullscreen and pinch cancellation');
 for(const dpr of [1,2,3,4]) {
  const f=fixture(true);f.c.devicePixelRatio=dpr;
- assert.equal(f.c.lerZoom(),0.7);
- assert.equal(f.c.jvPixelRatio(),1/0.7);
+ assert.equal(f.c.lerZoom(),0.9);
+ assert.equal(f.c.jvPixelRatio(),1/0.9);
  f.storage.set('jvZoom-em-pe','0.6');
  f.c.innerWidth=390;f.c.innerHeight=844;
- assert.equal(f.c.lerZoom(),0.8);
- f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.7);
+ assert.equal(f.c.lerZoom(),0.9);
+ f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.8);
  f.c.aplicarPinca(0.1);assert.equal(f.c.lerZoom(),0.6);
  f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.7);
  f.c.innerWidth=844;f.c.innerHeight=390;
- f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.8);
- f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),0.7);
- assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v6'));
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),1);
+ f.click('zoom-restaurar');assert.equal(f.c.lerZoom(),0.9);
+ assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v7'));
 }
 console.log('OK: escala mobile independente do DPR, reducao abaixo de 100% e versao de assets');
 
@@ -143,10 +143,20 @@ for(const [width,height] of [[844,390],[390,844],[568,320],[932,430]]) {
  const f=fixture(true);
  f.c.localStorage.getItem=()=>{throw Error('bloqueado');};
  f.c.localStorage.setItem=()=>{throw Error('bloqueado');};
- f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.6);
- f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.7);
- f.c.innerWidth=390;f.c.innerHeight=844;assert.equal(f.c.lerZoom(),0.8);
+ f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.8);
  f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.9);
- f.c.innerWidth=844;f.c.innerHeight=390;assert.equal(f.c.lerZoom(),0.7);
+ f.c.innerWidth=390;f.c.innerHeight=844;assert.equal(f.c.lerZoom(),0.9);
+ f.click('zoom-mais');assert.equal(f.c.lerZoom(),0.93);
+ f.c.innerWidth=844;f.c.innerHeight=390;assert.equal(f.c.lerZoom(),0.9);
 }
 console.log('OK: limites alcancaveis, area segura e zoom sem localStorage');
+
+{
+ const f=fixture(true);
+ for(const [id,key] of [['equip','F8'],['bolsas','F4'],['combate','F11'],['mapa','F9'],['chat','F5'],['loot','F3'],['opcoes','F10'],['atalhos','F2']]) {
+  f.dispatched.length=0;f.click('barra-'+id);assert.ok(f.dispatched.some(e=>e.type==='keydown'&&e.code===key));
+ }
+ f.c.Module.print('JV_WEB_GAME_READY');assert.ok(f.c.document.body.classList.contains('jv-online'));
+ f.c.Module.print('JV_WEB_GAME_END');assert.ok(!f.c.document.body.classList.contains('jv-online'));
+}
+console.log('OK: barra visivel de controles e ciclo de entrada/saida');
