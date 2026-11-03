@@ -28,6 +28,12 @@ concurrency:
 jobs:
   teste:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      JV_BROWSER: ${{ matrix.browser }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -83,7 +89,7 @@ jobs:
           python -m venv "$RUNNER_TEMP/venv"
           . "$RUNNER_TEMP/venv/bin/activate"
           pip install -q playwright > "$F/instalacao.txt" 2>&1
-          python -m playwright install --with-deps chromium >> "$F/instalacao.txt" 2>&1
+          python -m playwright install --with-deps "${{ matrix.browser }}" >> "$F/instalacao.txt" 2>&1
           python testes/web_e2e.py "$RUNNER_TEMP/jv/web/www/jogar" "$F" > "$F/teste.txt" 2>&1
           ls -la "$F"
 
@@ -94,7 +100,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/fotos" && cd "$RUNNER_TEMP/fotos"
           echo "${GITHUB_SHA} $(date -u)" > rodada.txt
-          git init -q && git checkout -q -b testes-web
+          git init -q && git checkout -q -b "testes-${{ matrix.browser }}"
           git config user.name "jv-robo" && git config user.email "actions@users.noreply.github.com"
           git add -A && git commit -qm "Fotos do teste do cliente web (${GITHUB_SHA::7})"
-          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" testes-web
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:testes-${{ matrix.browser }}"

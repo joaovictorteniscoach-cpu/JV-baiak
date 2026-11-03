@@ -65,7 +65,8 @@ def main():
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8080), Servidor)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     with sync_playwright() as p:
-        nav = p.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader",
+        engine = os.environ.get('JV_BROWSER', 'chromium')
+        nav = p.webkit.launch() if engine == 'webkit' else p.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader",
                                       "--ignore-gpu-blocklist", "--enable-webgl"])
         ctx = nav.new_context(
             viewport={"width": 844, "height": 390}, device_scale_factor=3, is_mobile=True, has_touch=True,
@@ -187,6 +188,13 @@ def main():
             foto("8b-teclado-aberto.png")
             pg.tap('#fechar-teclado')
             time.sleep(1)
+            if engine == 'webkit':
+                # WebKit nao oferece CDP. Aqui usamos toque real nas duas orientacoes.
+                pg.set_viewport_size({"width":390,"height":844});time.sleep(5)
+                verificar_quadrados();foto('9-safari-em-pe.png')
+                pg.set_viewport_size({"width":844,"height":390});time.sleep(4)
+                verificar_quadrados();foto('10-safari-deitado.png')
+                nav.close();srv.shutdown();log.close();return
             # segurar o dedo no proprio personagem: menu com "Set Outfit" (trocar roupa)
             cdp = ctx.new_cdp_session(pg)
             map_probes.clear();pg.keyboard.press('Control+Shift+F7');time.sleep(0.7)
