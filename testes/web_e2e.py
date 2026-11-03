@@ -22,7 +22,7 @@ from playwright.sync_api import sync_playwright
 SITE, FOTOS = sys.argv[1], sys.argv[2]
 PORTAL = os.environ.get("JV_PORTAL", "https://bayakjh.duckdns.org")
 os.makedirs(FOTOS, exist_ok=True)
-log = open(os.path.join(FOTOS, "console.txt"), "w")
+log = open(os.path.join(FOTOS, "console.txt"), "w", buffering=1)
 
 
 class Servidor(http.server.SimpleHTTPRequestHandler):
@@ -74,8 +74,13 @@ def main():
                        "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
         pg = ctx.new_page()
         layouts, game_ready, map_probes, map_releases = [], [], [], []
+        seen = set()
         def console(message):
             text = message.text
+            # Alguns motores enviam o mesmo registro pelo worker e pela pagina.
+            # Os registros nativos incluem timestamp, preservando as sondagens seguintes.
+            if text in seen: return
+            seen.add(text)
             log.write(f"[{message.type}] {text}\n")
             if 'JV_WEB_GAME_READY' in text:
                 game_ready.append(True)
@@ -88,8 +93,27 @@ def main():
                 metrics = {key: tuple(map(int,value.split(','))) for key,value in data.items()}
                 layouts.append(metrics)
         pg.on("console", console)
+        def worker_created(worker):
+            log.write(f"[worker] {worker.url}\n")
+            worker.on("console", console)
+        pg.on("worker", worker_created)
         pg.on("pageerror", lambda e: log.write(f"[pageerror] {e}\n"))
-        foto = lambda n: pg.screenshot(path=os.path.join(FOTOS, n))
+        def foto(name):
+            pg.screenshot(path=os.path.join(FOTOS, name))
+            # Estado minimo para distinguir erro grafico de falta de eventos no teste.
+            state = pg.evaluate("""() => {
+                const c=document.getElementById('canvas'),r=c.getBoundingClientRect();
+                return {isolated:crossOriginIsolated,sharedMemory:typeof SharedArrayBuffer,
+                    offscreen:typeof OffscreenCanvas,rect:{x:r.x,y:r.y,width:r.width,height:r.height},
+                    buffer:{width:c.width,height:c.height},viewport:{width:innerWidth,height:innerHeight},
+                    visualViewport:window.visualViewport?{width:visualViewport.width,height:visualViewport.height,
+                        scale:visualViewport.scale,offsetLeft:visualViewport.offsetLeft,offsetTop:visualViewport.offsetTop}:null,
+                    runtime:typeof Module==='object'?{calledRun:!!Module.calledRun}:null};
+            }""")
+            state['workers']=[w.url for w in pg.workers]
+            with open(os.path.join(FOTOS,name+'.json'),'w') as output:
+                json.dump(state,output,indent=2)
+
 
         def verificar_quadrados():
             # Nunca deduzir o tile a partir do mesmo conversor de entrada.
