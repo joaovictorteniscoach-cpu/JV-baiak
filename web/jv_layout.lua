@@ -253,6 +253,8 @@ function L.iniciar()
     local modo = L.modo()
     g_logger.info('JV_LAYOUT ' .. modo)
     g_keyboard.bindKeyDown('Ctrl+Shift+F3', L.trocar, rootWidget)
+    -- "Voltar ao mapa" tambem fecha a janelinha de conversa com NPC
+    g_keyboard.bindKeyDown('Ctrl+Shift+F12', function() if JVNpc and JVNpc.fechar then JVNpc.fechar() end end, rootWidget)
     if modo ~= 'paginas' then
         -- no modo paginas estes atalhos ja sao do JVToque (otclientrc-extra.lua)
         for key, pagina in pairs({F8 = 'maininventorypanel', F9 = 'mainmappanel', F10 = 'mainoptionspanel', F11 = 'jvCombate'}) do

@@ -297,6 +297,8 @@ def main():
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)
             foto("8-depois-do-toque.png")
+            pg.keyboard.press('Control+Shift+F12')  # Voltar ao mapa: fecha conversa de NPC aberta pelo toque
+            time.sleep(1)
             # chat: abre o teclado pelo botao fixo e manda uma fala
             pg.tap("#menu-botao"); time.sleep(0.5)
             foto("8a-menu.png")

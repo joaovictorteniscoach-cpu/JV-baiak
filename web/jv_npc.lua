@@ -70,7 +70,9 @@ local function mostrar(nome, opcoes)
             if fala == 'bye' or fala == 'trade' then fechar() end
         end
     end
-    -- canto esquerdo, um pouco abaixo do topo (nao cobre o meio do mapa nem o chat)
+    -- canto esquerdo, abaixo da faixa do level (nao cobre o meio do mapa nem o chat).
+    -- MainWindow vem presa no centro da tela: solta antes de posicionar.
+    janela:breakAnchors()
     janela:setPosition({x = 8, y = math.floor(raiz:getHeight() * 0.12)})
     pcall(function() janela:raise() end)
     N.evento = scheduleEvent(fechar, 60000) -- some sozinha se ninguem tocar
@@ -138,7 +140,24 @@ local function podeFalar(eu, npc)
     return d <= 1 or (d <= PERTO and maisPerto(eu, npc))
 end
 
+-- longe do NPC (mais de 4 quadrados), a janelinha da conversa fecha sozinha
+local function conferirConversa()
+    if not N.janela or not N.nomeConversa then return end
+    local eu = g_game.getLocalPlayer()
+    if not eu then return end
+    local ok, lista = pcall(function() return g_map.getSpectators(eu:getPosition(), false) end)
+    if not ok or type(lista) ~= 'table' then return end
+    for _, c in ipairs(lista) do
+        if ehNpc(c) and c:getName() == N.nomeConversa then
+            if distancia(eu:getPosition(), c:getPosition()) > 4 then fechar() end
+            return
+        end
+    end
+    fechar() -- o NPC nem aparece mais na tela
+end
+
 local function conferirAlvo()
+    pcall(conferirConversa)
     local a = N.alvo
     if not a then return end
     if os.time() > a.ate or not g_game.isOnline() then N.alvo = nil; return end
