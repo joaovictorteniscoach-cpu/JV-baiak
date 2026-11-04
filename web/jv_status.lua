@@ -51,18 +51,20 @@ local function criarFaixa()
 end
 
 -- Pagina no formato da janela "Skills" do Tibia 8.60: nome a esquerda, valor a direita,
--- barra de progresso embaixo do Level, do Magic Level e de cada skill.
-local LINHA = 13
+-- barra de progresso embaixo do Level, do Magic Level e de cada skill. Compacta para
+-- caber no celular deitado sem passar por baixo dos atalhos.
+local LINHA = 12
+-- cada linha: lista de celulas {id, nome, barra}; 1 celula = largura toda, 2 = duas colunas
 local LINHAS = {
-    {'exp', 'Experience'}, {'level', 'Level', 'vermelha'},
-    {'-'},
-    {'hp', 'Hit Points'}, {'mana', 'Mana'}, {'soul', 'Soul Points'}, {'cap', 'Capacity'}, {'stamina', 'Stamina'},
-    {'-'},
-    {'ml', 'Magic Level', 'vermelha'},
-    {'-'},
-    {'s0', 'Fist Fighting', 'verde'}, {'s1', 'Club Fighting', 'verde'}, {'s2', 'Sword Fighting', 'verde'},
-    {'s3', 'Axe Fighting', 'verde'}, {'s4', 'Distance Fighting', 'verde'}, {'s5', 'Shielding', 'verde'},
-    {'s6', 'Fishing', 'verde'},
+    {{'exp', 'Experience'}},
+    {{'level', 'Level', 'vermelha'}},
+    {{'hp', 'HP'}, {'mana', 'Mana'}},
+    {{'soul', 'Soul'}, {'cap', 'Cap'}},
+    {{'stamina', 'Stamina'}, {'ml', 'Magic', 'vermelha'}},
+    {{'s0', 'Fist', 'verde'}, {'s1', 'Club', 'verde'}},
+    {{'s2', 'Sword', 'verde'}, {'s3', 'Axe', 'verde'}},
+    {{'s4', 'Distance', 'verde'}, {'s5', 'Shielding', 'verde'}},
+    {{'s6', 'Fishing', 'verde'}},
 }
 
 local function rotulo(pai, texto, alinhar)
@@ -73,6 +75,29 @@ local function rotulo(pai, texto, alinhar)
     l:setTextAlign(alinhar)
     l:setPhantom(true)
     return l
+end
+
+local function celula(p, c, x, largura, y)
+    local nome = rotulo(p, c[2], AlignLeft)
+    nome:addAnchor(AnchorTop, 'parent', AnchorTop); nome:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+    nome:setMarginTop(y); nome:setMarginLeft(x); nome:setSize({width = largura, height = LINHA})
+    local valor = rotulo(p, '', AlignRight)
+    valor:addAnchor(AnchorTop, 'parent', AnchorTop); valor:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+    valor:setMarginTop(y); valor:setMarginLeft(x); valor:setSize({width = largura, height = LINHA})
+    S.valores[c[1]] = valor
+    if c[3] then
+        local fundo = g_ui.createWidget('UIWidget', p)
+        fundo:addAnchor(AnchorTop, 'parent', AnchorTop); fundo:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+        fundo:setMarginTop(y + LINHA); fundo:setMarginLeft(x); fundo:setSize({width = largura, height = 3})
+        fundo:setBackgroundColor('#2a1a1a'); fundo:setPhantom(true)
+        local barra = g_ui.createWidget('UIWidget', fundo)
+        barra:addAnchor(AnchorTop, 'parent', AnchorTop); barra:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+        barra:addAnchor(AnchorBottom, 'parent', AnchorBottom)
+        barra:setBackgroundColor(c[3] == 'vermelha' and '#c01010' or '#10a010'); barra:setPhantom(true)
+        S.barras[c[1]] = {barra = barra, fundo = fundo, largura = largura}
+        return true
+    end
+    return false
 end
 
 local function criarPagina()
@@ -87,42 +112,25 @@ local function criarPagina()
     local acoes = {{'Vender', '!venderloot'}, {'Depot', '!depot'}, {'Hunt', '!hunt'}}
     for i, a in ipairs(acoes) do
         local b = g_ui.createWidget('Button', p)
-        b:setText(a[1]); b:setSize({width = 52, height = 28})
+        b:setText(a[1]); b:setSize({width = 52, height = 24})
         b:addAnchor(AnchorTop, 'parent', AnchorTop)
         b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-        b:setMarginTop(44); b:setMarginLeft(4 + (i - 1) * 56)
+        b:setMarginTop(30); b:setMarginLeft(4 + (i - 1) * 56)
         local fala = a[2]
         b.onClick = function() if g_game.isOnline() then pcall(g_game.talk, fala) end end
     end
-    local y = 78
-    for _, l in ipairs(LINHAS) do
-        if l[1] == '-' then
-            y = y + 2
+    local y = 58
+    for _, linha in ipairs(LINHAS) do
+        local temBarra = false
+        if #linha == 1 then
+            temBarra = celula(p, linha[1], 6, 162, y)
         else
-            local nome = rotulo(p, l[2], AlignLeft)
-            nome:addAnchor(AnchorTop, 'parent', AnchorTop); nome:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-            nome:setMarginTop(y); nome:setMarginLeft(8); nome:setSize({width = 110, height = LINHA - 1})
-            local valor = rotulo(p, '', AlignRight)
-            valor:addAnchor(AnchorTop, 'parent', AnchorTop); valor:addAnchor(AnchorRight, 'parent', AnchorRight)
-            valor:setMarginTop(y); valor:setMarginRight(8); valor:setSize({width = 70, height = LINHA - 1})
-            S.valores[l[1]] = valor
-            y = y + LINHA
-            if l[3] then
-                local fundo = g_ui.createWidget('UIWidget', p)
-                fundo:addAnchor(AnchorTop, 'parent', AnchorTop); fundo:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-                fundo:addAnchor(AnchorRight, 'parent', AnchorRight)
-                fundo:setMarginTop(y - 1); fundo:setMarginLeft(8); fundo:setMarginRight(8); fundo:setHeight(3)
-                fundo:setBackgroundColor('#2a1a1a'); fundo:setPhantom(true)
-                local barra = g_ui.createWidget('UIWidget', fundo)
-                barra:addAnchor(AnchorTop, 'parent', AnchorTop); barra:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-                barra:addAnchor(AnchorBottom, 'parent', AnchorBottom)
-                barra:setBackgroundColor(l[3] == 'vermelha' and '#c01010' or '#10a010'); barra:setPhantom(true)
-                S.barras[l[1]] = {barra = barra, fundo = fundo}
-                y = y + 4
-            end
+            temBarra = celula(p, linha[1], 6, 78, y)
+            temBarra = celula(p, linha[2], 90, 78, y) or temBarra
         end
+        y = y + LINHA + (temBarra and 4 or 1)
     end
-    p.jvAltura = y + 6
+    p.jvAltura = y + 4
     p:setHeight(p.jvAltura); p.panelHeight = p.jvAltura
     p:hide()
     S.pagina = p
@@ -139,8 +147,7 @@ local function por(id, valor, pct)
     if v then v:setText(valor) end
     local b = S.barras and S.barras[id]
     if b and pct then
-        local w = b.fundo:getWidth()
-        b.barra:setWidth(math.max(0, math.floor(w * math.min(100, pct) / 100)))
+        b.barra:setWidth(math.max(0, math.floor(b.largura * math.min(100, pct) / 100)))
     end
 end
 
