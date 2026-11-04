@@ -1,0 +1,427 @@
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[log] status: Downloading data...
+[log] status: Downloading data... (327680/90482355)
+[log] status: Downloading data... (655360/90482355)
+[log] status: Downloading data... (6750208/90482355)
+[log] status: Downloading data... (17367040/90482355)
+[log] status: Downloading data... (17629184/90482355)
+[log] status: Downloading data... (17825792/90482355)
+[log] status: Downloading data... (29949952/90482355)
+[log] status: Downloading data... (36503552/90482355)
+[log] status: Downloading data... (46399488/90482355)
+[log] status: Downloading data... (68354048/90482355)
+[log] status: Downloading data... (90177536/90482355)
+[log] status: Downloading data... (90482355/90482355)
+[log] status: Downloading...
+[log] status: Running...
+[log] status: 
+pronto para jogar em 4s
+[log] [2026-11-04 23:22:43.753] [[32minfo[m] Application started at Nov 04 2026 23:22:43
+[log] [2026-11-04 23:22:43.801] [[31m[1merror[m] Failed to parse public config 'config.ini': unable to open file '/config.ini': not found
+[worker] http://127.0.0.1:8080/otclient.js
+[warning] WebGL: non-portable extension enabled: WEBGL_polygon_mode
+[log] [2026-11-04 23:22:43.891] [[32minfo[m] GPU WebKit WebGL
+[log] [2026-11-04 23:22:43.892] [[32minfo[m] OpenGL OpenGL ES 3.0 (WebGL 2.0)
+[log] [2026-11-04 23:22:44.721] [[32minfo[m] Operating system: browser
+[log] [2026-11-04 23:22:44.723] [[32minfo[m] JV Baiak 4.x rev 0.000 (desenv) built on Oct 31 2026 for arch WASM32
+[log] [2026-11-04 23:22:53.383] [[32minfo[m] Startup done :]
+[log] [2026-11-04 23:22:53.404] [[32minfo[m] JV_LAYOUT livre
+[log] [2026-11-04 23:22:56.081] [[32minfo[m] JV_LOGIN_LAYOUT root=844,390 win=242,43,360,304 account=327,79,259,44 password=327,130,259,44 login=258,279,328,44
+[log] [2026-11-04 23:23:09.384] [[32minfo[m] JV_LOGIN_LAYOUT root=390,844 win=15,270,360,304 account=100,306,259,44 password=100,357,259,44 login=31,506,328,44
+conta de teste: robovdbry8ab / personagem Robo Parune / criada=True
+[log] [2026-11-04 23:23:13.296] [[32minfo[m] JV_LOGIN_LAYOUT root=844,390 win=242,43,360,304 account=327,79,259,44 password=327,130,259,44 login=258,279,328,44
+botao 'Toque para digitar' apareceu: True
+campo do teclado com foco: teclado
+[log] [2026-11-04 23:23:39.036] [[32minfo[m] JV_WEB_GAME_READY
+[log] [2026-11-04 23:24:01.958] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:24:01.960] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1210,7
+[log] [2026-11-04 23:24:01.960] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1210,7
+[log] [2026-11-04 23:24:01.960] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1210,7
+[log] [2026-11-04 23:24:01.964] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1211,7
+[log] [2026-11-04 23:24:01.964] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1211,7
+[log] [2026-11-04 23:24:01.964] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1211,7
+[log] [2026-11-04 23:24:01.964] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1212,7
+[log] [2026-11-04 23:24:01.966] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1212,7
+[log] [2026-11-04 23:24:01.966] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1212,7
+[log] [2026-11-04 23:24:02.734] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=241,31,39,40
+[log] [2026-11-04 23:24:02.735] [[32minfo[m] JV_MAP_RELEASE point=260,50 tile=990,1210,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(990, 1210, 7) recebido=(990, 1210, 7)
+[log] [2026-11-04 23:24:05.064] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:24:05.064] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1210,7
+[log] [2026-11-04 23:24:05.065] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1210,7
+[log] [2026-11-04 23:24:05.065] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1210,7
+[log] [2026-11-04 23:24:05.065] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1211,7
+[log] [2026-11-04 23:24:05.065] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1211,7
+[log] [2026-11-04 23:24:05.067] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1211,7
+[log] [2026-11-04 23:24:05.067] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1212,7
+[log] [2026-11-04 23:24:05.067] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1212,7
+[log] [2026-11-04 23:24:05.067] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1212,7
+[log] [2026-11-04 23:24:05.785] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=320,31,39,40
+[log] [2026-11-04 23:24:05.787] [[32minfo[m] JV_MAP_RELEASE point=339,50 tile=992,1210,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(992, 1210, 7) recebido=(992, 1210, 7)
+[log] [2026-11-04 23:24:08.108] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:24:08.108] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1210,7
+[log] [2026-11-04 23:24:08.110] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1210,7
+[log] [2026-11-04 23:24:08.110] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1210,7
+[log] [2026-11-04 23:24:08.110] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1211,7
+[log] [2026-11-04 23:24:08.110] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1211,7
+[log] [2026-11-04 23:24:08.111] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1211,7
+[log] [2026-11-04 23:24:08.111] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1212,7
+[log] [2026-11-04 23:24:08.111] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1212,7
+[log] [2026-11-04 23:24:08.111] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1212,7
+[log] [2026-11-04 23:24:08.824] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=280,70,39,40
+[log] [2026-11-04 23:24:08.827] [[32minfo[m] JV_MAP_RELEASE point=299,90 tile=991,1211,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(991, 1211, 7) recebido=(991, 1211, 7)
+[log] [2026-11-04 23:24:11.140] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:24:11.140] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1210,7
+[log] [2026-11-04 23:24:11.140] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1210,7
+[log] [2026-11-04 23:24:11.140] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1210,7
+[log] [2026-11-04 23:24:11.142] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1211,7
+[log] [2026-11-04 23:24:11.142] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1211,7
+[log] [2026-11-04 23:24:11.142] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1211,7
+[log] [2026-11-04 23:24:11.143] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1212,7
+[log] [2026-11-04 23:24:11.143] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1212,7
+[log] [2026-11-04 23:24:11.144] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1212,7
+[log] [2026-11-04 23:24:11.868] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=241,110,39,40
+[log] [2026-11-04 23:24:11.868] [[32minfo[m] JV_MAP_RELEASE point=260,130 tile=990,1212,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(990, 1212, 7) recebido=(990, 1212, 7)
+[log] [2026-11-04 23:24:14.198] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:24:14.199] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=989,1211,7
+[log] [2026-11-04 23:24:14.199] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=990,1211,7
+[log] [2026-11-04 23:24:14.199] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=991,1211,7
+[log] [2026-11-04 23:24:14.199] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=989,1212,7
+[log] [2026-11-04 23:24:14.200] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=990,1212,7
+[log] [2026-11-04 23:24:14.200] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=991,1212,7
+[log] [2026-11-04 23:24:14.200] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=989,1213,7
+[log] [2026-11-04 23:24:14.200] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=990,1213,7
+[log] [2026-11-04 23:24:14.200] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=991,1213,7
+[log] [2026-11-04 23:24:14.931] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=320,110,39,40
+[log] [2026-11-04 23:24:14.931] [[32minfo[m] JV_MAP_RELEASE point=339,130 tile=991,1213,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(991, 1213, 7) recebido=(991, 1213, 7)
+[log] [2026-11-04 23:24:18.903] [[32minfo[m] JV_GAME_LAYOUT root=574,257 map=0,25,574,129 chat=-1,194,575,63 shortcuts=398,215,176,42 right=574,0,0,215
+[log] [2026-11-04 23:24:18.903] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,32,38,38 tile=989,1212,7
+[log] [2026-11-04 23:24:18.903] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,32,38,38 tile=990,1212,7
+[log] [2026-11-04 23:24:18.903] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,32,38,38 tile=991,1212,7
+[log] [2026-11-04 23:24:18.904] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,70,38,38 tile=989,1213,7
+[log] [2026-11-04 23:24:18.904] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,70,38,38 tile=990,1213,7
+[log] [2026-11-04 23:24:18.904] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,70,38,38 tile=991,1213,7
+[log] [2026-11-04 23:24:18.904] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,107,38,38 tile=989,1214,7
+[log] [2026-11-04 23:24:18.904] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,107,38,38 tile=990,1214,7
+[log] [2026-11-04 23:24:18.904] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,107,38,38 tile=991,1214,7
+[log] [2026-11-04 23:24:19.654] [[32minfo[m] JV_TOUCH_TARGET root=574,257 rect=230,32,38,38
+[log] [2026-11-04 23:24:19.656] [[32minfo[m] JV_MAP_RELEASE point=248,50 tile=989,1212,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(989, 1212, 7) recebido=(989, 1212, 7)
+[log] [2026-11-04 23:24:22.000] [[32minfo[m] JV_GAME_LAYOUT root=574,257 map=0,25,574,129 chat=-1,194,575,63 shortcuts=398,215,176,42 right=574,0,0,215
+[log] [2026-11-04 23:24:22.000] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,32,38,38 tile=988,1211,7
+[log] [2026-11-04 23:24:22.001] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,32,38,38 tile=989,1211,7
+[log] [2026-11-04 23:24:22.001] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,32,38,38 tile=990,1211,7
+[log] [2026-11-04 23:24:22.001] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,70,38,38 tile=988,1212,7
+[log] [2026-11-04 23:24:22.001] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,70,38,38 tile=989,1212,7
+[log] [2026-11-04 23:24:22.001] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,70,38,38 tile=990,1212,7
+[log] [2026-11-04 23:24:22.003] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,107,38,38 tile=988,1213,7
+[log] [2026-11-04 23:24:22.003] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,107,38,38 tile=989,1213,7
+[log] [2026-11-04 23:24:22.003] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,107,38,38 tile=990,1213,7
+[log] [2026-11-04 23:24:22.734] [[32minfo[m] JV_TOUCH_TARGET root=574,257 rect=305,32,38,38
+[log] [2026-11-04 23:24:22.736] [[32minfo[m] JV_MAP_RELEASE point=323,50 tile=990,1211,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(990, 1211, 7) recebido=(990, 1211, 7)
+[log] [2026-11-04 23:24:25.089] [[32minfo[m] JV_GAME_LAYOUT root=574,257 map=0,25,574,129 chat=-1,194,575,63 shortcuts=398,215,176,42 right=574,0,0,215
+[log] [2026-11-04 23:24:25.089] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,32,38,38 tile=989,1210,7
+[log] [2026-11-04 23:24:25.091] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,32,38,38 tile=990,1210,7
+[log] [2026-11-04 23:24:25.091] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,32,38,38 tile=991,1210,7
+[log] [2026-11-04 23:24:25.091] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,70,38,38 tile=989,1211,7
+[log] [2026-11-04 23:24:25.091] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,70,38,38 tile=990,1211,7
+[log] [2026-11-04 23:24:25.091] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,70,38,38 tile=991,1211,7
+[log] [2026-11-04 23:24:25.092] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,107,38,38 tile=989,1212,7
+[log] [2026-11-04 23:24:25.092] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,107,38,38 tile=990,1212,7
+[log] [2026-11-04 23:24:25.092] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,107,38,38 tile=991,1212,7
+[log] [2026-11-04 23:24:25.827] [[32minfo[m] JV_TOUCH_TARGET root=574,257 rect=267,70,38,38
+[log] [2026-11-04 23:24:25.828] [[32minfo[m] JV_MAP_RELEASE point=285,88 tile=990,1211,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(990, 1211, 7) recebido=(990, 1211, 7)
+[log] [2026-11-04 23:24:28.144] [[32minfo[m] JV_GAME_LAYOUT root=574,257 map=0,25,574,129 chat=-1,194,575,63 shortcuts=398,215,176,42 right=574,0,0,215
+[log] [2026-11-04 23:24:28.148] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,32,38,38 tile=989,1210,7
+[log] [2026-11-04 23:24:28.148] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,32,38,38 tile=990,1210,7
+[log] [2026-11-04 23:24:28.150] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,32,38,38 tile=991,1210,7
+[log] [2026-11-04 23:24:28.151] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,70,38,38 tile=989,1211,7
+[log] [2026-11-04 23:24:28.151] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,70,38,38 tile=990,1211,7
+[log] [2026-11-04 23:24:28.151] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,70,38,38 tile=991,1211,7
+[log] [2026-11-04 23:24:28.151] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,107,38,38 tile=989,1212,7
+[log] [2026-11-04 23:24:28.151] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,107,38,38 tile=990,1212,7
+[log] [2026-11-04 23:24:28.151] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,107,38,38 tile=991,1212,7
+[log] [2026-11-04 23:24:28.923] [[32minfo[m] JV_TOUCH_TARGET root=574,257 rect=230,107,38,38
+[log] [2026-11-04 23:24:28.924] [[32minfo[m] JV_MAP_RELEASE point=248,125 tile=989,1212,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(989, 1212, 7) recebido=(989, 1212, 7)
+[log] [2026-11-04 23:24:31.240] [[32minfo[m] JV_GAME_LAYOUT root=574,257 map=0,25,574,129 chat=-1,194,575,63 shortcuts=398,215,176,42 right=574,0,0,215
+[log] [2026-11-04 23:24:31.247] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,32,38,38 tile=988,1211,7
+[log] [2026-11-04 23:24:31.248] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,32,38,38 tile=989,1211,7
+[log] [2026-11-04 23:24:31.251] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,32,38,38 tile=990,1211,7
+[log] [2026-11-04 23:24:31.252] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,70,38,38 tile=988,1212,7
+[log] [2026-11-04 23:24:31.255] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,70,38,38 tile=989,1212,7
+[log] [2026-11-04 23:24:31.256] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,70,38,38 tile=990,1212,7
+[log] [2026-11-04 23:24:31.259] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=230,107,38,38 tile=988,1213,7
+[log] [2026-11-04 23:24:31.259] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=267,107,38,38 tile=989,1213,7
+[log] [2026-11-04 23:24:31.260] [[32minfo[m] JV_MAP_PROBE root=574,257 rect=305,107,38,38 tile=990,1213,7
+[log] [2026-11-04 23:24:31.987] [[32minfo[m] JV_TOUCH_TARGET root=574,257 rect=305,107,38,38
+[log] [2026-11-04 23:24:31.988] [[32minfo[m] JV_MAP_RELEASE point=323,125 tile=990,1213,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(990, 1213, 7) recebido=(990, 1213, 7)
+[log] [2026-11-04 23:24:35.851] [[32minfo[m] JV_JANELA root=602,278 rect=388,65,182,171
+[log] [2026-11-04 23:24:37.240] [[32minfo[m] JV_JANELA root=602,278 rect=362,53,182,183
+[log] [2026-11-04 23:24:38.695] [[32minfo[m] JV_JANELA root=602,278 rect=336,53,182,183
+[log] [2026-11-04 23:24:39.990] [[32minfo[m] JV_JANELA root=602,278 rect=310,18,182,218
+[log] [2026-11-04 23:24:41.467] [[32minfo[m] JV_JANELA root=602,278 rect=414,48,182,183
+[log] [2026-11-04 23:24:44.265] [[32minfo[m] JV_SOLTA container0 rect=420,48,176,118
+mochila: ['[2026-11-04 23:24:44.265] [\x1b[32minfo\x1b[m] JV_SOLTA container0 rect=420,48,176,118']
+[log] [2026-11-04 23:24:46.345] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=320,70,39,40
+[log] [2026-11-04 23:24:46.348] [[32minfo[m] JV_MAP_RELEASE point=335,107 tile=991,1213,7 button=1
+[log] [2026-11-04 23:24:59.988] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:24:59.990] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1212,7
+[log] [2026-11-04 23:24:59.991] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1212,7
+[log] [2026-11-04 23:24:59.991] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1212,7
+[log] [2026-11-04 23:24:59.992] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1213,7
+[log] [2026-11-04 23:24:59.992] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1213,7
+[log] [2026-11-04 23:24:59.993] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1213,7
+[log] [2026-11-04 23:24:59.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1214,7
+[log] [2026-11-04 23:24:59.998] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1214,7
+[log] [2026-11-04 23:25:00.000] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1214,7
+[log] [2026-11-04 23:25:00.732] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=83,176,37,37
+[log] [2026-11-04 23:25:00.735] [[32minfo[m] JV_MAP_RELEASE point=101,194 tile=990,1212,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(990, 1212, 7) recebido=(990, 1212, 7)
+[log] [2026-11-04 23:25:03.065] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:03.065] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=989,1211,7
+[log] [2026-11-04 23:25:03.067] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:03.067] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:03.067] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=989,1212,7
+[log] [2026-11-04 23:25:03.067] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:03.067] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:03.067] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=989,1213,7
+[log] [2026-11-04 23:25:03.068] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=990,1213,7
+[log] [2026-11-04 23:25:03.068] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=991,1213,7
+[log] [2026-11-04 23:25:03.812] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=157,176,37,37
+[log] [2026-11-04 23:25:03.812] [[32minfo[m] JV_MAP_RELEASE point=175,194 tile=991,1211,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(991, 1211, 7) recebido=(991, 1211, 7)
+[log] [2026-11-04 23:25:06.121] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:06.124] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1210,7
+[log] [2026-11-04 23:25:06.124] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1210,7
+[log] [2026-11-04 23:25:06.124] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1210,7
+[log] [2026-11-04 23:25:06.124] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:06.127] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:06.128] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:06.129] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:06.131] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:06.131] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:06.833] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=120,212,37,37
+[log] [2026-11-04 23:25:06.838] [[32minfo[m] JV_MAP_RELEASE point=138,230 tile=991,1211,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(991, 1211, 7) recebido=(991, 1211, 7)
+[log] [2026-11-04 23:25:09.167] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:09.167] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1210,7
+[log] [2026-11-04 23:25:09.167] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1210,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1210,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:09.168] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:09.896] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=83,250,37,37
+[log] [2026-11-04 23:25:09.900] [[32minfo[m] JV_MAP_RELEASE point=101,268 tile=990,1212,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(990, 1212, 7) recebido=(990, 1212, 7)
+[log] [2026-11-04 23:25:12.312] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:12.316] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:12.316] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:12.316] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:12.318] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:12.318] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:12.318] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:12.320] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1213,7
+[log] [2026-11-04 23:25:12.320] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1213,7
+[log] [2026-11-04 23:25:12.320] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1213,7
+[log] [2026-11-04 23:25:13.168] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=157,250,37,37
+[log] [2026-11-04 23:25:13.177] [[32minfo[m] JV_MAP_RELEASE point=175,268 tile=992,1213,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(992, 1213, 7) recebido=(992, 1213, 7)
+[log] [2026-11-04 23:25:15.323] [[32minfo[m] JV_JANELA root=278,602 rect=96,48,182,183
+[log] [2026-11-04 23:25:17.800] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:17.800] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:17.801] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:17.801] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=993,1212,7
+[log] [2026-11-04 23:25:17.801] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=991,1213,7
+[log] [2026-11-04 23:25:17.801] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=992,1213,7
+[log] [2026-11-04 23:25:17.803] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=993,1213,7
+[log] [2026-11-04 23:25:17.803] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=991,1214,7
+[log] [2026-11-04 23:25:17.803] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=992,1214,7
+[log] [2026-11-04 23:25:17.803] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=993,1214,7
+[log] [2026-11-04 23:25:18.552] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=83,176,37,37
+[log] [2026-11-04 23:25:18.560] [[32minfo[m] JV_MAP_RELEASE point=101,194 tile=991,1212,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(991, 1212, 7) recebido=(991, 1212, 7)
+[log] [2026-11-04 23:25:20.888] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:20.889] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1213,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1213,7
+[log] [2026-11-04 23:25:20.892] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1213,7
+[log] [2026-11-04 23:25:21.633] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=157,176,37,37
+[log] [2026-11-04 23:25:21.636] [[32minfo[m] JV_MAP_RELEASE point=175,194 tile=992,1211,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(992, 1211, 7) recebido=(992, 1211, 7)
+[log] [2026-11-04 23:25:23.947] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:23.947] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1210,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1210,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1210,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:23.948] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:24.665] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=120,212,37,37
+[log] [2026-11-04 23:25:24.668] [[32minfo[m] JV_MAP_RELEASE point=138,230 tile=991,1211,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(991, 1211, 7) recebido=(991, 1211, 7)
+[log] [2026-11-04 23:25:26.995] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:26.995] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1210,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1210,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1210,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:26.996] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:27.708] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=83,250,37,37
+[log] [2026-11-04 23:25:27.708] [[32minfo[m] JV_MAP_RELEASE point=101,268 tile=990,1212,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(990, 1212, 7) recebido=(990, 1212, 7)
+[log] [2026-11-04 23:25:30.025] [[32minfo[m] JV_GAME_LAYOUT root=278,602 map=0,25,278,414 chat=-1,479,279,81 shortcuts=102,560,176,42 right=278,0,0,560
+[log] [2026-11-04 23:25:30.027] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,176,37,37 tile=990,1211,7
+[log] [2026-11-04 23:25:30.027] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,176,37,37 tile=991,1211,7
+[log] [2026-11-04 23:25:30.027] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,176,37,37 tile=992,1211,7
+[log] [2026-11-04 23:25:30.027] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,212,37,37 tile=990,1212,7
+[log] [2026-11-04 23:25:30.028] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,212,37,37 tile=991,1212,7
+[log] [2026-11-04 23:25:30.030] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,212,37,37 tile=992,1212,7
+[log] [2026-11-04 23:25:30.030] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=83,250,37,37 tile=990,1213,7
+[log] [2026-11-04 23:25:30.031] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=120,250,37,37 tile=991,1213,7
+[log] [2026-11-04 23:25:30.031] [[32minfo[m] JV_MAP_PROBE root=278,602 rect=157,250,37,37 tile=992,1213,7
+[log] [2026-11-04 23:25:30.759] [[32minfo[m] JV_TOUCH_TARGET root=278,602 rect=157,250,37,37
+[log] [2026-11-04 23:25:30.760] [[32minfo[m] JV_MAP_RELEASE point=175,268 tile=992,1213,7 button=1
+tile correto: viewport={'width': 390, 'height': 844} esperado=(992, 1213, 7) recebido=(992, 1213, 7)
+[log] [2026-11-04 23:25:37.584] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:25:37.585] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=991,1212,7
+[log] [2026-11-04 23:25:37.585] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=992,1212,7
+[log] [2026-11-04 23:25:37.585] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=993,1212,7
+[log] [2026-11-04 23:25:37.585] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=991,1213,7
+[log] [2026-11-04 23:25:37.587] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=992,1213,7
+[log] [2026-11-04 23:25:37.587] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=993,1213,7
+[log] [2026-11-04 23:25:37.588] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=991,1214,7
+[log] [2026-11-04 23:25:37.588] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=992,1214,7
+[log] [2026-11-04 23:25:37.588] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=993,1214,7
+[log] [2026-11-04 23:25:38.324] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=241,31,39,40
+[log] [2026-11-04 23:25:38.326] [[32minfo[m] JV_MAP_RELEASE point=260,50 tile=991,1212,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(991, 1212, 7) recebido=(991, 1212, 7)
+[log] [2026-11-04 23:25:40.646] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:25:40.646] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1211,7
+[log] [2026-11-04 23:25:40.647] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1211,7
+[log] [2026-11-04 23:25:40.647] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1211,7
+[log] [2026-11-04 23:25:40.647] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1212,7
+[log] [2026-11-04 23:25:40.647] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1212,7
+[log] [2026-11-04 23:25:40.648] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1212,7
+[log] [2026-11-04 23:25:40.648] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1213,7
+[log] [2026-11-04 23:25:40.648] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1213,7
+[log] [2026-11-04 23:25:40.648] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1213,7
+[log] [2026-11-04 23:25:41.368] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=320,31,39,40
+[log] [2026-11-04 23:25:41.368] [[32minfo[m] JV_MAP_RELEASE point=339,50 tile=992,1211,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(992, 1211, 7) recebido=(992, 1211, 7)
+[log] [2026-11-04 23:25:43.680] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:25:43.680] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1210,7
+[log] [2026-11-04 23:25:43.681] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1210,7
+[log] [2026-11-04 23:25:43.681] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1210,7
+[log] [2026-11-04 23:25:43.681] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1211,7
+[log] [2026-11-04 23:25:43.681] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1211,7
+[log] [2026-11-04 23:25:43.681] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1211,7
+[log] [2026-11-04 23:25:43.681] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1212,7
+[log] [2026-11-04 23:25:43.683] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1212,7
+[log] [2026-11-04 23:25:43.683] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1212,7
+[log] [2026-11-04 23:25:44.443] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=280,70,39,40
+[log] [2026-11-04 23:25:44.443] [[32minfo[m] JV_MAP_RELEASE point=299,90 tile=991,1211,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(991, 1211, 7) recebido=(991, 1211, 7)
+[log] [2026-11-04 23:25:46.755] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:25:46.755] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=990,1210,7
+[log] [2026-11-04 23:25:46.756] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=991,1210,7
+[log] [2026-11-04 23:25:46.756] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=992,1210,7
+[log] [2026-11-04 23:25:46.756] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=990,1211,7
+[log] [2026-11-04 23:25:46.756] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=991,1211,7
+[log] [2026-11-04 23:25:46.756] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=992,1211,7
+[log] [2026-11-04 23:25:46.758] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=990,1212,7
+[log] [2026-11-04 23:25:46.758] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=991,1212,7
+[log] [2026-11-04 23:25:46.759] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=992,1212,7
+[log] [2026-11-04 23:25:47.508] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=241,110,39,40
+[log] [2026-11-04 23:25:47.508] [[32minfo[m] JV_MAP_RELEASE point=260,130 tile=990,1212,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(990, 1212, 7) recebido=(990, 1212, 7)
+[log] [2026-11-04 23:25:49.828] [[32minfo[m] JV_GAME_LAYOUT root=602,278 map=0,25,602,132 chat=-1,197,603,81 shortcuts=426,236,176,42 right=602,0,0,236
+[log] [2026-11-04 23:25:49.830] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,31,39,40 tile=989,1211,7
+[log] [2026-11-04 23:25:49.831] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,31,39,40 tile=990,1211,7
+[log] [2026-11-04 23:25:49.831] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,31,39,40 tile=991,1211,7
+[log] [2026-11-04 23:25:49.831] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,70,39,40 tile=989,1212,7
+[log] [2026-11-04 23:25:49.831] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,70,39,40 tile=990,1212,7
+[log] [2026-11-04 23:25:49.832] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,70,39,40 tile=991,1212,7
+[log] [2026-11-04 23:25:49.832] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=241,110,39,40 tile=989,1213,7
+[log] [2026-11-04 23:25:49.832] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=280,110,39,40 tile=990,1213,7
+[log] [2026-11-04 23:25:49.832] [[32minfo[m] JV_MAP_PROBE root=602,278 rect=320,110,39,40 tile=991,1213,7
+[log] [2026-11-04 23:25:50.553] [[32minfo[m] JV_TOUCH_TARGET root=602,278 rect=320,110,39,40
+[log] [2026-11-04 23:25:50.556] [[32minfo[m] JV_MAP_RELEASE point=339,130 tile=991,1213,7 button=1
+tile correto: viewport={'width': 844, 'height': 390} esperado=(991, 1213, 7) recebido=(991, 1213, 7)
+[log] [2026-11-04 23:25:56.035] [[32minfo[m] JV_JANELA root=602,278 rect=96,48,182,183
+[log] [2026-11-04 23:25:57.768] [[32minfo[m] JV_JANELA root=602,278 rect=310,18,182,218
+[log] [2026-11-04 23:26:10.300] [[32minfo[m] JV_LAYOUT classico
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-04 23:26:12.875] [[32minfo[m] Application started at Nov 04 2026 23:26:12
+[log] [2026-11-04 23:26:12.928] [[31m[1merror[m] Failed to parse public config 'config.ini': unable to open file '/config.ini': not found
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-04 23:26:12.961] [[32minfo[m] GPU WebKit WebGL
+[log] [2026-11-04 23:26:12.963] [[32minfo[m] OpenGL OpenGL ES 3.0 (WebGL 2.0)
+[log] [2026-11-04 23:26:12.992] [[32minfo[m] Operating system: browser
+[log] [2026-11-04 23:26:12.992] [[32minfo[m] JV Baiak 4.x rev 0.000 (desenv) built on Oct 31 2026 for arch WASM32
+[log] [2026-11-04 23:26:18.512] [[32minfo[m] Startup done :]
+[log] [2026-11-04 23:26:18.524] [[32minfo[m] JV_LAYOUT classico
+[log] [2026-11-04 23:26:20.694] [[32minfo[m] JV_WEB_GAME_READY
+layout classico: voltou sozinho ao jogo = True em 11s
+[log] [2026-11-04 23:26:31.108] [[32minfo[m] JV_JANELA root=602,278 rect=388,18,182,218
+[log] [2026-11-04 23:26:32.865] [[32minfo[m] JV_JANELA root=602,278 rect=362,65,182,171
+[log] [2026-11-04 23:26:45.116] [[32minfo[m] JV_LAYOUT paginas
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-04 23:26:47.676] [[32minfo[m] Application started at Nov 04 2026 23:26:47
+[log] [2026-11-04 23:26:47.696] [[31m[1merror[m] Failed to parse public config 'config.ini': unable to open file '/config.ini': not found
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-04 23:26:47.719] [[32minfo[m] GPU WebKit WebGL
+[log] [2026-11-04 23:26:47.719] [[32minfo[m] OpenGL OpenGL ES 3.0 (WebGL 2.0)
+[log] [2026-11-04 23:26:47.756] [[32minfo[m] Operating system: browser
+[log] [2026-11-04 23:26:47.756] [[32minfo[m] JV Baiak 4.x rev 0.000 (desenv) built on Oct 31 2026 for arch WASM32
+[log] [2026-11-04 23:26:53.654] [[32minfo[m] Startup done :]
+[log] [2026-11-04 23:26:53.662] [[32minfo[m] JV_LAYOUT paginas
+[log] [2026-11-04 23:26:55.816] [[32minfo[m] JV_WEB_GAME_READY
+layout paginas: voltou sozinho ao jogo = True em 11s
+[log] [2026-11-04 23:27:18.017] [[32minfo[m] JV_LAYOUT livre
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-04 23:27:20.604] [[32minfo[m] Application started at Nov 04 2026 23:27:20
+[log] [2026-11-04 23:27:20.632] [[31m[1merror[m] Failed to parse public config 'config.ini': unable to open file '/config.ini': not found
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-04 23:27:20.667] [[32minfo[m] GPU WebKit WebGL
+[log] [2026-11-04 23:27:20.668] [[32minfo[m] OpenGL OpenGL ES 3.0 (WebGL 2.0)
+[log] [2026-11-04 23:27:20.726] [[32minfo[m] Operating system: browser
+[log] [2026-11-04 23:27:20.728] [[32minfo[m] JV Baiak 4.x rev 0.000 (desenv) built on Oct 31 2026 for arch WASM32
+[log] [2026-11-04 23:27:25.433] [[32minfo[m] Startup done :]
+[log] [2026-11-04 23:27:25.441] [[32minfo[m] JV_LAYOUT livre
+[log] [2026-11-04 23:27:27.374] [[32minfo[m] JV_WEB_GAME_READY
+layout livre: voltou sozinho ao jogo = True em 10s
+volta automatica por layout: {'classico': True, 'paginas': True, 'livre': True}; sem quedas em 75 s
