@@ -75,6 +75,7 @@ def main():
         pg = ctx.new_page()
         layouts, game_ready, map_probes, map_releases, game_layouts = [], [], [], [], []
         game_ends, layout_logs = [], []
+        janelas, tamanhos = [], []
         seen = set()
         def console(message):
             text = message.text
@@ -85,6 +86,11 @@ def main():
             log.write(f"[{message.type}] {text}\n")
             if 'JV_WEB_GAME_READY' in text:
                 game_ready.append(True)
+            if 'JV_JANELA root=' in text:
+                janelas.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect)=([0-9,-]+)',text)})
+            m2 = re.search(r'JV_JANELA_TAMANHO (\d+),(\d+)', text)
+            if m2:
+                tamanhos.append((int(m2.group(1)), int(m2.group(2))))
             if 'JV_GAME_END' in text:
                 game_ends.append(time.time())
             m = re.search(r'JV_LAYOUT (livre|classico|paginas)', text)
@@ -361,6 +367,24 @@ def main():
             pg.set_viewport_size({"width": 844, "height": 390})
             time.sleep(4)
             foto("10-deitado-de-novo.png")
+            # tela cheia: puxar a alca do canto diminui a caixa do Equipamento
+            janelas.clear(); tamanhos.clear()
+            pg.tap('#menu-botao'); pg.tap('#jv-equipamento'); time.sleep(1.5)
+            assert janelas, 'A janela solta do Equipamento nao abriu'
+            rw, rh = janelas[-1]['root']; x, y, w, h = janelas[-1]['rect']
+            box = pg.locator('#canvas').bounding_box()
+            gx = box['x'] + (x + w - 15) * box['width'] / rw
+            gy = box['y'] + (y + h - 12) * box['height'] / rh
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": gx, "y": gy}]})
+            for i in range(1, 11):
+                cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": gx - 6 * i, "y": gy - 4 * i}]})
+                time.sleep(0.05)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+            time.sleep(1.5)
+            foto('7h-janela-menor.png')
+            log.write(f"janela antes={w}x{h} depois={tamanhos}\n")
+            assert tamanhos and tamanhos[-1][0] < w and tamanhos[-1][1] < h, ('A caixa nao diminuiu', (w, h), tamanhos)
+            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
             tour_layouts()
         if not ok:
             raise AssertionError('Nao foi possivel criar a conta de teste')

@@ -1,7 +1,8 @@
 -- JV Baiak: TRES LAYOUTS NO CELULAR (jogo no navegador). Troca pelo menu: "Trocar layout".
 --   livre    = Tela cheia: o mapa ocupa a tela toda e as janelas (equipamento, minimapa,
 --              skills, combate, mochilas, battle...) abrem SOLTAS por cima do mapa: arraste
---              pela barra do titulo e feche no X.
+--              pela barra do titulo, feche no X, encolha no "-" e mude o tamanho puxando
+--              a alca "<>" do canto de baixo (o tamanho fica salvo).
 --   classico = Como era antes: painel do lado direito com equipamento, minimapa e mochilas
 --              (pode arrastar as janelas para fora do painel e fechar).
 --   paginas  = Um painel por vez do lado (o menu escolhe qual) e ele fecha para o mapa crescer.
@@ -121,8 +122,53 @@ local function criarJanela(id)
     x:addAnchor(AnchorTop, 'parent', AnchorTop); x:addAnchor(AnchorRight, 'parent', AnchorRight)
     x:setMarginTop(-26)
     x.onClick = function() w:hide() end
+    w:setClipping(true) -- menor que o conteudo: corta, nao vaza para fora da caixa
+    -- "-" encolhe para so a barra do titulo; tocar de novo volta ao tamanho
+    local menos = g_ui.createWidget('Button', w)
+    menos:setId('jvEncolher'); menos:setText('-'); menos:setSize({width = 26, height = 22})
+    menos:addAnchor(AnchorTop, 'parent', AnchorTop); menos:addAnchor(AnchorRight, 'jvFechar', AnchorLeft)
+    menos:setMarginTop(-26); menos:setMarginRight(2)
+    -- alca no canto de baixo: arraste para aumentar ou diminuir a caixa
+    local alca = g_ui.createWidget('Button', w)
+    alca:setId('jvAlca'); alca:setText('<>'); alca:setSize({width = 30, height = 26})
+    alca:addAnchor(AnchorBottom, 'parent', AnchorBottom); alca:addAnchor(AnchorRight, 'parent', AnchorRight)
+    alca:setMarginBottom(-2); alca:setMarginRight(-2)
+    alca:setDraggable(true)
+    local MINL, MINA = 110, 70
+    local function guardar()
+        pcall(function() g_settings.set('jvTam_' .. id, w:getWidth() .. ',' .. w:getHeight()) end)
+    end
+    alca.onDragEnter = function(self, pos)
+        self.ini = {x = pos.x, y = pos.y, w = w:getWidth(), h = w:getHeight()}
+        return true
+    end
+    alca.onDragMove = function(self, pos)
+        local i, r = self.ini, raiz()
+        if not i then return true end
+        local nl = math.max(MINL, math.min(r:getWidth(), i.w + pos.x - i.x))
+        local na = math.max(MINA, math.min(r:getHeight(), i.h + pos.y - i.y))
+        w:setSize({width = nl, height = na})
+        w.jvAltura = nil
+        return true
+    end
+    alca.onDragLeave = function(self)
+        self.ini = nil; guardar(); dentroDaTela(w)
+        g_logger.info(string.format('JV_JANELA_TAMANHO %d,%d', w:getWidth(), w:getHeight()))
+        return true
+    end
+    menos.onClick = function()
+        if w.jvAltura then
+            w:setHeight(w.jvAltura); w.jvAltura = nil; alca:show()
+        else
+            w.jvAltura = w:getHeight(); w:setHeight(30); alca:hide()
+        end
+    end
     w.onDragLeave = function(self) dentroDaTela(self); return true end
     L.janelas[id] = {janela = w, pagina = pagina}
+    -- tamanho que voce deixou da ultima vez
+    local salvo = g_settings.get('jvTam_' .. id)
+    local sl, sa = tostring(salvo or ''):match('^(%d+),(%d+)$')
+    if sl then w:setSize({width = math.max(MINL, tonumber(sl)), height = math.max(MINA, tonumber(sa))}) end
     w:setPosition(lugarLivre(w:getWidth()))
     return L.janelas[id]
 end
@@ -138,6 +184,8 @@ function L.alternarSolta(id)
     if not j then j = criarJanela(id) end
     if not j then return end
     j.janela:show(); j.janela:raise(); dentroDaTela(j.janela)
+    local r, t = j.janela:getRect(), rootWidget:getSize()
+    g_logger.info(string.format('JV_JANELA root=%d,%d rect=%d,%d,%d,%d', t.width, t.height, r.x, r.y, r.width, r.height))
 end
 
 function L.fecharSoltas()
