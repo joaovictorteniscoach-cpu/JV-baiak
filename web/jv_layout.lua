@@ -101,7 +101,7 @@ end
 -- Puxar a alca "<>" do canto AUMENTA ou DIMINUI a janela toda na mesma proporcao:
 -- titulo, letras, itens, botoes e espacos encolhem juntos (nada e cortado).
 local ORIG = setmetatable({}, {__mode = 'k'})
-local MINF, MAXF = 0.5, 1.6
+local MINF, MAXF = 0.5, 1.4
 local function arred(n) return math.floor(n + 0.5) end
 
 local function original(w)
@@ -111,6 +111,7 @@ local function original(w)
          m = {w:getMarginTop(), w:getMarginRight(), w:getMarginBottom(), w:getMarginLeft()},
          p = {w:getPaddingTop(), w:getPaddingRight(), w:getPaddingBottom(), w:getPaddingLeft()}}
     pcall(function() local t = w:getTextOffset(); if t and (t.x ~= 0 or t.y ~= 0) then o.to = {x = t.x, y = t.y} end end)
+    pcall(function() local fo = w:getFont(); if type(fo) == 'string' and fo ~= '' then o.fonte = fo end end)
     pcall(function() local z = w:getImageSize(); if z and z.width > 0 and z.height > 0 then o.is = {width = z.width, height = z.height} end end)
     pcall(function()
         local lay = w:getLayout()
@@ -135,7 +136,19 @@ local function escalarArvore(w, f, topo)
     end
     w:setPaddingTop(arred(o.p[1] * f)); w:setPaddingRight(arred(o.p[2] * f))
     w:setPaddingBottom(arred(o.p[3] * f)); w:setPaddingLeft(arred(o.p[4] * f))
-    pcall(function() w:setFontScale(f) end)
+    -- letras: o "font scale" do jogo estraga o desenho no celular (escala da tela), entao a
+    -- letra diminui trocando para a mesma fonte num tamanho menor
+    if o.fonte then
+        local nova = o.fonte
+        if f < 0.6 then nova = 'cipsoftFont'
+        elseif f < 0.72 then nova = 'Verdana-8px-antialiased'
+        elseif f < 0.85 then nova = 'Verdana-9px-antialiased'
+        elseif f < 0.95 then nova = 'Verdana-10px-antialiased' end
+        if w.jvFonte ~= nova then
+            w.jvFonte = nova
+            pcall(function() w:setFont(nova) end)
+        end
+    end
     if o.to then pcall(function() w:setTextOffset({x = arred(o.to.x * f), y = arred(o.to.y * f)}) end) end
     if o.is then pcall(function() w:setImageSize({width = arred(o.is.width * f), height = arred(o.is.height * f)}) end) end
     if o.cel then
@@ -180,8 +193,7 @@ local function colocarAlca(w, chave)
     alca:setBackgroundColor('#00000066')
     alca:setBorderWidth(1); alca:setBorderColor('#c0a060')
     alca:setText('<>'); alca:setColor('#f0d890')
-    pcall(function() alca:setFont('verdana-11px-antialised') end)
-    pcall(function() alca:setFontScale(0.7) end)
+    pcall(function() alca:setFont('cipsoftFont') end)
     alca:setDraggable(true)
     alca.onDragEnter = function(self, pos)
         self.ini = {x = pos.x, y = pos.y, f = w.jvEscala or 1, w = w:getWidth(), h = w:getHeight()}
