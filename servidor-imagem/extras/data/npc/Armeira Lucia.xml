@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<npc name="Armeira Lucia" script="default.lua" walkinterval="0" floorchange="0">
+	<health now="100" max="100" />
+	<look type="139" head="96" body="94" legs="114" feet="95" addons="1" />
+	<parameters>
+		<parameter key="module_shop" value="1" />
+		<parameter key="message_greet" value="Ola |PLAYERNAME|! Vendo e compro {armaduras}, {calcas}, {capacetes} e {botas}. Diga {trade}." />
+		<parameter key="shop_buyable" value="brass armor,2465,450;brass helmet,2460,120;brass legs,2478,195;chain armor,2464,200;chain helmet,2458,52;chain legs,2648,80;leather armor,2467,25;leather boots,2643,10;leather helmet,2461,12;leather legs,2649,10;plate armor,2463,1200;steel helmet,2457,580;viking helmet,2473,265" />
+		<parameter key="shop_sellable" value="boots of haste,2195,30000;brass armor,2465,150;brass helmet,2460,30;brass legs,2478,49;chain armor,2464,70;chain helmet,2458,17;chain legs,2648,25;crown armor,2487,12000;crown helmet,2491,2500;crown legs,2488,12000;crusader helmet,2497,6000;dark armor,2489,400;dark helmet,2490,250;demon helmet,2493,40000;devil helmet,2462,1000;dragon scale mail,2492,40000;focus cape,8871,6000;glacier robe,7897,11000;golden armor,2466,20000;golden legs,2470,30000;knight armor,2476,5000;knight legs,2477,5000;leather armor,2467,12;leather boots,2643,2;leather helmet,2461,4;leather legs,2649,9;lightning robe,7898,11000;magic plate armor,2472,90000;magma coat,7899,11000;mystic turban,2663,150;noble armor,2486,900;paladin armor,8891,15000;plate armor,2463,400;plate legs,2647,115;royal helmet,2498,30000;scale armor,2483,75;steel boots,2645,30000;steel helmet,2457,293;strange helmet,2479,500;terra mantle,7884,11000;viking helmet,2473,66;warrior helmet,2475,5000" />
+	</parameters>
+</npc>

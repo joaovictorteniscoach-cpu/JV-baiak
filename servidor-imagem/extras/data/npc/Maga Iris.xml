@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<npc name="Maga Iris" script="default.lua" walkinterval="0" floorchange="0">
+	<health now="100" max="100" />
+	<look type="138" head="0" body="86" legs="86" feet="86" addons="2" />
+	<parameters>
+		<parameter key="module_shop" value="1" />
+		<parameter key="message_greet" value="Ola |PLAYERNAME|! Vendo {wands}, {rods}, {pocoes}, aneis e amuletos. Diga {trade}." />
+		<parameter key="shop_buyable" value="blank rune,2260,10;great health potion,7591,190;great mana potion,7590,120;great spirit potion,8472,190;hailstorm rod,2183,15000;health potion,7618,45;life ring,2168,900;mana potion,7620,50;moonlight rod,2186,1000;necrotic rod,2185,5000;snakebite rod,2182,500;spellbook,2175,150;strong health potion,7588,100;strong mana potion,7589,80;terra rod,2181,10000;ultimate health potion,8473,310;wand of cosmic energy,2189,10000;wand of decay,2188,5000;wand of dragonbreath,2191,1000;wand of inferno,2187,15000;wand of vortex,2190,500" />
+		<parameter key="shop_sellable" value="axe ring,2208,100;club ring,2209,100;dwarven ring,2213,100;elven amulet,2198,100;energy ring,2167,100;hailstorm rod,2183,3000;life ring,2168,50;might ring,2164,250;moonlight rod,2186,200;necrotic rod,2185,1000;platinum amulet,2171,2500;protection amulet,2200,100;ring of healing,2214,100;silver amulet,2170,50;snakebite rod,2182,100;stealth ring,2165,200;stone skin amulet,2197,500;sword ring,2207,100;terra rod,2181,2000;time ring,2169,100;wand of cosmic energy,2189,2000;wand of decay,2188,1000;wand of dragonbreath,2191,200;wand of inferno,2187,3000;wand of vortex,2190,100" />
+	</parameters>
+</npc>

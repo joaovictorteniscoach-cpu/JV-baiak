@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<npc name="Ferreiro Joaquim" script="default.lua" walkinterval="0" floorchange="0">
+	<health now="100" max="100" />
+	<look type="131" head="78" body="57" legs="76" feet="95" addons="1" />
+	<parameters>
+		<parameter key="module_shop" value="1" />
+		<parameter key="message_greet" value="Ola |PLAYERNAME|! Faco e compro {armas} e {escudos}. Diga {trade} para ver tudo." />
+		<parameter key="shop_buyable" value="arrow,2544,3;axe,2386,20;battle axe,2378,235;battle hammer,2417,350;bolt,2543,4;bow,2456,400;brass shield,2511,65;carlin sword,2395,473;club,2382,5;crossbow,2455,500;dwarven shield,2525,500;hatchet,2388,25;infernal bolt,6529,12;longsword,2397,160;mace,2398,90;morning star,2394,430;onyx arrow,7365,7;piercing bolt,7363,5;plate shield,2510,125;power bolt,2547,14;royal spear,7378,15;sniper arrow,7364,5;spear,2389,10;spellbook,2175,150;spike sword,2383,8000;steel shield,2509,240;sword,2376,85;throwing knife,2410,25;two handed sword,2377,950;war hammer,2391,10000;wooden shield,2512,15" />
+		<parameter key="shop_sellable" value="axe,2386,7;barbarian axe,2429,185;battle axe,2378,80;battle hammer,2417,120;battle shield,2513,95;black shield,2529,800;bow,2456,100;brass shield,2511,25;bright sword,2407,6000;broadsword,2413,500;carlin sword,2395,118;clerical mace,2423,170;club,2382,1;copper shield,2530,50;crossbow,2455,120;crown shield,2519,8000;crystal mace,2445,12000;demon shield,2520,30000;double axe,2387,260;dragon hammer,2434,2000;dragon lance,2414,9000;dragon shield,2516,4000;dwarven shield,2525,100;fire axe,2432,8000;fire sword,2392,4000;giant sword,2393,17000;guardian halberd,2427,11000;guardian shield,2515,2000;halberd,2381,400;hatchet,2388,25;ice rapier,2396,1000;knight axe,2430,2000;longsword,2397,51;mace,2398,30;mastermind shield,2514,50000;medusa shield,2536,9000;morning star,2394,100;naginata,2426,2000;phoenix shield,2539,16000;plate shield,2510,45;serpent sword,2409,900;skull staff,2436,6000;spear,2389,3;spike sword,2383,1000;spiked squelcher,7452,5000;steel shield,2509,80;sword,2376,25;throwing knife,2410,2;tower shield,2528,8000;two handed sword,2377,450;vampire shield,2534,15000;war axe,2454,12000;war hammer,2391,470;wooden shield,2512,5" />
+	</parameters>
+</npc>

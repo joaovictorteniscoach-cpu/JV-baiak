@@ -410,6 +410,65 @@ main() {
 		PY
 		ok "respawn: 40s nos comuns e 50s nos bosses e raros"
 	fi
+	if ! grep -qx 'rates-1000x' "$AJUSTES"; then
+		# Experiencia alta o tempo todo: 1000x em level, skills e magic level; loot 100x
+		# (com loot 100x os itens raros caem muito mais). Sem level maximo.
+		LC_ALL=C awk '
+			/^experienceStages[ \t]*=[ \t]*\{/ { pula = 1; print "experienceStages = {"; print "\t{ minlevel = 1, multiplier = 1000 },"; print "}"; next }
+			pula && /^\}/ { pula = 0; next }
+			pula { next }
+			{ print }
+		' "$SRV/config.lua" > "$SRV/config.lua.tmp" && mv "$SRV/config.lua.tmp" "$SRV/config.lua"
+		lua_define rateExp 1000
+		lua_define rateSkill 1000
+		lua_define rateMagic 1000
+		lua_define rateLoot 100
+		echo 'rates-1000x' >> "$AJUSTES"
+		ok "rates: experiencia, skills e magic level 1000x; loot 100x"
+		REINICIAR_SERVIDOR=1
+	fi
+	if ! grep -qx 'respawn-10-15' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Respawn: monstros comuns 10s; bosses e raros 15s
+		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-10-15' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+			import re, sys
+			RAROS = {"the old widow", "orshabaal", "laravel", "diabolic imp", "hand of cursed fate", "orc warlord",
+			         "black knight", "werewolf", "elder beholder", "massive fire elemental", "pirate ghost",
+			         "spectre", "blightwalker", "juggernaut", "rotworm queen", "vampire bride", "undead dragon",
+			         "ashmunrah", "morgaroth", "ghazbaran", "ferumbras", "demodras", "necropharus", "the horned fox",
+			         "the evil eye", "zulazza the corruptor", "the handmaiden", "the imperor", "the plasmother",
+			         "dracola", "massacre", "mr. punish", "countess sorrow", "the count", "grorlam"}
+			def troca(m):
+			    tag = m.group(0)
+			    nome = re.search(r'name="([^"]+)"', tag)
+			    nome = nome.group(1).lower() if nome else ""
+			    return re.sub(r'spawntime="\d+"', 'spawntime="%d"' % (15 if nome in RAROS else 10), tag)
+			for arq in sys.argv[1:]:
+			    t = open(arq, encoding="latin-1").read()
+			    open(arq, "w", encoding="latin-1").write(re.sub(r"<monster\b[^>]*>", troca, t))
+		PY
+		ok "respawn: 10s nos comuns e 15s nos bosses e raros"
+	fi
+	if ! grep -qx 'npcs-lojas-v1' "$AJUSTES" && command -v python3 >/dev/null; then
+		# NPCs de loja que faltavam (ferreiro, armeira, comprador de loot, maga, ferramentas,
+		# armas de distancia e o rei da promocao) no templo de Thunder City
+		python3 - "$BASE/servidor-imagem/ferramentas/npcs-posicoes.txt" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'npcs-lojas-v1' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+			import sys
+			linhas = [l.strip().split(";") for l in open(sys.argv[1]) if l.strip()]
+			arq = sys.argv[2]
+			t = open(arq, encoding="latin-1").read()
+			novos = ""
+			for nome, x, y, z in linhas:
+			    if 'npc name="%s"' % nome in t:
+			        continue
+			    novos += ('\t<spawn centerx="%s" centery="%s" centerz="%s" radius="1">\n'
+			              '\t\t<npc name="%s" x="0" y="0" z="%s" spawntime="60" />\n\t</spawn>\n') % (x, y, z, nome, z)
+			if novos:
+			    t = t.replace("</spawns>", novos + "</spawns>")
+			    open(arq, "w", encoding="latin-1").write(t)
+			print(len(novos.split("<npc")) - 1)
+		PY
+		ok "NPCs de loja colocados no templo"
+	fi
 	if ! grep -qx 'mapa-limpo-v1' "$AJUSTES" && command -v python3 >/dev/null; then
 		# Tira a sujeira decorativa do chao dos templos/cidades (pedrinhas, ferragens,
 		# rachaduras, poeira). Casas, paredes, moveis, hunts e areas sem PZ nao mudam.

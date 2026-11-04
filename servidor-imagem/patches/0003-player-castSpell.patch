@@ -1,0 +1,46 @@
+diff --git a/src/luascript.cpp b/src/luascript.cpp
+index 5295b0f..1ec2c3d 100644
+--- a/src/luascript.cpp
++++ b/src/luascript.cpp
+@@ -2248,6 +2248,7 @@ void LuaScriptInterface::registerFunctions()
+ 	registerMethod("Player", "getManaSpent", LuaScriptInterface::luaPlayerGetManaSpent);
+ 	registerMethod("Player", "addManaSpent", LuaScriptInterface::luaPlayerAddManaSpent);
+ 	registerMethod("Player", "resetIdleTime", LuaScriptInterface::luaPlayerResetIdleTime);
++	registerMethod("Player", "castSpell", LuaScriptInterface::luaPlayerCastSpell);
+ 
+ 	registerMethod("Player", "getBaseMaxHealth", LuaScriptInterface::luaPlayerGetBaseMaxHealth);
+ 	registerMethod("Player", "getBaseMaxMana", LuaScriptInterface::luaPlayerGetBaseMaxMana);
+@@ -8362,6 +8363,21 @@ int LuaScriptInterface::luaPlayerAddManaSpent(lua_State* L)
+ 	return 1;
+ }
+ 
++int LuaScriptInterface::luaPlayerCastSpell(lua_State* L)
++{
++	// player:castSpell(words) -- JV Baiak: magia automatica (mesmas regras de quando o jogador fala:
++	// vocacao, level, mana, exaustao, alvo). Devolve true se a magia saiu.
++	Player* player = getUserdata<Player>(L, 1);
++	if (!player) {
++		lua_pushnil(L);
++		return 1;
++	}
++	std::string words = getString(L, 2);
++	std::string lowerWords = asLowerCaseString(words);
++	pushBoolean(L, g_spells->playerSaySpell(player, words, lowerWords) == TALKACTION_BREAK);
++	return 1;
++}
++
+ int LuaScriptInterface::luaPlayerResetIdleTime(lua_State* L)
+ {
+ 	// player:resetIdleTime() -- JV Baiak: usado pelo treino automatico
+diff --git a/src/luascript.h b/src/luascript.h
+index 8ade244..f926777 100644
+--- a/src/luascript.h
++++ b/src/luascript.h
+@@ -878,6 +878,7 @@ class LuaScriptInterface
+ 		static int luaPlayerGetManaSpent(lua_State* L);
+ 		static int luaPlayerAddManaSpent(lua_State* L);
+ 		static int luaPlayerResetIdleTime(lua_State* L);
++		static int luaPlayerCastSpell(lua_State* L);
+ 
+ 		static int luaPlayerGetBaseMaxHealth(lua_State* L);
+ 		static int luaPlayerGetBaseMaxMana(lua_State* L);

@@ -1,8 +1,9 @@
 -- JV Baiak: CACA AUTOMATICA, no estilo dos "Tibia idle" (jogo no navegador e apps PC/Android)
 -- Ligada (botao de espada no menu; no celular ja comeca ligada):
 --  * ataca sozinho o monstro mais perto (ate 7 quadrados, mesmo andar) e vai atras dele;
---  * cura sozinho: vida abaixo de 60% -> pocao de vida (se estiver numa mochila aberta)
---    ou a magia "exura"; mana abaixo de 35% -> pocao de mana;
+--  * pocoes sozinho: vida abaixo de 60% -> pocao de vida; mana abaixo de 35% -> pocao de mana
+--    (pocao numa mochila aberta);
+--  * magias de ataque e de cura: feitas pelo SERVIDOR (!automagia), que o botao liga junto;
 --  * nunca ataca jogadores e nao faz nada em zona de protecao.
 -- O loot de moedas vai sozinho para a mochila pelo autoloot do servidor.
 -- Mesmo arquivo em web/ e em clientes/visual/mods/jv_autoataque/ (o teste confere).
@@ -65,8 +66,6 @@ local function cuidar(player)
         local pocao = acharPocao(POCOES_VIDA)
         if pocao then
             g_game.useWith(pocao, player)
-        elseif player:getMana() >= 20 then
-            g_game.talk('exura')
         end
         A.ultimaCura = agora
         return
@@ -123,12 +122,18 @@ local function ciclo()
     g_game.attack(alvo)
 end
 
+local function avisarServidor()
+    -- as magias automaticas (ataque e cura) ficam no servidor: liga/desliga junto
+    if g_game.isOnline() then pcall(g_game.talk, A.ligado and '!automagia on' or '!automagia off') end
+end
+
 function A.definir(ligado)
     A.ligado = ligado
     g_settings.set('jvAutoAtaque', ligado and 'true' or 'false')
+    avisarServidor()
     marcar(A.botao, ligado)
     if g_game.isOnline() then
-        aviso(ligado and 'Caca automatica LIGADA (ataca e cura sozinho)' or 'Caca automatica DESLIGADA')
+        aviso(ligado and 'Caca automatica LIGADA (ataca, usa magias e cura sozinho)' or 'Caca automatica DESLIGADA')
     end
 end
 
@@ -149,6 +154,7 @@ function A.iniciar()
         marcar(A.botao, A.ligado)
     end)
     A.evento = cycleEvent(ciclo, INTERVALO)
+    connect(g_game, { onGameStart = function() scheduleEvent(avisarServidor, 3000) end })
 end
 
 function A.parar()

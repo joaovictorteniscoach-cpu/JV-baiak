@@ -1,0 +1,14 @@
+diff --git a/src/protocolgame.cpp b/src/protocolgame.cpp
+index 8c33b87..90b380c 100644
+--- a/src/protocolgame.cpp
++++ b/src/protocolgame.cpp
+@@ -2162,7 +2162,8 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage& msg)
+ 	msg.addByte(0xA1);
+ 
+ 	for (uint8_t i = SKILL_FIRST; i <= SKILL_LAST; ++i) {
+-		msg.addByte(std::min<int32_t>(player->getSkillLevel(i), std::numeric_limits<uint16_t>::max()));
++		// JV Baiak: o 8.60 mostra a skill em 1 byte; acima de 255 aparecia 0, 1, 2... (dava a volta)
++		msg.addByte(std::min<int32_t>(player->getSkillLevel(i), std::numeric_limits<uint8_t>::max()));
+ 		msg.addByte(player->getSkillPercent(i));
+ 	}
+ }

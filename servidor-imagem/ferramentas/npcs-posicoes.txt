@@ -1,0 +1,7 @@
+Ferreiro Joaquim;1006;1209;7
+Armeira Lucia;1006;1213;7
+Mercador Ze;1005;1206;7
+Maga Iris;1006;1211;7
+Riona;978;1209;7
+Tyoric;981;1213;7
+The Forgotten King;976;1206;7
