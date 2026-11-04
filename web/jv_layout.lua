@@ -109,12 +109,13 @@ end
 -- ------------------------------------------------------------- escala da janela inteira
 -- Puxar a alca "<>" do canto AUMENTA ou DIMINUI a janela toda na mesma proporcao:
 -- titulo, letras, itens, botoes e espacos encolhem juntos (nada e cortado).
-local ORIG = setmetatable({}, {__mode = 'k'})
+-- o tamanho original fica guardado no proprio widget (w.jvOrig): o Lua recebe um objeto novo
+-- a cada getChildren(), entao uma tabela indexada pelo objeto nao reconhece o mesmo widget
 local MINF, MAXF = 0.5, 1.4
 local function arred(n) return math.floor(n + 0.5) end
 
 local function original(w)
-    local o = ORIG[w]
+    local o = w.jvOrig
     if o then return o end
     o = {w = w:getWidth(), h = w:getHeight(),
          m = {w:getMarginTop(), w:getMarginRight(), w:getMarginBottom(), w:getMarginLeft()},
@@ -130,7 +131,7 @@ local function original(w)
             o.esp = lay:getCellSpacing()
         end
     end)
-    ORIG[w] = o
+    w.jvOrig = o
     return o
 end
 
@@ -226,7 +227,7 @@ local function colocarAlca(w, chave)
         local function ver(x, nivel)
             if n >= 40 then return end
             n = n + 1
-            local o, r = ORIG[x], x:getRect()
+            local o, r = x.jvOrig, x:getRect()
             g_logger.info(string.format('JV_PECA %d %s %s rect=%d,%d,%d,%d orig=%s,%s', nivel, x:getClassName(), x:getId(),
                 r.x, r.y, r.width, r.height, o and o.w or '-', o and o.h or '-'))
             for _, c in ipairs(x:getChildren()) do ver(c, nivel + 1) end
