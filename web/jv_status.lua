@@ -60,7 +60,7 @@ local LINHAS = {
     {{'level', 'Level', 'vermelha'}},
     {{'hp', 'HP'}, {'mana', 'Mana'}},
     {{'soul', 'Soul'}, {'cap', 'Cap'}},
-    {{'stamina', 'Stamina'}, {'ml', 'Magic', 'vermelha'}},
+    {{'stamina', 'Stam.'}, {'ml', 'Magic', 'vermelha'}},
     {{'s0', 'Fist', 'verde'}, {'s1', 'Club', 'verde'}},
     {{'s2', 'Sword', 'verde'}, {'s3', 'Axe', 'verde'}},
     {{'s4', 'Distance', 'verde'}, {'s5', 'Shielding', 'verde'}},
@@ -135,6 +135,7 @@ local function criarPagina()
     p:hide()
     S.pagina = p
 end
+S.criarPagina = criarPagina
 
 local function milhar(n)
     local s = tostring(math.floor(tonumber(n) or 0))
@@ -185,7 +186,8 @@ function S.iniciar()
     S.evento = cycleEvent(function() pcall(atualizar) end, 1000)
     g_keyboard.bindKeyDown('Ctrl+Shift+F4', function()
         pcall(criarPagina)
-        if JVToque and JVToque.selecionar then JVToque.selecionar('jvStatus', true) end
+        if JVLayout and JVLayout.abrir then JVLayout.abrir('jvStatus')
+        elseif JVToque and JVToque.selecionar then JVToque.selecionar('jvStatus', true) end
     end, rootWidget)
     connect(g_game, { onGameEnd = function()
         -- a interface do jogo e recriada no proximo login

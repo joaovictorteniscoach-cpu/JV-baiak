@@ -44,6 +44,7 @@ for i=1,9 do w('option'..i,20,20,'UIButton',options) end
 for i=1,2 do w('special'..i,20,20,'UIButton',specials) end
 w('storeButton',108,20,'UIButton',store)
 g_platform={isMobile=function()return true end}
+g_settings={get=function(k)if k=='jvLayout' then return 'paginas' end end}
 g_ui={createWidget=function(class,parent)return w('',0,0,class,parent)end}
 AnchorLeft=1;AnchorRight=2;AnchorTop=3;AnchorBottom=4;AnchorHorizontalCenter=5
 bindings={};events={};timers={}

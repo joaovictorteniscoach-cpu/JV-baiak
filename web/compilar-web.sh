@@ -162,6 +162,7 @@ cp "$WEB/jv_janelas.lua" "$CTX/jv/"
 cp "$WEB/jv_status.lua" "$CTX/jv/"
 cp "$WEB/jv_volta.lua" "$CTX/jv/"
 cp "$WEB/jv_listas.lua" "$CTX/jv/"
+cp "$WEB/jv_layout.lua" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login.png" ] && cp "$WEB/visual/fundo-login.png" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login-em-pe.png" ] && cp "$WEB/visual/fundo-login-em-pe.png" "$CTX/jv/"
 if ls "$WEB"/imagens-jogo/*.png >/dev/null 2>&1; then

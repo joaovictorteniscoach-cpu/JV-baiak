@@ -74,6 +74,7 @@ def main():
                        "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
         pg = ctx.new_page()
         layouts, game_ready, map_probes, map_releases, game_layouts = [], [], [], [], []
+        game_ends, layout_logs = [], []
         seen = set()
         def console(message):
             text = message.text
@@ -84,6 +85,11 @@ def main():
             log.write(f"[{message.type}] {text}\n")
             if 'JV_WEB_GAME_READY' in text:
                 game_ready.append(True)
+            if 'JV_GAME_END' in text:
+                game_ends.append(time.time())
+            m = re.search(r'JV_LAYOUT (livre|classico|paginas)', text)
+            if m:
+                layout_logs.append(m.group(1))
             if 'JV_GAME_LAYOUT ' in text:
                 game_layouts.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|map|chat|shortcuts|right)=([0-9,-]+)',text)})
             if 'JV_MAP_PROBE ' in text:
@@ -173,6 +179,55 @@ def main():
             assert game_layouts[-1]['map'][2]>=rw*.9, ('O painel nao fechou',game_layouts[-1])
             foto('9-retrato-mapa-chat-acoes.png')
 
+        def fotos_layout(numero, nome, controles):
+            """Fotos para escolher o layout: mapa limpo, janelas abertas e em pe."""
+            pg.set_viewport_size({"width": 844, "height": 390}); time.sleep(3)
+            foto(f'L{numero}-{nome}-1-mapa.png')
+            for controle in controles:
+                pg.tap('#menu-botao'); pg.tap('#' + controle); time.sleep(1.5)
+            foto(f'L{numero}-{nome}-2-janelas.png')
+            pg.set_viewport_size({"width": 390, "height": 844}); time.sleep(5)
+            foto(f'L{numero}-{nome}-3-em-pe.png')
+            pg.set_viewport_size({"width": 844, "height": 390}); time.sleep(4)
+            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
+
+        def trocar_layout(esperado):
+            """Menu > Trocar layout: grava, recarrega e entra sozinho no mesmo personagem."""
+            prontos, quedas = len(game_ready), len(game_ends)
+            pg.tap('#menu-botao'); pg.tap('#jv-layout')
+            t = time.time()
+            while len(game_ready) <= prontos and time.time() - t < 240:
+                pg.wait_for_timeout(1000)
+            voltou_sozinho = len(game_ready) > prontos
+            log.write(f"layout {esperado}: voltou sozinho ao jogo = {voltou_sozinho} em {time.time() - t:.0f}s\n")
+            if not voltou_sozinho:
+                foto(f'L-{esperado}-nao-voltou.png')
+                for _ in range(3):
+                    pg.keyboard.press('Enter'); time.sleep(4)
+                t2 = time.time()
+                while len(game_ready) <= prontos and time.time() - t2 < 60:
+                    pg.wait_for_timeout(1000)
+            assert len(game_ready) > prontos, f'Nao voltou ao jogo depois de trocar para {esperado}'
+            time.sleep(6)
+            assert layout_logs and layout_logs[-1] == esperado, ('Layout nao mudou', esperado, layout_logs[-5:])
+            return voltou_sozinho
+
+        def tour_layouts():
+            fotos_layout(1, 'tela-cheia', ('jv-equipamento', 'jv-status'))
+            resultado = {}
+            for numero, nome, chave, controles in ((2, 'classico', 'classico', ('jv-status', 'jv-combate')),
+                                                   (3, 'paginas', 'paginas', ('jv-status',))):
+                resultado[chave] = trocar_layout(chave)
+                fotos_layout(numero, nome, controles)
+            # volta ao primeiro e confere que o personagem fica no jogo (nao entra e sai sozinho)
+            resultado['livre'] = trocar_layout('livre')
+            quedas = len(game_ends)
+            time.sleep(75)
+            foto('L1-tela-cheia-4-depois-de-75s.png')
+            assert len(game_ends) == quedas, ('O jogo caiu sozinho depois de voltar', game_ends)
+            log.write(f"volta automatica por layout: {resultado}; sem quedas em 75 s\n")
+            assert all(resultado.values()), ('Nao entrou sozinho em todas as trocas', resultado)
+
         t0 = time.time()
         pg.goto("http://127.0.0.1:8080/", wait_until="load")
         foto("1-carregando.png")
@@ -236,6 +291,9 @@ def main():
                 pg.tap('#' + controle)
                 time.sleep(1)
                 foto(nome)
+            foto('7g-janelas-abertas.png')
+            pg.keyboard.press('Control+Shift+F12')  # fecha as janelas soltas (tela cheia)
+            time.sleep(1)
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)
             foto("8-depois-do-toque.png")
@@ -252,6 +310,7 @@ def main():
                 conferir_retrato();foto('9-safari-em-pe.png')
                 pg.set_viewport_size({"width":844,"height":390});time.sleep(4)
                 verificar_quadrados();foto('10-safari-deitado.png')
+                tour_layouts()
                 nav.close();srv.shutdown();log.close();return
             # segurar o dedo no proprio personagem: menu com "Set Outfit" (trocar roupa)
             cdp = ctx.new_cdp_session(pg)
@@ -300,6 +359,7 @@ def main():
             pg.set_viewport_size({"width": 844, "height": 390})
             time.sleep(4)
             foto("10-deitado-de-novo.png")
+            tour_layouts()
         if not ok:
             raise AssertionError('Nao foi possivel criar a conta de teste')
         nav.close()

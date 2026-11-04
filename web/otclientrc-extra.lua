@@ -84,7 +84,13 @@ end
 
 -- Interface de toque: uma pagina lateral por vez e atalhos fora do equipamento.
 -- Os widgets continuam sendo os do Tibia; os menus HTML so enviam atalhos locais.
-if g_platform.isMobile() then
+-- Este e o layout "paginas"; os outros dois (livre e classico) ficam em jv_layout.lua.
+JV_LAYOUT = 'livre'
+pcall(function()
+    local v = g_settings.get('jvLayout')
+    if v == 'livre' or v == 'classico' or v == 'paginas' then JV_LAYOUT = v end
+end)
+if g_platform.isMobile() and JV_LAYOUT == 'paginas' then
     JVToque = {pagina = 'maininventorypanel'}
     local function botao(parent, id, text, x, y, fn)
         local b = g_ui.createWidget('Button', parent)

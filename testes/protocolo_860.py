@@ -314,14 +314,22 @@ def testar(host, conta, senha, gm=False, clonar=True):
             jg.receber(3)
             txt = b"".join(x for _, x in jg.recebidos[antes:])
             etapa("comando %s responde" % cmd, trecho in txt)
-        # NPCs novos no templo e conversa automatica ao chegar perto
+        # NPCs novos no templo: so conversam quando o jogador toca neles (o jogo diz "hi")
         for npc, trecho in (("Mercador Ze", b"Compro"), ("Ferreiro Joaquim", b"armas"), ("Felipe", b"Felipe"), ("Guia Lia", b"iniciante")):
             antes = len(jg.recebidos)
             jg.falar("/goto " + npc)
             jg.receber(4)
+            sozinho = b"".join(x for _, x in jg.recebidos[antes:])
+            etapa("NPC %s nao puxa conversa sozinho" % npc, not (trecho in sozinho and b"{" in sozinho))
+            antes = len(jg.recebidos)
+            jg.falar("hi")
+            jg.receber(3)
             txt = b"".join(x for _, x in jg.recebidos[antes:])
-            etapa("NPC %s existe e fala sozinho ao chegar perto" % npc, trecho in txt and b"{" in txt,
+            etapa("NPC %s responde ao toque (hi) com opcoes" % npc, trecho in txt and b"{" in txt,
                   trecho=txt[txt.find(b"{") - 40:txt.find(b"{") + 40].decode("latin-1", "replace") if b"{" in txt else None)
+            if npc != "Guia Lia":
+                jg.falarNpc("bye")
+                jg.receber(1)
         antes = len(jg.recebidos)
         jg.falarNpc("iniciante")
         jg.receber(2)

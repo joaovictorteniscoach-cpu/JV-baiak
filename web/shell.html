@@ -237,6 +237,7 @@
         <span id="zoom-valor">100%</span>
         <button type="button" id="zoom-mais" class="jv-botao-teclado" aria-label="Aumentar">A+</button>
       </div>
+      <button type="button" id="jv-layout" class="jv-botao-teclado">Trocar layout (1, 2, 3)</button>
       <button type="button" id="jv-equipamento" class="jv-botao-teclado">Equipamento</button>
       <button type="button" id="jv-minimapa" class="jv-botao-teclado">Minimapa</button>
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
@@ -413,6 +414,17 @@
       [["jv-equipamento", "F8", 119], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
+      });
+      // Trocar layout: o jogo grava a escolha (tela cheia, classico, paginas) e a pagina
+      // recarrega e entra de novo sozinha no mesmo personagem, ja com o layout novo.
+      document.getElementById("jv-layout").hidden = !TELA_TOQUE;
+      ligar("jv-layout", function (ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        enviarAtalhoPainel("F3", 114);
+        setTimeout(function () {
+          try { sessionStorage.setItem("jvVoltar", "1"); } catch (e) {}
+          location.reload();
+        }, 1500);
       });
       var jvVerToque = false;
       function limparMarcasToque() {

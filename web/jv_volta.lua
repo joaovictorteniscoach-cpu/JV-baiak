@@ -42,7 +42,9 @@ local function marcarCaixasPadrao()
 end
 
 local function entrarNoPersonagem()
-    if not deveVoltar() or g_game.isOnline() then return end
+    -- uma tentativa por carregamento da pagina: nunca fica entrando e saindo sozinho
+    if V.tentouPersonagem or V.travado or not deveVoltar() or g_game.isOnline() then return end
+    V.tentouPersonagem = true
     local nome = g_settings.get('jvVoltaNome')
     local lista = rootWidget:recursiveGetChildById('characters')
     if not lista or not nome or nome == '' then return end
@@ -57,7 +59,8 @@ local function entrarNoPersonagem()
 end
 
 local function entrarNaConta()
-    if not deveVoltar() or g_game.isOnline() then return end
+    if V.tentouConta or V.travado or not deveVoltar() or g_game.isOnline() then return end
+    V.tentouConta = true
     if g_settings.getBoolean('autologin') then return end -- o proprio jogo ja vai entrar
     local janela = rootWidget:recursiveGetChildById('enterGame')
     if not janela or not janela:isVisible() then return end
@@ -76,16 +79,48 @@ function V.iniciar()
     for _, f in ipairs({'safeLogout', 'forceLogout', 'logout'}) do
         local original = g_game[f]
         if type(original) == 'function' then
-            g_game[f] = function(...) esquecer(); return original(...) end
+            g_game[f] = function(...) esquecer(); V.saindo = true; return original(...) end
         end
     end
     connect(g_game, { onGameStart = function()
         marcarOnline()
         if V.evento then removeEvent(V.evento) end
         V.evento = cycleEvent(marcarOnline, 10000)
+        -- 5 minutos no jogo sem cair: volta a reconectar sozinho normalmente
+        if V.estavel then removeEvent(V.estavel) end
+        V.estavel = scheduleEvent(function()
+            V.quedas = {}
+            if V.travado then
+                V.travado = false
+                g_settings.set('autoReconnect', true)
+                pcall(g_settings.save)
+            end
+        end, 5 * 60 * 1000)
     end, onGameEnd = function()
         if V.evento then removeEvent(V.evento) end
         V.evento = nil
+        if V.estavel then removeEvent(V.estavel) end
+        V.estavel = nil
+        g_logger.info('JV_GAME_END')
+        if V.saindo then V.saindo = false; return end
+        -- caiu sem apertar Sair: conta as quedas. 3 em 3 minutos = algo derrubando em
+        -- seguida (o jogo aberto em outra aba/aparelho). Para de reconectar sozinho.
+        local agora = os.time()
+        local recentes = {}
+        for _, t in ipairs(V.quedas or {}) do if agora - t <= 180 then recentes[#recentes + 1] = t end end
+        recentes[#recentes + 1] = agora
+        V.quedas = recentes
+        if #recentes >= 3 and not V.travado then
+            V.travado = true
+            g_settings.set('autoReconnect', false)
+            pcall(g_settings.save)
+            g_logger.info('JV_RECONEXAO_PAUSADA')
+            scheduleEvent(function()
+                pcall(displayInfoBox, 'JV Baiak', 'O personagem caiu varias vezes seguidas.\n' ..
+                    'Se o jogo estiver aberto em outra aba ou outro aparelho, feche la.\n' ..
+                    'Depois toque no personagem e em Entrar.')
+            end, 800)
+        end
     end })
     local CL = modulo('CharacterList')
     if CL and CL.create then

@@ -2,7 +2,7 @@ diff --git a/src/player.cpp b/src/player.cpp
 index 82a3540..b1f8c70 100644
 --- a/src/player.cpp
 +++ b/src/player.cpp
-@@ -872,14 +872,11 @@ void Player::sendPing()
+@@ -872,14 +872,16 @@ void Player::sendPing()
  		setAttackedCreature(nullptr);
  	}
  
@@ -19,6 +19,11 @@ index 82a3540..b1f8c70 100644
 +	// inatividade do config.lua (kickIdlePlayerAfterMinutes). So a conexao morta e fechada.
 +	if (noPongTime >= 60000 && client) {
 +		disconnect();
++	}
++	// Sem conexao, o relogio do "pong" fica em dia: quem voltar (o mesmo personagem
++	// continua no jogo) nao pode ser derrubado na hora por um pong antigo.
++	if (hasLostConnection || !client) {
++		lastPong = timeNow;
  	}
  }
  
