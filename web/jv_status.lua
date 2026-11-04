@@ -50,36 +50,103 @@ local function criarFaixa()
     S.faixa, S.faixaTexto, S.faixaBarra = faixa, texto, barra
 end
 
+-- Pagina no formato da janela "Skills" do Tibia 8.60: nome a esquerda, valor a direita,
+-- barra de progresso embaixo do Level, do Magic Level e de cada skill.
+local LINHA = 15
+local LINHAS = {
+    {'exp', 'Experience'}, {'level', 'Level', 'vermelha'},
+    {'-'},
+    {'hp', 'Hit Points'}, {'mana', 'Mana'}, {'soul', 'Soul Points'}, {'cap', 'Capacity'}, {'stamina', 'Stamina'},
+    {'-'},
+    {'ml', 'Magic Level', 'vermelha'},
+    {'-'},
+    {'s0', 'Fist Fighting', 'verde'}, {'s1', 'Club Fighting', 'verde'}, {'s2', 'Sword Fighting', 'verde'},
+    {'s3', 'Axe Fighting', 'verde'}, {'s4', 'Distance Fighting', 'verde'}, {'s5', 'Shielding', 'verde'},
+    {'s6', 'Fishing', 'verde'},
+}
+
+local function rotulo(pai, texto, alinhar)
+    local l = g_ui.createWidget('UILabel', pai)
+    l:setText(texto)
+    l:setColor('#c0c0c0')
+    pcall(function() l:setFont('verdana-11px-antialised') end)
+    l:setTextAlign(alinhar)
+    l:setPhantom(true)
+    return l
+end
+
 local function criarPagina()
     if S.pagina then return end
     local main = modules.game_interface.getMainRightPanel and modules.game_interface.getMainRightPanel()
     if not main then return end
     local p = g_ui.createWidget('PhantomMiniWindow', main)
     p:setId('jvStatus'); p:setWidth(176)
-    local texto = g_ui.createWidget('UILabel', p)
-    texto:addAnchor(AnchorTop, 'parent', AnchorTop)
-    texto:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-    texto:addAnchor(AnchorRight, 'parent', AnchorRight)
-    texto:setMarginTop(8); texto:setMarginLeft(8)
-    texto:setTextAlign(AlignTopLeft)
-    texto:setColor('#e8e8e8')
-    pcall(function() texto:setFont('verdana-11px-rounded') end)
-    texto:setTextWrap(true)
+    pcall(function() p:setText('Skills') end)
+    S.valores, S.barras = {}, {}
+    local y = 8
+    for _, l in ipairs(LINHAS) do
+        if l[1] == '-' then
+            local sep = g_ui.createWidget('UIWidget', p)
+            sep:addAnchor(AnchorTop, 'parent', AnchorTop); sep:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+            sep:addAnchor(AnchorRight, 'parent', AnchorRight)
+            sep:setMarginTop(y + 3); sep:setMarginLeft(6); sep:setMarginRight(6); sep:setHeight(1)
+            sep:setBackgroundColor('#5a5a5a'); sep:setPhantom(true)
+            y = y + 8
+        else
+            local nome = rotulo(p, l[2], AlignLeft)
+            nome:addAnchor(AnchorTop, 'parent', AnchorTop); nome:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+            nome:setMarginTop(y); nome:setMarginLeft(8); nome:setSize({width = 110, height = LINHA - 1})
+            local valor = rotulo(p, '', AlignRight)
+            valor:addAnchor(AnchorTop, 'parent', AnchorTop); valor:addAnchor(AnchorRight, 'parent', AnchorRight)
+            valor:setMarginTop(y); valor:setMarginRight(8); valor:setSize({width = 70, height = LINHA - 1})
+            S.valores[l[1]] = valor
+            y = y + LINHA
+            if l[3] then
+                local fundo = g_ui.createWidget('UIWidget', p)
+                fundo:addAnchor(AnchorTop, 'parent', AnchorTop); fundo:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+                fundo:addAnchor(AnchorRight, 'parent', AnchorRight)
+                fundo:setMarginTop(y - 2); fundo:setMarginLeft(8); fundo:setMarginRight(8); fundo:setHeight(4)
+                fundo:setBackgroundColor('#2a1a1a'); fundo:setPhantom(true)
+                local barra = g_ui.createWidget('UIWidget', fundo)
+                barra:addAnchor(AnchorTop, 'parent', AnchorTop); barra:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+                barra:addAnchor(AnchorBottom, 'parent', AnchorBottom)
+                barra:setBackgroundColor(l[3] == 'vermelha' and '#c01010' or '#10a010'); barra:setPhantom(true)
+                S.barras[l[1]] = {barra = barra, fundo = fundo}
+                y = y + 5
+            end
+        end
+    end
     -- botoes sem digitar: vender o loot, mandar ao depot e ver a hunt
-    local acoes = {{'Vender loot', '!venderloot'}, {'Depot', '!depot'}, {'Hunt', '!hunt'}}
+    local acoes = {{'Vender', '!venderloot'}, {'Depot', '!depot'}, {'Hunt', '!hunt'}}
     for i, a in ipairs(acoes) do
         local b = g_ui.createWidget('Button', p)
         b:setText(a[1]); b:setSize({width = 52, height = 32})
         b:addAnchor(AnchorTop, 'parent', AnchorTop)
         b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-        b:setMarginTop(16 * 18 + 14); b:setMarginLeft(4 + (i - 1) * 56)
+        b:setMarginTop(y + 6); b:setMarginLeft(4 + (i - 1) * 56)
         local fala = a[2]
         b.onClick = function() if g_game.isOnline() then pcall(g_game.talk, fala) end end
     end
-    p.jvAltura = 16 * 18 + 14 + 32 + 10
+    p.jvAltura = y + 6 + 32 + 8
     p:setHeight(p.jvAltura); p.panelHeight = p.jvAltura
     p:hide()
-    S.pagina, S.paginaTexto = p, texto
+    S.pagina = p
+end
+
+local function milhar(n)
+    local s = tostring(math.floor(tonumber(n) or 0))
+    local r = s:reverse():gsub('(%d%d%d)', '%1,'):reverse()
+    return (r:gsub('^,', ''))
+end
+
+local function por(id, valor, pct)
+    local v = S.valores and S.valores[id]
+    if v then v:setText(valor) end
+    local b = S.barras and S.barras[id]
+    if b and pct then
+        local w = b.fundo:getWidth()
+        b.barra:setWidth(math.max(0, math.floor(w * math.min(100, pct) / 100)))
+    end
 end
 
 local function atualizar()
@@ -92,28 +159,21 @@ local function atualizar()
         S.faixaTexto:setText(string.format('Lv %d   %d%%', lv, pct))
         S.faixaBarra:setWidth(math.max(1, math.floor(144 * pct / 100)))
     end
-    if S.paginaTexto then
-        local exp = pl:getExperience()
-        local falta = math.max(0, expDoLevel(lv + 1) - exp)
-        local linhas = {
-            string.format('Level: %d (%d%%)', lv, pct),
-            'Experiencia: ' .. formatar(exp),
-            'Falta p/ subir: ' .. formatar(falta),
-            string.format('Magic level: %d (%d%%)', pl:getMagicLevel(), pl:getMagicLevelPercent()),
-        }
-        for _, s in ipairs(NOMES) do
-            local ok, v = pcall(function() return pl:getSkillLevel(s[2]) end)
-            local ok2, pc = pcall(function() return pl:getSkillLevelPercent(s[2]) end)
-            linhas[#linhas + 1] = string.format('%s: %s%s', s[1], ok and v or '?', ok2 and (' (' .. pc .. '%)') or '')
-        end
-        linhas[#linhas + 1] = string.format('Vida: %s / %s', formatar(pl:getHealth()), formatar(pl:getMaxHealth()))
-        linhas[#linhas + 1] = string.format('Mana: %s / %s', formatar(pl:getMana()), formatar(pl:getMaxMana()))
-        linhas[#linhas + 1] = 'Capacidade: ' .. formatar(pl:getFreeCapacity())
-        linhas[#linhas + 1] = 'Soul: ' .. tostring(pl:getSoul())
+    if S.pagina and S.pagina:isVisible() then
+        por('exp', milhar(pl:getExperience()))
+        por('level', tostring(lv), pct)
+        por('hp', milhar(pl:getHealth()))
+        por('mana', milhar(pl:getMana()))
+        por('soul', tostring(pl:getSoul()))
+        por('cap', milhar(pl:getFreeCapacity()))
         local st = pl:getStamina()
-        linhas[#linhas + 1] = string.format('Stamina: %d:%02d', math.floor(st / 60), st % 60)
-        S.paginaTexto:setText(table.concat(linhas, '\n'))
-        S.paginaTexto:setHeight(16 * #linhas)
+        por('stamina', string.format('%02d:%02d', math.floor(st / 60), st % 60))
+        por('ml', tostring(pl:getMagicLevel()), pl:getMagicLevelPercent())
+        for i = 0, 6 do
+            local ok, v = pcall(function() return pl:getSkillLevel(i) end)
+            local ok2, pc = pcall(function() return pl:getSkillLevelPercent(i) end)
+            por('s' .. i, ok and tostring(v) or '?', ok2 and pc or 0)
+        end
     end
 end
 
