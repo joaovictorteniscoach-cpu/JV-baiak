@@ -5,7 +5,13 @@
 --   !hunt reset    zera a contagem (ex.: ao chegar numa hunt nova)
 --   !venderloot    vende de onde estiver os itens da mochila que o Mercador Ze compra;
 --                  o dinheiro vai para o banco (espera 1 minuto entre uma venda e outra)
---   !depot         manda tudo que esta dentro da mochila para o seu depot (1 vez por hora)
+--   !depot         manda itens da mochila para o seu depot (1 vez por hora)
+--
+--   ESCOLHER OS ITENS (sem lista = vende/manda tudo que puder):
+--   !venderloot add, nome   (ou so "!venderloot add" com o item na mao)
+--   !venderloot remove, nome | !venderloot lista | !venderloot limpar
+--   !depot add, nome | !depot remove, nome | !depot lista | !depot limpar
+--   No jogo: segure o dedo no item -> "Vender no !venderloot" / "Mandar no !depot".
 --
 -- Tambem: o dinheiro do loot vai direto para o banco para todo mundo (uma vez por
 -- personagem liga o "!autoloot gold"; quem quiser desliga com !autoloot gold).
@@ -28,7 +34,9 @@ local function formatar(n)
 end
 
 local function zerar(player)
-	H.sessao[player:getGuid()] = {inicio = agora(), exp = player:getExperience(), ouro = 0, mortes = 0, venda = 0}
+	-- o lucro e medido pelo dinheiro (banco + mochila): o autoloot e as vendas vao para o banco
+	H.sessao[player:getGuid()] = {inicio = agora(), exp = player:getExperience(), ouro = 0, mortes = 0, venda = 0,
+		dinheiro = player:getBankBalance() + player:getMoney()}
 end
 
 local function sessao(player)
@@ -79,7 +87,7 @@ function hunt.onSay(player, words, param)
 	local seg = math.max(1, agora() - s.inicio)
 	local horas = seg / 3600
 	local exp = math.max(0, player:getExperience() - s.exp)
-	local lucro = s.ouro + s.venda
+	local lucro = math.max(0, player:getBankBalance() + player:getMoney() - (s.dinheiro or 0))
 	player:sendTextMessage(MSG, string.format(
 		"[Hunt] Tempo: %dh%02d | XP: %s (%s/h) | Gold: %s (%s/h) | Monstros: %d (%d/h) | Level %d. Use !hunt reset para zerar.",
 		math.floor(seg / 3600), math.floor(seg % 3600 / 60), formatar(exp), formatar(exp / horas),
@@ -89,18 +97,96 @@ end
 hunt:separator(" ")
 hunt:register()
 
+-- ---------------------------------------------------------------- listas
+local LISTAS = {venda = {inicio = 79100, tamanho = 30, nome = "venda"}, depot = {inicio = 79130, tamanho = 30, nome = "depot"}}
+
+local function itensDaLista(player, qual)
+	local l, set = LISTAS[qual], {}
+	local n = 0
+	for s = l.inicio, l.inicio + l.tamanho - 1 do
+		local v = player:getStorageValue(s)
+		if v > 0 then set[v] = true; n = n + 1 end
+	end
+	return set, n
+end
+
+local function acharTipo(player, texto)
+	texto = (texto or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if texto == "" then
+		local mao = player:getSlotItem(CONST_SLOT_RIGHT) or player:getSlotItem(CONST_SLOT_LEFT)
+		return mao and ItemType(mao:getId()) or nil
+	end
+	local t = ItemType(tonumber(texto) or texto)
+	if t and t:getId() ~= 0 then return t end
+	return nil
+end
+
+-- devolve true se o comando era de lista (e ja respondeu)
+local function comandoDeLista(player, qual, param, comando)
+	local acao, resto = (param or ""):match("^%s*(%a+)%s*,?%s*(.-)%s*$")
+	acao = (acao or ""):lower()
+	local l = LISTAS[qual]
+	if acao == "lista" or acao == "list" then
+		local set, n = itensDaLista(player, qual)
+		if n == 0 then
+			player:sendTextMessage(MSG, "[" .. comando .. "] Lista vazia: " .. (qual == "venda" and "vende tudo que o Mercador Ze compra." or "manda tudo da mochila."))
+		else
+			local nomes = {}
+			for id in pairs(set) do nomes[#nomes + 1] = ItemType(id):getName() end
+			table.sort(nomes)
+			player:sendTextMessage(MSG, "[" .. comando .. "] So estes itens: " .. table.concat(nomes, ", "))
+		end
+		return true
+	elseif acao == "limpar" or acao == "clear" then
+		for s = l.inicio, l.inicio + l.tamanho - 1 do player:setStorageValue(s, -1) end
+		player:sendTextMessage(MSG, "[" .. comando .. "] Lista limpa.")
+		return true
+	elseif acao == "add" or acao == "remove" or acao == "tirar" then
+		local tipo = acharTipo(player, resto)
+		if not tipo then
+			player:sendTextMessage(MSG, "[" .. comando .. "] Item nao encontrado. Use o nome do item ou segure ele na mao.")
+			return true
+		end
+		local id = tipo:getId()
+		local livre
+		for s = l.inicio, l.inicio + l.tamanho - 1 do
+			local v = player:getStorageValue(s)
+			if v == id then
+				if acao ~= "add" then
+					player:setStorageValue(s, -1)
+					player:sendTextMessage(MSG, "[" .. comando .. "] " .. tipo:getName() .. " saiu da lista.")
+				else
+					player:sendTextMessage(MSG, "[" .. comando .. "] " .. tipo:getName() .. " ja esta na lista.")
+				end
+				return true
+			end
+			if v <= 0 and not livre then livre = s end
+		end
+		if acao ~= "add" then
+			player:sendTextMessage(MSG, "[" .. comando .. "] " .. tipo:getName() .. " nao estava na lista.")
+		elseif not livre then
+			player:sendTextMessage(MSG, "[" .. comando .. "] Lista cheia (30 itens).")
+		else
+			player:setStorageValue(livre, id)
+			player:sendTextMessage(MSG, "[" .. comando .. "] " .. tipo:getName() .. " entrou na lista.")
+		end
+		return true
+	end
+	return false
+end
+
 -- ---------------------------------------------------------------- !venderloot
-local function venderDe(container, total)
+local function venderDe(container, total, so)
 	for i = container:getSize() - 1, 0, -1 do
 		local item = container:getItem(i)
 		if item then
 			local preco = JV_PRECOS and JV_PRECOS[item:getId()]
-			if preco and preco > 0 and (not item:isContainer() or item:getSize() == 0) then
+			if preco and preco > 0 and (not so or so[item:getId()]) and (not item:isContainer() or item:getSize() == 0) then
 				total.ouro = total.ouro + preco * math.max(1, item:getCount())
 				total.itens = total.itens + 1
 				item:remove()
 			elseif item:isContainer() then
-				venderDe(item, total)
+				venderDe(item, total, so)
 			end
 		end
 	end
@@ -108,6 +194,7 @@ end
 
 local vender = TalkAction("!venderloot")
 function vender.onSay(player, words, param)
+	if comandoDeLista(player, "venda", param, "Venda") then return false end
 	if player:getStorageValue(ESPERA_VENDA) > agora() then
 		player:sendTextMessage(MSG, "[Venda] Espere um pouco para vender de novo.")
 		return false
@@ -118,7 +205,8 @@ function vender.onSay(player, words, param)
 		return false
 	end
 	local total = {ouro = 0, itens = 0}
-	venderDe(mochila, total)
+	local set, n = itensDaLista(player, "venda")
+	venderDe(mochila, total, n > 0 and set or nil)
 	player:setStorageValue(ESPERA_VENDA, agora() + 60)
 	if total.itens == 0 then
 		player:sendTextMessage(MSG, "[Venda] Nada para vender na mochila (o Mercador Ze compra armas, escudos, armaduras, capacetes, calcas, botas, aneis e amuletos).")
@@ -131,11 +219,27 @@ function vender.onSay(player, words, param)
 		total.itens, formatar(total.ouro), formatar(player:getBankBalance())))
 	return false
 end
+vender:separator(" ")
 vender:register()
 
 -- ---------------------------------------------------------------- !depot
+local function mandar(container, caixa, so, n)
+	for i = container:getSize() - 1, 0, -1 do
+		local item = container:getItem(i)
+		if item and item:getWorth() == 0 then
+			if not so or so[item:getId()] then
+				if item:moveTo(caixa) then n = n + 1 end
+			elseif item:isContainer() then
+				n = mandar(item, caixa, so, n)
+			end
+		end
+	end
+	return n
+end
+
 local depot = TalkAction("!depot")
 function depot.onSay(player, words, param)
+	if comandoDeLista(player, "depot", param, "Depot") then return false end
 	local espera = player:getStorageValue(ESPERA_DEPOT) - agora()
 	if espera > 0 then
 		player:sendTextMessage(MSG, string.format("[Depot] Voce pode mandar de novo em %d min.", math.ceil(espera / 60)))
@@ -147,13 +251,8 @@ function depot.onSay(player, words, param)
 		player:sendTextMessage(MSG, "[Depot] Nao foi possivel agora.")
 		return false
 	end
-	local n = 0
-	for i = mochila:getSize() - 1, 0, -1 do
-		local item = mochila:getItem(i)
-		if item and item:getWorth() == 0 then
-			if item:moveTo(caixa) then n = n + 1 end
-		end
-	end
+	local set, qtd = itensDaLista(player, "depot")
+	local n = mandar(mochila, caixa, qtd > 0 and set or nil, 0)
 	if n > 0 then
 		player:setStorageValue(ESPERA_DEPOT, agora() + 3600)
 		player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
@@ -162,4 +261,5 @@ function depot.onSay(player, words, param)
 		or "[Depot] Nada para mandar (dinheiro fica com voce).")
 	return false
 end
+depot:separator(" ")
 depot:register()

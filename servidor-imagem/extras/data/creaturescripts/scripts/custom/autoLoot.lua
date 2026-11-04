@@ -3,7 +3,8 @@
 --  * le tambem as bolsas que estiverem dentro do corpo
 --  * pega os itens da sua lista (!autoloot add, nome) - agora ate 20 itens
 --  * avisa quando nao coube na mochila (falta capacidade ou espaco)
--- Tambem soma o dinheiro na conta do !hunt.
+-- Tambem soma o dinheiro na conta do !hunt. Sem mensagem a cada monstro (tela limpa).
+local avisos = {}
 
 local function coletar(player, container, ganhos)
 	for i = container:getSize() - 1, 0, -1 do
@@ -45,9 +46,10 @@ local function scanContainer(cid, position)
 	if ganhos.ouro > 0 then
 		player:setBankBalance(player:getBankBalance() + ganhos.ouro)
 		if JV_HUNT and JV_HUNT.somarOuro then JV_HUNT.somarOuro(player, ganhos.ouro) end
-		player:sendTextMessage(MESSAGE_STATUS_SMALL, "[Auto Loot] +" .. ganhos.ouro .. " gold no banco.")
+		-- sem mensagem a cada monstro (tela limpa): o total aparece no !hunt
 	end
-	if ganhos.ficou > 0 then
+	if ganhos.ficou > 0 and (avisos[cid] or 0) + 60 <= os.time() then
+		avisos[cid] = os.time()
 		player:sendTextMessage(MESSAGE_STATUS_SMALL, "[Auto Loot] Mochila cheia: " .. ganhos.ficou .. " item(ns) ficaram no corpo. Use !venderloot")
 	end
 end

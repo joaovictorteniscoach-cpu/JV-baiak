@@ -306,7 +306,9 @@ def testar(host, conta, senha, gm=False, clonar=True):
         jg.receber(3)
         txt = b"".join(x for _, x in jg.recebidos[antes:])
         etapa("magias automaticas: !automagia responde", b"Magias automaticas" in txt)
-        for cmd, trecho in (("!hunt", b"[Hunt]"), ("!venderloot", b"[Venda]"), ("!depot", b"[Depot]")):
+        for cmd, trecho in (("!hunt", b"[Hunt]"), ("!venderloot add, magic sword", b"entrou na lista"),
+                            ("!venderloot lista", b"magic sword"), ("!venderloot", b"[Venda]"),
+                            ("!depot add, 2160", b"entrou na lista"), ("!depot", b"[Depot]")):
             antes = len(jg.recebidos)
             jg.falar(cmd)
             jg.receber(3)

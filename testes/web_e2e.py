@@ -230,7 +230,8 @@ def main():
             conferir_margens()
             # Paginas laterais: navega pelos botoes reais do menu de toque.
             for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
-                                    ('jv-opcoes', '7e-opcoes.png'), ('jv-equipamento', '7f-equipamento.png')]:
+                                    ('jv-opcoes', '7e-opcoes.png'), ('jv-status', '7e2-status.png'),
+                                    ('jv-equipamento', '7f-equipamento.png')]:
                 pg.tap('#menu-botao')
                 pg.tap('#' + controle)
                 time.sleep(1)

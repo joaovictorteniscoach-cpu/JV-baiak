@@ -65,7 +65,18 @@ local function criarPagina()
     texto:setColor('#e8e8e8')
     pcall(function() texto:setFont('verdana-11px-rounded') end)
     texto:setTextWrap(true)
-    p.jvAltura = 16 * 17 + 20
+    -- botoes sem digitar: vender o loot, mandar ao depot e ver a hunt
+    local acoes = {{'Vender loot', '!venderloot'}, {'Depot', '!depot'}, {'Hunt', '!hunt'}}
+    for i, a in ipairs(acoes) do
+        local b = g_ui.createWidget('Button', p)
+        b:setText(a[1]); b:setSize({width = 52, height = 32})
+        b:addAnchor(AnchorTop, 'parent', AnchorTop)
+        b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+        b:setMarginTop(16 * 18 + 14); b:setMarginLeft(4 + (i - 1) * 56)
+        local fala = a[2]
+        b.onClick = function() if g_game.isOnline() then pcall(g_game.talk, fala) end end
+    end
+    p.jvAltura = 16 * 18 + 14 + 32 + 10
     p:setHeight(p.jvAltura); p.panelHeight = p.jvAltura
     p:hide()
     S.pagina, S.paginaTexto = p, texto
@@ -101,7 +112,6 @@ local function atualizar()
         linhas[#linhas + 1] = 'Soul: ' .. tostring(pl:getSoul())
         local st = pl:getStamina()
         linhas[#linhas + 1] = string.format('Stamina: %d:%02d', math.floor(st / 60), st % 60)
-        linhas[#linhas + 1] = 'XP/h e lucro: !hunt'
         S.paginaTexto:setText(table.concat(linhas, '\n'))
         S.paginaTexto:setHeight(16 * #linhas)
     end

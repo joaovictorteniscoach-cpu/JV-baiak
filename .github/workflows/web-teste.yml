@@ -16,6 +16,7 @@ on:
       - web/jv_janelas.lua
       - web/jv_status.lua
       - web/jv_volta.lua
+      - web/jv_listas.lua
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py

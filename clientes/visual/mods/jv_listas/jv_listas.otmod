@@ -1,0 +1,10 @@
+Module
+  name: jv_listas
+  description: JV Baiak - escolher itens para vender e mandar ao depot pelo menu do item
+  author: JV Baiak
+  scripts: [ jv_listas, jv_iniciar ]
+  autoload: true
+  autoload-priority: 1000
+  sandboxed: true
+  @onLoad: init()
+  @onUnload: terminate()
