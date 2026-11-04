@@ -76,6 +76,7 @@ def main():
         layouts, game_ready, map_probes, map_releases, game_layouts = [], [], [], [], []
         game_ends, layout_logs = [], []
         janelas, tamanhos = [], []
+        soltas = []
         seen = set()
         def console(message):
             text = message.text
@@ -86,6 +87,8 @@ def main():
             log.write(f"[{message.type}] {text}\n")
             if 'JV_WEB_GAME_READY' in text:
                 game_ready.append(True)
+            if 'JV_SOLTA ' in text:
+                soltas.append(text)
             if 'JV_JANELA root=' in text:
                 janelas.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect)=([0-9,-]+)',text)})
             m2 = re.search(r'JV_JANELA_TAMANHO (\d+),(\d+)', text)
@@ -301,7 +304,19 @@ def main():
                 foto(nome)
             foto('7g-janelas-abertas.png')
             pg.keyboard.press('Control+Shift+F12')  # fecha as janelas soltas (tela cheia)
-            time.sleep(1)
+            pg.wait_for_timeout(1000)
+            # Mochila pelo menu: na tela cheia ela abre SOLTA por cima do mapa (nao num painel fixo)
+            soltas.clear()
+            pg.tap('#menu-botao'); pg.tap('#jv-mochila')
+            for _ in range(12):
+                if soltas: break
+                pg.wait_for_timeout(500)
+            foto('7i-mochila-solta.png')
+            log.write(f"mochila: {soltas[-1:] }\n")
+            assert soltas, 'A mochila nao abriu solta na tela cheia'
+            pg.tap('#menu-botao'); pg.tap('#jv-mochila')  # fecha de novo
+            pg.wait_for_timeout(1500)
+            foto('7j-mochila-fechada.png')
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)
             foto("8-depois-do-toque.png")

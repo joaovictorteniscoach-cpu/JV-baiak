@@ -69,7 +69,8 @@ def main():
             ctx = nav.new_context(viewport={"width": 1366, "height": 768})
         pg = ctx.new_page()
         erros = []
-        pg.on("console", lambda m: log.write(f"[{m.type}] {m.text}\n"))
+        textos = []
+        pg.on("console", lambda m: (textos.append(m.text), log.write(f"[{m.type}] {m.text}\n")))
         pg.on("pageerror", lambda e: (erros.append(str(e)), log.write(f"[pageerror] {e}\n")))
         L, A = pg.viewport_size["width"], pg.viewport_size["height"]
         n = [0]
@@ -174,6 +175,25 @@ def main():
         pg.keyboard.press("Enter")
         time.sleep(2)
         foto("falou-oi")
+
+        if celular:
+            # tela cheia: equipamento, mochila e skills abrem soltos por cima do mapa
+            pg.keyboard.press("Control+Shift+F12"); pg.wait_for_timeout(800)
+            for botao, nome in (("jv-equipamento", "janela-equipamento"), ("jv-mochila", "mochila"),
+                                ("jv-status", "janela-skills")):
+                if pg.locator("#" + botao).count():
+                    pg.tap("#menu-botao"); pg.wait_for_timeout(600)
+                    pg.tap("#" + botao); pg.wait_for_timeout(2500)
+                    foto(nome)
+            juntos = "\n".join(textos)
+            m = re.findall(r"JV_LAYOUT (\w+)", juntos)
+            etapa("layout no celular", bool(m), layout=m[-1] if m else None)
+            etapa("janelas soltas (equipamento/skills)", "JV_JANELA root=" in juntos)
+            etapa("mochila solta por cima do mapa", "JV_SOLTA " in juntos,
+                  mochila=[t for t in textos if "JV_SOLTA" in t][-1:] or None)
+            pg.keyboard.press("Control+Shift+F12"); pg.wait_for_timeout(800)
+            if "JV_SOLTA " in juntos:
+                pg.tap("#menu-botao"); pg.wait_for_timeout(600); pg.tap("#jv-mochila"); pg.wait_for_timeout(1500)
 
         if celular:
             # segurar o dedo no personagem: menu de opcoes (roupa, etc.)

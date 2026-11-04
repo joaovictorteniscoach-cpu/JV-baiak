@@ -220,11 +220,14 @@ local function soltarDosPaineis()
                         g.getLeftPanel(), g.getLeftExtraPanel and g.getLeftExtraPanel()}) do
         if p then
             for _, w in ipairs(p:getChildren()) do
-                if w:isVisible() and w.close and w:getId() == 'battleWindow' and os.time() - (L.entrou or 0) < 10 then
+                -- o painel esta escondido: isVisible() da falso para tudo dentro dele; o que vale e
+                -- se a propria janela esta aberta (isExplicitlyVisible)
+                local aberta = w.isExplicitlyVisible and w:isExplicitlyVisible() or w:isVisible()
+                if aberta and w.close and w:getId() == 'battleWindow' and os.time() - (L.entrou or 0) < 10 then
                     -- a lista de batalha abre sozinha ao entrar: fica fechada para nao cobrir o
                     -- mapa (abre de novo em Opcoes do jogo)
                     pcall(function() w:close(true) end)
-                elseif w:isVisible() and w.close then
+                elseif aberta and w.close then
                     local largura = w:getWidth()
                     local pos = lugarLivre(largura)
                     w:setParent(r, true)
@@ -235,6 +238,8 @@ local function soltarDosPaineis()
                     L.soltas = (L.soltas or 0) + 1
                     pcall(function() w:raise() end)
                     dentroDaTela(w)
+                    local r = w:getRect()
+                    g_logger.info(string.format('JV_SOLTA %s rect=%d,%d,%d,%d', w:getId(), r.x, r.y, r.width, r.height))
                 end
             end
         end
@@ -273,6 +278,28 @@ local function alternarNoPainel(id)
     p:setVisible(not p:isVisible())
 end
 
+-- ------------------------------------------------------------- mochila
+-- botao "Mochila" do menu: abre a mochila principal (ou fecha, se ja estiver aberta)
+function L.mochila()
+    if not g_game.isOnline() then return end
+    local pl = g_game.getLocalPlayer()
+    local bp = pl and pl:getInventoryItem(InventorySlotBack)
+    if not bp then
+        pcall(modules.game_textmessage.displayFailureMessage, 'Voce nao esta usando mochila.')
+        return
+    end
+    local fechou = false
+    pcall(function()
+        for _, c in pairs(g_game.getContainers()) do
+            local item = c:getContainerItem()
+            if not fechou and not c:hasParent() and item and item:getId() == bp:getId() then
+                g_game.close(c); fechou = true
+            end
+        end
+    end)
+    if not fechou then g_game.open(bp) end
+end
+
 -- ------------------------------------------------------------- comandos do menu
 function L.abrir(id)
     local modo = L.modo()
@@ -308,6 +335,7 @@ function L.iniciar()
     local modo = L.modo()
     g_logger.info('JV_LAYOUT ' .. modo)
     g_keyboard.bindKeyDown('Ctrl+Shift+F3', L.trocar, rootWidget)
+    g_keyboard.bindKeyDown('Ctrl+Shift+F2', function() pcall(L.mochila) end, rootWidget)
     -- "Voltar ao mapa" tambem fecha a janelinha de conversa com NPC
     g_keyboard.bindKeyDown('Ctrl+Shift+F12', function() if JVNpc and JVNpc.fechar then JVNpc.fechar() end end, rootWidget)
     if modo ~= 'paginas' then

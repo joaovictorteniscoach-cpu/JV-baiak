@@ -239,6 +239,7 @@
       </div>
       <button type="button" id="jv-layout" class="jv-botao-teclado">Trocar layout (1, 2, 3)</button>
       <button type="button" id="jv-equipamento" class="jv-botao-teclado">Equipamento</button>
+      <button type="button" id="jv-mochila" class="jv-botao-teclado">Mochila</button>
       <button type="button" id="jv-minimapa" class="jv-botao-teclado">Minimapa</button>
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
       <button type="button" id="jv-status" class="jv-botao-teclado">Status (level e skills)</button>
@@ -411,7 +412,7 @@
         });
         fecharPainel();
       }
-      [["jv-equipamento", "F8", 119], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
+      [["jv-equipamento", "F8", 119], ["jv-mochila", "F2", 113], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
       });
