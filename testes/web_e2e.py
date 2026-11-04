@@ -91,9 +91,9 @@ def main():
                 soltas.append(text)
             if 'JV_JANELA root=' in text:
                 janelas.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect)=([0-9,-]+)',text)})
-            m2 = re.search(r'JV_JANELA_TAMANHO (\d+),(\d+)', text)
+            m2 = re.search(r'JV_JANELA_TAMANHO (\d+),(\d+)(?: escala=([0-9.]+))?', text)
             if m2:
-                tamanhos.append((int(m2.group(1)), int(m2.group(2))))
+                tamanhos.append((int(m2.group(1)), int(m2.group(2)), float(m2.group(3) or 1)))
             if 'JV_GAME_END' in text:
                 game_ends.append(time.time())
             m = re.search(r'JV_LAYOUT (livre|classico|paginas)', text)
@@ -397,8 +397,8 @@ def main():
             assert janelas, 'A janela solta do Equipamento nao abriu'
             rw, rh = janelas[-1]['root']; x, y, w, h = janelas[-1]['rect']
             box = pg.locator('#canvas').bounding_box()
-            gx = box['x'] + (x + w - 15) * box['width'] / rw
-            gy = box['y'] + (y + h - 12) * box['height'] / rh
+            gx = box['x'] + (x + w - 8) * box['width'] / rw
+            gy = box['y'] + (y + h - 8) * box['height'] / rh
             cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": gx, "y": gy}]})
             for i in range(1, 11):
                 cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": gx - 6 * i, "y": gy - 4 * i}]})
@@ -408,6 +408,11 @@ def main():
             foto('7h-janela-menor.png')
             log.write(f"janela antes={w}x{h} depois={tamanhos}\n")
             assert tamanhos and tamanhos[-1][0] < w and tamanhos[-1][1] < h, ('A caixa nao diminuiu', (w, h), tamanhos)
+            # diminui INTEIRA (escala), sem cortar: largura e altura na mesma proporcao
+            nw, nh, esc = tamanhos[-1]
+            assert esc < 0.95 and abs(nw / w - nh / h) < 0.08, ('A janela nao diminuiu por igual', (w, h), tamanhos)
+            # fecha (o tamanho menor fica salvo e aparece nas fotos dos layouts)
+            pg.keyboard.press('Control+Shift+F8'); pg.wait_for_timeout(800)
             pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
             tour_layouts()
         if not ok:

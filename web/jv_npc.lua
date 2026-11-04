@@ -45,16 +45,28 @@ local function mostrar(nome, opcoes)
     lista[#lista + 1] = {'Negociar', 'trade'}
     lista[#lista + 1] = {'Tchau', 'bye'}
 
-    local ok, janela = pcall(function() return g_ui.createWidget('MainWindow', raiz) end)
-    if not ok or not janela then return end
+    -- no navegador do celular usa a janelinha fina e ajustavel (JVLayout); nos apps, a do jogo
+    local compacta = JVLayout and JVLayout.novaJanela and true or false
+    local largura, alturaBotao, espaco, topo = 190, 30, 4, 40
+    if compacta then largura, alturaBotao, espaco, topo = 140, 22, 3, 0 end
+    local maxBotoes = math.max(3, math.floor((raiz:getHeight() * 0.7 - topo - 30) / (alturaBotao + espaco)))
+    local n = math.min(#lista, maxBotoes)
+    local janela
+    if compacta then
+        local ok, w = pcall(JVLayout.novaJanela, 'jvConversaNpc', 'Conversa com ' .. nome, largura,
+            n * (alturaBotao + espaco) - espaco, 'npc', fechar)
+        if ok then janela = w else compacta = false; largura, alturaBotao, espaco, topo = 190, 30, 4, 40 end
+    end
+    if not janela then
+        local ok, w = pcall(function() return g_ui.createWidget('MainWindow', raiz) end)
+        if not ok or not w then return end
+        janela = w
+        pcall(function() janela:setText('Conversa com ' .. nome) end)
+        janela:setWidth(largura + 30)
+        janela:setHeight(topo + n * (alturaBotao + espaco) + 14)
+    end
     N.janela = janela
     N.nomeConversa = nome
-    pcall(function() janela:setText('Conversa com ' .. nome) end)
-    local largura, alturaBotao, espaco, topo = 190, 30, 4, 40
-    local maxBotoes = math.max(3, math.floor((raiz:getHeight() * 0.7 - topo) / (alturaBotao + espaco)))
-    local n = math.min(#lista, maxBotoes)
-    janela:setWidth(largura + 30)
-    janela:setHeight(topo + n * (alturaBotao + espaco) + 14)
     for i = 1, n do
         local rotulo, fala = lista[i][1], lista[i][2]
         if i == n and n < #lista then rotulo, fala = 'Tchau', 'bye' end
@@ -70,6 +82,7 @@ local function mostrar(nome, opcoes)
             if fala == 'bye' or fala == 'trade' then fechar() end
         end
     end
+    if compacta then pcall(JVLayout.terminarJanela, janela) end
     -- canto esquerdo, abaixo da faixa do level (nao cobre o meio do mapa nem o chat).
     -- MainWindow vem presa no centro da tela: solta antes de posicionar.
     janela:breakAnchors()

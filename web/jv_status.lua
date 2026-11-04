@@ -148,7 +148,9 @@ local function por(id, valor, pct)
     if v then v:setText(valor) end
     local b = S.barras and S.barras[id]
     if b and pct then
-        b.barra:setWidth(math.max(0, math.floor(b.largura * math.min(100, pct) / 100)))
+        -- a janela pode estar maior ou menor (alca de tamanho): usa a largura de agora
+        local largura = b.fundo:getWidth() > 0 and b.fundo:getWidth() or b.largura
+        b.barra:setWidth(math.max(0, math.floor(largura * math.min(100, pct) / 100)))
     end
 end
 
