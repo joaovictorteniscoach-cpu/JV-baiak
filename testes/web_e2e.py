@@ -133,6 +133,8 @@ def main():
             # Nunca deduzir o tile a partir do mesmo conversor de entrada.
             # O renderer fornece o retangulo de cada tile; o navegador toca nele.
             for index in (0, 2, 4, 6, 8):
+                # fecha janelinhas por cima do mapa (ex.: conversa de NPC que abriu sozinha)
+                pg.keyboard.press('Control+Shift+F12'); pg.wait_for_timeout(300)
                 map_probes.clear()
                 pg.keyboard.press('Control+Shift+F7')
                 pg.wait_for_timeout(700)
@@ -374,7 +376,7 @@ def main():
                 pg.keyboard.press('Control+Shift+F8')
                 for _ in range(10):
                     if janelas: break
-                    time.sleep(0.5)
+                    pg.wait_for_timeout(500)  # (time.sleep nao recebe o console do navegador)
                 if janelas: break
                 foto(f'7h-tentativa-{tentativa}.png')
             assert janelas, 'A janela solta do Equipamento nao abriu'
@@ -387,7 +389,7 @@ def main():
                 cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": gx - 6 * i, "y": gy - 4 * i}]})
                 time.sleep(0.05)
             cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
-            time.sleep(1.5)
+            pg.wait_for_timeout(1500)
             foto('7h-janela-menor.png')
             log.write(f"janela antes={w}x{h} depois={tamanhos}\n")
             assert tamanhos and tamanhos[-1][0] < w and tamanhos[-1][1] < h, ('A caixa nao diminuiu', (w, h), tamanhos)

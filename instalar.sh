@@ -434,26 +434,24 @@ main() {
 		ok "AFK: personagem fica no jogo ate 60 min parado ou com o app fechado"
 		REINICIAR_SERVIDOR=1
 	fi
-	if ! grep -qx 'respawn-10-15' "$AJUSTES" && command -v python3 >/dev/null; then
-		# Respawn: monstros comuns 10s; bosses e raros 15s
-		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-10-15' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+	if ! grep -qx 'respawn-30s' "$AJUSTES" && command -v python3 >/dev/null; then
+		# Respawn: 50x mais rapido que o original, mas NUNCA menos de 30 s (10-15 s nascia mais
+		# monstro do que da para matar e o jogador morria cercado). O original do mapa e 60 s
+		# na maioria, entao quase tudo fica em 30 s; quem era muito demorado fica original/50.
+		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-30s' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
 			import re, sys
-			RAROS = {"the old widow", "orshabaal", "laravel", "diabolic imp", "hand of cursed fate", "orc warlord",
-			         "black knight", "werewolf", "elder beholder", "massive fire elemental", "pirate ghost",
-			         "spectre", "blightwalker", "juggernaut", "rotworm queen", "vampire bride", "undead dragon",
-			         "ashmunrah", "morgaroth", "ghazbaran", "ferumbras", "demodras", "necropharus", "the horned fox",
-			         "the evil eye", "zulazza the corruptor", "the handmaiden", "the imperor", "the plasmother",
-			         "dracola", "massacre", "mr. punish", "countess sorrow", "the count", "grorlam"}
 			def troca(m):
 			    tag = m.group(0)
-			    nome = re.search(r'name="([^"]+)"', tag)
-			    nome = nome.group(1).lower() if nome else ""
-			    return re.sub(r'spawntime="\d+"', 'spawntime="%d"' % (15 if nome in RAROS else 10), tag)
+			    v = re.search(r'spawntime="(\d+)"', tag)
+			    if not v:
+			        return tag
+			    novo = max(30, round(int(v.group(1)) / 50))
+			    return tag[:v.start(1)] + str(novo) + tag[v.end(1):]
 			for arq in sys.argv[1:]:
 			    t = open(arq, encoding="latin-1").read()
 			    open(arq, "w", encoding="latin-1").write(re.sub(r"<monster\b[^>]*>", troca, t))
 		PY
-		ok "respawn: 10s nos comuns e 15s nos bosses e raros"
+		ok "respawn: 30 s (50x mais rapido que o original, nunca menos de 30 s)"
 	fi
 	if ! grep -qx 'npcs-lojas-v2' "$AJUSTES" && command -v python3 >/dev/null; then
 		# NPCs de loja que faltavam (ferreiro, armeira, comprador de loot, maga, ferramentas,
