@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# JV Baiak - atualizacao completa (servidor + site + jogo do navegador).
+# Envie pelo botao "Fazer upload do arquivo" do SSH e execute:  bash jv6.txt
+# Pode fechar o SSH depois que aparecer "Atualizacao iniciada": ela continua sozinha.
+# Andamento no celular: https://bayakjh.duckdns.org/jogar/atualizacao.txt
+set -Eeuo pipefail
+umask 022
+REVISAO=05df0937a363ae1f020bc2b2ff85e2f8a86514b2
+REPOSITORIO=https://github.com/joaovictorteniscoach-cpu/JV-baiak.git
+printf "\nJV Baiak v6: preparando a atualizacao completa...\n"
+falha() { printf '\nERRO: %s\nEnvie uma foto desta mensagem.\n' "$*" >&2; exit 1; }
+if [ "$(id -u)" -ne 0 ]; then
+  command -v sudo >/dev/null || falha 'Este servidor precisa de sudo.'
+  exec sudo /bin/bash "$(readlink -f -- "${BASH_SOURCE[0]}")"
+fi
+for comando in git systemd-run systemctl journalctl; do
+  command -v "$comando" >/dev/null || falha "Falta o comando $comando."
+done
+[ -f /opt/jvbaiak/.env ] || falha 'Nao encontrei a instalacao em /opt/jvbaiak. Nada foi alterado.'
+if systemctl is-active --quiet jvbaiak-atualizar; then
+  printf '\nJa existe uma atualizacao rodando. Mostrando o andamento (pode fechar o SSH):\n'
+  exec journalctl -u jvbaiak-atualizar -f -n 30 -o cat
+fi
+KIT=$(mktemp -d /var/tmp/jvbaiak-v6.XXXXXX)
+printf 'Baixando a versao conferida (%s)...\n' "${REVISAO:0:7}"
+git init --quiet "$KIT"
+git -C "$KIT" remote add origin "$REPOSITORIO"
+git -C "$KIT" fetch --quiet --depth=1 origin "$REVISAO" || falha 'Nao consegui baixar do GitHub. Tente de novo em 1 minuto.'
+git -C "$KIT" -c advice.detachedHead=false checkout --quiet FETCH_HEAD
+[ "$(git -C "$KIT" rev-parse HEAD)" = "$REVISAO" ] || falha 'A versao baixada nao confere.'
+"/opt/jvbaiak/jvbaiak" backup >/dev/null 2>&1 && printf 'Backup do banco feito.\n' || printf 'Aviso: nao consegui fazer o backup agora (seguindo mesmo assim).\n'
+systemctl reset-failed jvbaiak-atualizar >/dev/null 2>&1 || true
+systemd-run --unit=jvbaiak-atualizar --description='JV Baiak: atualizacao v6' \
+  --setenv=JV_PLANO=1 /bin/bash "$KIT/instalar.sh" >/dev/null
+printf '\nAtualizacao iniciada. PODE FECHAR o SSH ou bloquear o celular.\n'
+printf 'Andamento: https://bayakjh.duckdns.org/jogar/atualizacao.txt\n'
+printf 'Fica pronto quando a ultima linha disser "jogo do navegador: pronto" (uns 30 min).\n'
+printf 'Mostrando aqui tambem (Ctrl+C sai; a atualizacao continua):\n\n'
+exec journalctl -u jvbaiak-atualizar -f -n 20 -o cat
