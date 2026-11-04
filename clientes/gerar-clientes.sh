@@ -160,6 +160,12 @@ grep -q "\"$ENDERECO_SERVIDOR:$PORTA_LOGIN:$VERSAO_CLIENTE\"" "$CLI/init.lua" ||
 # Android com o mesmo layout classico do PC (o init.lua so existe a partir daqui)
 sed -i 's/^  layout = "mobile"$/  layout = DEFAULT_LAYOUT -- JV Baiak: visual classico tambem no celular/' "$CLI/init.lua"
 grep -q 'layout = DEFAULT_LAYOUT -- JV Baiak' "$CLI/init.lua" || log "aviso: nao consegui trocar o layout do Android"
+# No layout classico a janela de vida/mana do celular e fixa e nao tem botao, mas o modulo
+# original do Android usa o botao assim mesmo (erro fatal ao abrir o app). O app pode usar a
+# copia dos modulos que vem dentro do proprio programa, entao a correcao vai no init.lua:
+# um "botao vazio" que o modulo encontra no lugar do que nao existe.
+sed -i 's/^g_resources.setLayout(layout)/-- JV Baiak: botao vazio para a janela fixa de vida\/mana do layout classico no celular\nif g_app.isMobile() then healthInfoButton = setmetatable({}, {__index = function() return function() end end}) end\ng_resources.setLayout(layout)/' "$CLI/init.lua"
+grep -q 'healthInfoButton = setmetatable' "$CLI/init.lua" || falha "nao consegui proteger o Android (init.lua)"
 
 cat > "$CLI/LEIA-ME.txt" <<EOF
 $NOME_SERVIDOR - cliente para Windows
