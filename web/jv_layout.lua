@@ -69,7 +69,16 @@ local function dentroDaTela(w)
     local r = raiz()
     if not r or not w then return end
     local x = math.max(0, math.min(w:getX(), r:getX() + r:getWidth() - w:getWidth()))
-    local y = math.max(r:getY(), math.min(w:getY(), r:getY() + r:getHeight() - w:getHeight()))
+    -- nao deixa a janela entrar embaixo dos botoes Attack/Follow/Look/Use (eles ficam por cima
+    -- e roubavam o toque no "-", no X e na alca)
+    local limite = r:getY() + r:getHeight()
+    pcall(function()
+        local sc = modules.game_shortcuts.getPanel()
+        if sc and sc:isVisible() and x + w:getWidth() > sc:getX() and x < sc:getX() + sc:getWidth() then
+            limite = math.min(limite, sc:getY())
+        end
+    end)
+    local y = math.max(r:getY(), math.min(w:getY(), limite - w:getHeight()))
     w:setPosition({x = x, y = y})
 end
 
@@ -352,9 +361,10 @@ local function soltarDosPaineis()
                 -- o painel esta escondido: isVisible() da falso para tudo dentro dele; o que vale e
                 -- se a propria janela esta aberta (isExplicitlyVisible)
                 local aberta = w.isExplicitlyVisible and w:isExplicitlyVisible() or w:isVisible()
-                if aberta and w.close and w:getId() == 'battleWindow' and os.time() - (L.entrou or 0) < 10 then
-                    -- a lista de batalha abre sozinha ao entrar: fica fechada para nao cobrir o
-                    -- mapa (abre de novo em Opcoes do jogo)
+                local id = w:getId()
+                if aberta and w.close and (id == 'battleWindow' or id == 'vipWindow') and os.time() - (L.entrou or 0) < 10 then
+                    -- a lista de batalha e a de amigos (VIP) abrem sozinhas ao entrar: ficam fechadas
+                    -- para nao cobrir o mapa (abrem de novo em Opcoes do jogo)
                     pcall(function() w:close(true) end)
                 elseif aberta and w.close then
                     local pos = lugarLivre(math.max(w:getWidth(), 176))
