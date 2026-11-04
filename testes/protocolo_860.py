@@ -272,9 +272,10 @@ def testar(host, conta, senha, gm=False, clonar=True):
     etapa("falar no chat", d is not None, ms=int(((tt or time.time()) - t) * 1000) if d else None)
 
     if gm:
+        antes = len(jg.recebidos)
         jg.falar("/comandos")
-        tt, d = jg.esperar(lambda d: d and d[0] == 0x96, 5)
-        etapa("admin: /comandos abre a lista", d is not None and b"Comandos de administrador" in d)
+        jg.receber(4)
+        etapa("admin: /comandos abre a lista", any(b"Comandos de administrador" in x for _, x in jg.recebidos[antes:]))
         antes = len(jg.recebidos)
         jg.falar("/i 2160, 1")  # cria 1 crystal coin
         jg.receber(3)
@@ -324,8 +325,15 @@ def testar(host, conta, senha, gm=False, clonar=True):
         jg.receber(2)
         jg.falarNpc("rotworm")
         jg.receber(3)
-        moveu = any(x and x[0] in (0x6C, 0x64) for _, x in jg.recebidos[antes:])
-        etapa("Guia Lia leva para a hunt (rotworm)", moveu)
+        respostas = b"".join(x for _, x in jg.recebidos[antes:])
+        antes = len(jg.recebidos)
+        jg.falar("/pos")
+        jg.receber(2)
+        pos = b"".join(x for _, x in jg.recebidos[antes:])
+        i = pos.find(b"posi")
+        etapa("Guia Lia leva para a hunt (rotworm)", b"983, 1219, 8" in pos,
+              posicao=pos[i:i + 50].decode("latin-1", "replace") if i >= 0 else None,
+              guia=respostas[respostas.find(b"Hunts"):respostas.find(b"Hunts") + 60].decode("latin-1", "replace") if b"Hunts" in respostas else None)
         jg.falar("/t")
         jg.receber(2)
 
