@@ -180,7 +180,7 @@ function L.alternarSolta(id)
     if id == 'jvStatus' and JVStatus and JVStatus.criarPagina then pcall(JVStatus.criarPagina) end
     local j = L.janelas[id]
     if j and j.janela:isDestroyed() then L.janelas[id] = nil; j = nil end
-    if j and j.janela:isVisible() then j.janela:hide(); return end
+    if j and j.janela:isVisible() then j.janela:hide(); g_logger.info('JV_JANELA_FECHADA ' .. id); return end
     if not j then j = criarJanela(id) end
     if not j then return end
     j.janela:show(); j.janela:raise(); dentroDaTela(j.janela)

@@ -368,8 +368,15 @@ def main():
             time.sleep(4)
             foto("10-deitado-de-novo.png")
             # tela cheia: puxar a alca do canto diminui a caixa do Equipamento
+            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
             janelas.clear(); tamanhos.clear()
-            pg.tap('#menu-botao'); pg.tap('#jv-equipamento'); time.sleep(1.5)
+            for tentativa in range(3):
+                pg.keyboard.press('Control+Shift+F8')
+                for _ in range(10):
+                    if janelas: break
+                    time.sleep(0.5)
+                if janelas: break
+                foto(f'7h-tentativa-{tentativa}.png')
             assert janelas, 'A janela solta do Equipamento nao abriu'
             rw, rh = janelas[-1]['root']; x, y, w, h = janelas[-1]['rect']
             box = pg.locator('#canvas').bounding_box()
