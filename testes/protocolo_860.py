@@ -194,6 +194,9 @@ class Jogo:
     def falar(self, frase):
         self.c.enviar(b"\x96\x01" + texto(frase))
 
+    def falarNpc(self, frase):  # canal do NPC (TALKTYPE_PRIVATE_PN = 4)
+        self.c.enviar(b"\x96\x04" + texto(frase))
+
     def andar(self, direcao):  # 0x65 norte, 0x66 leste, 0x67 sul, 0x68 oeste
         self.c.enviar(bytes([direcao]))
 
@@ -302,14 +305,27 @@ def testar(host, conta, senha, gm=False, clonar=True):
         jg.receber(3)
         txt = b"".join(x for _, x in jg.recebidos[antes:])
         etapa("magias automaticas: !automagia responde", b"Magias automaticas" in txt)
+        for cmd, trecho in (("!hunt", b"[Hunt]"), ("!venderloot", b"[Venda]"), ("!depot", b"[Depot]")):
+            antes = len(jg.recebidos)
+            jg.falar(cmd)
+            jg.receber(3)
+            txt = b"".join(x for _, x in jg.recebidos[antes:])
+            etapa("comando %s responde" % cmd, trecho in txt)
         # NPCs novos no templo e conversa automatica ao chegar perto
-        for npc, trecho in (("Mercador Ze", b"Compro"), ("Ferreiro Joaquim", b"armas"), ("Felipe", b"Felipe")):
+        for npc, trecho in (("Mercador Ze", b"Compro"), ("Ferreiro Joaquim", b"armas"), ("Felipe", b"Felipe"), ("Guia Lia", b"iniciante")):
             antes = len(jg.recebidos)
             jg.falar("/goto " + npc)
             jg.receber(4)
             txt = b"".join(x for _, x in jg.recebidos[antes:])
             etapa("NPC %s existe e fala sozinho ao chegar perto" % npc, trecho in txt and b"{" in txt,
                   trecho=txt[txt.find(b"{") - 40:txt.find(b"{") + 40].decode("latin-1", "replace") if b"{" in txt else None)
+        antes = len(jg.recebidos)
+        jg.falarNpc("iniciante")
+        jg.receber(2)
+        jg.falarNpc("rotworm")
+        jg.receber(3)
+        moveu = any(x and x[0] in (0x6C, 0x64) for _, x in jg.recebidos[antes:])
+        etapa("Guia Lia leva para a hunt (rotworm)", moveu)
         jg.falar("/t")
         jg.receber(2)
 

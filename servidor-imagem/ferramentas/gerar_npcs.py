@@ -119,6 +119,18 @@ def main():
         open("%s/%s.xml" % (pasta, nome), "w", encoding="latin-1").write(conteudo)
         posicoes.append((nome, pos))
         print("%s: vende %d, compra %d" % (nome, len(set(compra)), len(set(venda))))
+    # tabela de precos para o !venderloot (o que o Mercador Ze paga)
+    precos = {}
+    for tab in (ARMAS, ESCUDOS, ARMADURAS, MAGO):
+        for item, (pc, pv) in tab.items():
+            if pv and item in ids:
+                precos[ids[item]] = max(pv, precos.get(ids[item], 0))
+    with open("%s/../scripts/custom/jv_precos.lua" % pasta, "w") as f:
+        f.write("-- Gerado por servidor-imagem/ferramentas/gerar_npcs.py: id do item -> preco pago no !venderloot\n")
+        f.write("JV_PRECOS = {\n")
+        for i in sorted(precos):
+            f.write("\t[%d] = %d,\n" % (i, precos[i]))
+        f.write("}\n")
     posicoes += EXISTENTES
     with open(saida, "w") as f:
         for nome, (x, y, z) in posicoes:

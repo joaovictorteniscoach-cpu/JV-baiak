@@ -427,6 +427,13 @@ main() {
 		ok "rates: experiencia, skills e magic level 1000x; loot 100x"
 		REINICIAR_SERVIDOR=1
 	fi
+	if ! grep -qx 'afk-60min' "$AJUSTES"; then
+		# AFK: sem mexer no jogo (ou com o celular em outro app) o personagem fica ate 60 min
+		lua_define kickIdlePlayerAfterMinutes 60
+		echo 'afk-60min' >> "$AJUSTES"
+		ok "AFK: personagem fica no jogo ate 60 min parado ou com o app fechado"
+		REINICIAR_SERVIDOR=1
+	fi
 	if ! grep -qx 'respawn-10-15' "$AJUSTES" && command -v python3 >/dev/null; then
 		# Respawn: monstros comuns 10s; bosses e raros 15s
 		python3 - "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'respawn-10-15' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
@@ -448,10 +455,10 @@ main() {
 		PY
 		ok "respawn: 10s nos comuns e 15s nos bosses e raros"
 	fi
-	if ! grep -qx 'npcs-lojas-v1' "$AJUSTES" && command -v python3 >/dev/null; then
+	if ! grep -qx 'npcs-lojas-v2' "$AJUSTES" && command -v python3 >/dev/null; then
 		# NPCs de loja que faltavam (ferreiro, armeira, comprador de loot, maga, ferramentas,
 		# armas de distancia e o rei da promocao) no templo de Thunder City
-		python3 - "$BASE/servidor-imagem/ferramentas/npcs-posicoes.txt" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'npcs-lojas-v1' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+		python3 - "$BASE/servidor-imagem/ferramentas/npcs-posicoes.txt" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'npcs-lojas-v2' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
 			import sys
 			linhas = [l.strip().split(";") for l in open(sys.argv[1]) if l.strip()]
 			arq = sys.argv[2]
@@ -468,6 +475,12 @@ main() {
 			print(len(novos.split("<npc")) - 1)
 		PY
 		ok "NPCs de loja colocados no templo"
+	fi
+	# Autoloot com lista de ate 20 itens (o original guardava so 5)
+	if grep -q '^AUTO_LOOT_MAX_ITEMS = 5$' "$SRV/data/lib/core/storages.lua" 2>/dev/null; then
+		sed -i 's/^AUTO_LOOT_MAX_ITEMS = 5$/AUTO_LOOT_MAX_ITEMS = 20/' "$SRV/data/lib/core/storages.lua"
+		REINICIAR_SERVIDOR=1
+		ok "autoloot: lista de ate 20 itens"
 	fi
 	# Conversa com NPC sem digitar: o NPC cumprimenta quem chega perto (sempre conferido)
 	if [ -f "$SRV/data/npc/lib/jv_saudacao.lua" ] && ! grep -q "jv_saudacao.lua" "$SRV/data/npc/lib/npc.lua"; then

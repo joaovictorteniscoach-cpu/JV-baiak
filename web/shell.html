@@ -240,6 +240,7 @@
       <button type="button" id="jv-equipamento" class="jv-botao-teclado">Equipamento</button>
       <button type="button" id="jv-minimapa" class="jv-botao-teclado">Minimapa</button>
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
+      <button type="button" id="jv-status" class="jv-botao-teclado">Status (level e skills)</button>
       <button type="button" id="jv-fechar-painel" class="jv-botao-teclado">Voltar ao mapa</button>
       <button type="button" id="jv-opcoes" class="jv-botao-teclado">Opções do jogo</button>
       <button type="button" id="abrir-teclado" class="jv-botao-teclado">&#9000; Teclado</button>
@@ -409,7 +410,7 @@
         });
         fecharPainel();
       }
-      [["jv-equipamento", "F8", 119], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122]].forEach(function (p) {
+      [["jv-equipamento", "F8", 119], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F7", 118]].forEach(function (p) {
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
       });
@@ -527,6 +528,21 @@
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "visible" && document.body.classList.contains("jv-jogando")) manterTelaAcesa();
       });
+      // Voltou de outro app (WhatsApp...): o iPhone congela a pagina e a conexao morre, e o
+      // jogo ficava preso sem conseguir entrar. Se ficou fora mais de 20 s, recarrega e
+      // entra de novo sozinho (o personagem continua no jogo, no mesmo lugar, enquanto isso).
+      var jvSaiuEm = 0;
+      function jvVoltarAoJogo() {
+        try { sessionStorage.setItem("jvVoltar", "1"); } catch (e) {}
+        location.reload();
+      }
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "hidden") { jvSaiuEm = Date.now(); return; }
+        if (jvSaiuEm && Date.now() - jvSaiuEm > 20000 && document.body.classList.contains("jv-jogando")) jvVoltarAoJogo();
+      });
+      window.addEventListener("pageshow", function (ev) {
+        if (ev.persisted && document.body.classList.contains("jv-jogando")) jvVoltarAoJogo();
+      });
       var jogoIniciado = false;
       function startGame() {
         if (jogoIniciado) return;
@@ -617,6 +633,9 @@
             document.getElementById("progresso").style.display = "none";
             document.getElementById("capa-dica").textContent = "Toque em Jogar. Segure o dedo para o menu (botao direito).";
             document.getElementById("start").style.display = "block";
+            var voltar = false;
+            try { voltar = sessionStorage.getItem("jvVoltar") === "1"; sessionStorage.removeItem("jvVoltar"); } catch (e) {}
+            if (voltar) setTimeout(startGame, 300);
           }
         },
         monitorRunDependencies: function (left) {

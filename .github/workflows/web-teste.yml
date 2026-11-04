@@ -14,6 +14,8 @@ on:
       - web/jv_autoataque.lua
       - web/jv_npc.lua
       - web/jv_janelas.lua
+      - web/jv_status.lua
+      - web/jv_volta.lua
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py

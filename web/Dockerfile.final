@@ -19,6 +19,8 @@ RUN cd /workspace \
  && cat /tmp/jv/jv_autoataque.lua >> otclientrc.lua && echo 'JVAutoAtaque.iniciar()' >> otclientrc.lua \
  && cat /tmp/jv/jv_npc.lua >> otclientrc.lua && echo 'JVNpc.iniciar()' >> otclientrc.lua \
  && cat /tmp/jv/jv_janelas.lua >> otclientrc.lua && echo 'JVJanelas.iniciar()' >> otclientrc.lua \
+ && cat /tmp/jv/jv_status.lua >> otclientrc.lua && echo 'JVStatus.iniciar()' >> otclientrc.lua \
+ && cat /tmp/jv/jv_volta.lua >> otclientrc.lua && echo 'JVVolta.iniciar()' >> otclientrc.lua \
  && if [ -f /tmp/jv/fundo-login.png ]; then cp /tmp/jv/fundo-login.png data/images/background.png; fi \
  && if [ -f /tmp/jv/fundo-login-em-pe.png ]; then cp /tmp/jv/fundo-login-em-pe.png data/images/background-em-pe.png; fi \
  && if [ -d /tmp/jv/imagens ]; then cp /tmp/jv/imagens/*.png data/images/options/; fi \

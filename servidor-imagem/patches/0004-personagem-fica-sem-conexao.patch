@@ -1,0 +1,24 @@
+diff --git a/src/player.cpp b/src/player.cpp
+index 82a3540..b1f8c70 100644
+--- a/src/player.cpp
++++ b/src/player.cpp
+@@ -872,14 +872,11 @@ void Player::sendPing()
+ 		setAttackedCreature(nullptr);
+ 	}
+ 
+-	if (noPongTime >= 60000 && canLogout()) {
+-		if (g_creatureEvents->playerLogout(this)) {
+-			if (client) {
+-				client->logout(true, true);
+-			} else {
+-				g_game.removeCreature(this, true);
+-			}
+-		}
++	// JV Baiak: sem resposta do celular (app em segundo plano, tela bloqueada) o personagem
++	// NAO e deslogado aqui: fica no jogo, no mesmo lugar, ate voltar ou ate o tempo de
++	// inatividade do config.lua (kickIdlePlayerAfterMinutes). So a conexao morta e fechada.
++	if (noPongTime >= 60000 && client) {
++		disconnect();
+ 	}
+ }
+ 
