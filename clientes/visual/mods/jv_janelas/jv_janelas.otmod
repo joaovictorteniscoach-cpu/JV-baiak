@@ -1,0 +1,10 @@
+Module
+  name: jv_janelas
+  description: JV Baiak - janelas sempre dentro da tela no celular
+  author: JV Baiak
+  scripts: [ jv_janelas, jv_iniciar ]
+  autoload: true
+  autoload-priority: 1000
+  sandboxed: true
+  @onLoad: init()
+  @onUnload: terminate()

@@ -296,6 +296,22 @@ def testar(host, conta, senha, gm=False, clonar=True):
         etapa("admin: /a teletransporta", moveu)
         jg.falar("/t")
         jg.receber(2)
+        # magias automaticas (servidor) respondem ao comando
+        antes = len(jg.recebidos)
+        jg.falar("!automagia")
+        jg.receber(3)
+        txt = b"".join(x for _, x in jg.recebidos[antes:])
+        etapa("magias automaticas: !automagia responde", b"Magias automaticas" in txt)
+        # NPCs novos no templo e conversa automatica ao chegar perto
+        for npc, trecho in (("Mercador Ze", b"Compro"), ("Ferreiro Joaquim", b"armas"), ("Felipe", b"Felipe")):
+            antes = len(jg.recebidos)
+            jg.falar("/goto " + npc)
+            jg.receber(4)
+            txt = b"".join(x for _, x in jg.recebidos[antes:])
+            etapa("NPC %s existe e fala sozinho ao chegar perto" % npc, trecho in txt and b"{" in txt,
+                  trecho=txt[txt.find(b"{") - 40:txt.find(b"{") + 40].decode("latin-1", "replace") if b"{" in txt else None)
+        jg.falar("/t")
+        jg.receber(2)
 
     jg.receber(2)
     jg.sair()

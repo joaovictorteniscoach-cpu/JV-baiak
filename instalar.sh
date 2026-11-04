@@ -469,6 +469,12 @@ main() {
 		PY
 		ok "NPCs de loja colocados no templo"
 	fi
+	# Conversa com NPC sem digitar: o NPC cumprimenta quem chega perto (sempre conferido)
+	if [ -f "$SRV/data/npc/lib/jv_saudacao.lua" ] && ! grep -q "jv_saudacao.lua" "$SRV/data/npc/lib/npc.lua"; then
+		printf "\n-- JV Baiak\ndofile('data/npc/lib/jv_saudacao.lua')\n" >> "$SRV/data/npc/lib/npc.lua"
+		REINICIAR_SERVIDOR=1
+		ok "NPCs cumprimentam sozinhos quem chega perto"
+	fi
 	if ! grep -qx 'mapa-limpo-v1' "$AJUSTES" && command -v python3 >/dev/null; then
 		# Tira a sujeira decorativa do chao dos templos/cidades (pedrinhas, ferragens,
 		# rachaduras, poeira). Casas, paredes, moveis, hunts e areas sem PZ nao mudam.

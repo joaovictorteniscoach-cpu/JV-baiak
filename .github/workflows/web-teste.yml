@@ -12,6 +12,8 @@ on:
       - web/shell.html
       - web/otclientrc-extra.lua
       - web/jv_autoataque.lua
+      - web/jv_npc.lua
+      - web/jv_janelas.lua
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py
