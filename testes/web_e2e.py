@@ -61,6 +61,9 @@ def conta_de_teste():
     return conta, senha, ok
 
 
+ESCOPO = os.environ.get('JV_ESCOPO', 'completo')  # 'janelas' = teste rapido so das janelas
+
+
 def main():
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8080), Servidor)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -150,6 +153,7 @@ def main():
                 map_releases.clear()
                 pg.touchscreen.tap(cssx,cssy)
                 pg.wait_for_timeout(500)
+                if not map_releases: foto('falha-toque-no-mapa.png')
                 assert map_releases, ('O toque nao chegou ao mapa',probe,cssx,cssy)
                 actual=map_releases[-1]
                 assert actual['tile']==probe['tile'], ('Quadrado incorreto',probe,actual,cssx,cssy)
@@ -239,6 +243,67 @@ def main():
             log.write(f"volta automatica por layout: {resultado}; sem quedas em 75 s\n")
             assert all(resultado.values()), ('Nao entrou sozinho em todas as trocas', resultado)
 
+        def testar_paineis():
+            # Paginas laterais: navega pelos botoes reais do menu de toque.
+            for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
+                                    ('jv-opcoes', '7e-opcoes.png'), ('jv-status', '7e2-status.png'),
+                                    ('jv-equipamento', '7f-equipamento.png')]:
+                pg.tap('#menu-botao')
+                pg.tap('#' + controle)
+                time.sleep(1)
+                foto(nome)
+            foto('7g-janelas-abertas.png')
+            pg.keyboard.press('Control+Shift+F12')  # fecha as janelas soltas (tela cheia)
+            pg.wait_for_timeout(1000)
+
+        def testar_mochila():
+            # Mochila pelo menu: na tela cheia ela abre SOLTA por cima do mapa (nao num painel fixo)
+            soltas.clear()
+            pg.tap('#menu-botao'); pg.tap('#jv-mochila')
+            for _ in range(12):
+                if soltas: break
+                pg.wait_for_timeout(500)
+            foto('7i-mochila-solta.png')
+            log.write(f"mochila: {soltas[-1:] }\n")
+            assert soltas, 'A mochila nao abriu solta na tela cheia'
+            larg = int(re.search(r'rect=-?\d+,-?\d+,(\d+),(\d+)', soltas[-1]).group(1))
+            assert larg >= 100, ('A mochila abriu sem largura', soltas[-1])
+            pg.tap('#menu-botao'); pg.tap('#jv-mochila')  # fecha de novo
+            pg.wait_for_timeout(1500)
+            foto('7j-mochila-fechada.png')
+
+        def testar_alca(cdp):
+            # tela cheia: puxar a alca do canto diminui a caixa do Equipamento
+            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
+            janelas.clear(); tamanhos.clear()
+            for tentativa in range(3):
+                pg.keyboard.press('Control+Shift+F8')
+                for _ in range(10):
+                    if janelas: break
+                    pg.wait_for_timeout(500)  # (time.sleep nao recebe o console do navegador)
+                if janelas: break
+                foto(f'7h-tentativa-{tentativa}.png')
+            assert janelas, 'A janela solta do Equipamento nao abriu'
+            rw, rh = janelas[-1]['root']; x, y, w, h = janelas[-1]['rect']
+            box = pg.locator('#canvas').bounding_box()
+            gx = box['x'] + (x + w - 8) * box['width'] / rw
+            gy = box['y'] + (y + h - 8) * box['height'] / rh
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": gx, "y": gy}]})
+            for i in range(1, 11):
+                cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": gx - 6 * i, "y": gy - 4 * i}]})
+                time.sleep(0.05)
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+            pg.wait_for_timeout(1500)
+            foto('7h-janela-menor.png')
+            log.write(f"janela antes={w}x{h} depois={tamanhos}\n")
+            assert tamanhos and tamanhos[-1][0] < w and tamanhos[-1][1] < h, ('A caixa nao diminuiu', (w, h), tamanhos)
+            # diminui INTEIRA (escala), sem cortar: largura e altura na mesma proporcao
+            nw, nh, esc = tamanhos[-1]
+            assert esc < 0.95 and abs(nw / w - nh / h) < 0.08, ('A janela nao diminuiu por igual', (w, h), tamanhos)
+            # fecha (o tamanho menor fica salvo e aparece nas fotos dos layouts)
+            pg.keyboard.press('Control+Shift+F8'); pg.wait_for_timeout(800)
+            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
+
         t0 = time.time()
         pg.goto("http://127.0.0.1:8080/", wait_until="load")
         foto("1-carregando.png")
@@ -290,33 +355,19 @@ def main():
             pg.keyboard.press("Escape")  # fecha a janela de roupa da primeira vez
             time.sleep(2)
             foto("7b-sem-janela.png")
+            if ESCOPO == 'janelas':
+                # teste rapido: so as janelas (o que mudou), sem passear pelo resto do jogo
+                testar_paineis(); testar_mochila()
+                if engine != 'webkit':
+                    testar_alca(ctx.new_cdp_session(pg))
+                log.write("teste rapido (janelas) terminou\n")
+                nav.close(); srv.shutdown(); log.close(); return
             pg.tap('#menu-botao');pg.tap('#jv-ver-toque');time.sleep(0.5)
             verificar_quadrados()
             foto("7b-marcadores-toque.png")
             conferir_margens()
-            # Paginas laterais: navega pelos botoes reais do menu de toque.
-            for controle, nome in [('jv-combate', '7c-combate.png'), ('jv-minimapa', '7d-minimapa.png'),
-                                    ('jv-opcoes', '7e-opcoes.png'), ('jv-status', '7e2-status.png'),
-                                    ('jv-equipamento', '7f-equipamento.png')]:
-                pg.tap('#menu-botao')
-                pg.tap('#' + controle)
-                time.sleep(1)
-                foto(nome)
-            foto('7g-janelas-abertas.png')
-            pg.keyboard.press('Control+Shift+F12')  # fecha as janelas soltas (tela cheia)
-            pg.wait_for_timeout(1000)
-            # Mochila pelo menu: na tela cheia ela abre SOLTA por cima do mapa (nao num painel fixo)
-            soltas.clear()
-            pg.tap('#menu-botao'); pg.tap('#jv-mochila')
-            for _ in range(12):
-                if soltas: break
-                pg.wait_for_timeout(500)
-            foto('7i-mochila-solta.png')
-            log.write(f"mochila: {soltas[-1:] }\n")
-            assert soltas, 'A mochila nao abriu solta na tela cheia'
-            pg.tap('#menu-botao'); pg.tap('#jv-mochila')  # fecha de novo
-            pg.wait_for_timeout(1500)
-            foto('7j-mochila-fechada.png')
+            testar_paineis()
+            testar_mochila()
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)
             foto("8-depois-do-toque.png")
@@ -384,36 +435,7 @@ def main():
             pg.set_viewport_size({"width": 844, "height": 390})
             time.sleep(4)
             foto("10-deitado-de-novo.png")
-            # tela cheia: puxar a alca do canto diminui a caixa do Equipamento
-            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
-            janelas.clear(); tamanhos.clear()
-            for tentativa in range(3):
-                pg.keyboard.press('Control+Shift+F8')
-                for _ in range(10):
-                    if janelas: break
-                    pg.wait_for_timeout(500)  # (time.sleep nao recebe o console do navegador)
-                if janelas: break
-                foto(f'7h-tentativa-{tentativa}.png')
-            assert janelas, 'A janela solta do Equipamento nao abriu'
-            rw, rh = janelas[-1]['root']; x, y, w, h = janelas[-1]['rect']
-            box = pg.locator('#canvas').bounding_box()
-            gx = box['x'] + (x + w - 8) * box['width'] / rw
-            gy = box['y'] + (y + h - 8) * box['height'] / rh
-            cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": gx, "y": gy}]})
-            for i in range(1, 11):
-                cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": gx - 6 * i, "y": gy - 4 * i}]})
-                time.sleep(0.05)
-            cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
-            pg.wait_for_timeout(1500)
-            foto('7h-janela-menor.png')
-            log.write(f"janela antes={w}x{h} depois={tamanhos}\n")
-            assert tamanhos and tamanhos[-1][0] < w and tamanhos[-1][1] < h, ('A caixa nao diminuiu', (w, h), tamanhos)
-            # diminui INTEIRA (escala), sem cortar: largura e altura na mesma proporcao
-            nw, nh, esc = tamanhos[-1]
-            assert esc < 0.95 and abs(nw / w - nh / h) < 0.08, ('A janela nao diminuiu por igual', (w, h), tamanhos)
-            # fecha (o tamanho menor fica salvo e aparece nas fotos dos layouts)
-            pg.keyboard.press('Control+Shift+F8'); pg.wait_for_timeout(800)
-            pg.keyboard.press('Control+Shift+F12'); time.sleep(1)
+            testar_alca(cdp)
             tour_layouts()
         if not ok:
             raise AssertionError('Nao foi possivel criar a conta de teste')

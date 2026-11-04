@@ -345,11 +345,12 @@ local function soltarDosPaineis()
                     -- mapa (abre de novo em Opcoes do jogo)
                     pcall(function() w:close(true) end)
                 elseif aberta and w.close then
-                    local largura = w:getWidth()
-                    local pos = lugarLivre(largura)
+                    local pos = lugarLivre(math.max(w:getWidth(), 176))
                     w:setParent(r, true)
                     w.free = true
                     pcall(function() w:breakAnchors() end)
+                    -- dentro do painel escondido (largura 0) a janela tambem fica com largura 0
+                    if w:getWidth() < 100 then pcall(function() w:setWidth(176) end) end
                     if w:getHeight() < 60 then pcall(function() w:setHeight(160) end) end
                     w:setPosition(pos)
                     L.soltas = (L.soltas or 0) + 1

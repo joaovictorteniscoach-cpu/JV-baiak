@@ -4,17 +4,13 @@ name: Varredura completa (iPhone, Android, PC, servidor e site)
 # (inclusive comandos de administrador), e joga no servidor de verdade como iPhone,
 # Android e PC. Fotos e resultados vao para o ramo "varredura".
 on:
+  # Economia: a varredura completa (75 min, varias maquinas) so roda quando pedida:
+  # mude testes/varredura-pedido.txt (ou rode na mao). Ela joga no site AO VIVO, entao
+  # so faz sentido depois de atualizar a VPS.
   push:
     branches: [main]
     paths:
-      - testes/varredura*.py
-      - testes/protocolo_860.py
-      - testes/windows_cliente.ps1
-      - testes/android_emulador.sh
-      - testes/esperar_atualizacao.sh
-      - testes/experimento_crash.sh
-      - clientes/**
-      - .github/workflows/varredura.yml
+      - testes/varredura-pedido.txt
   workflow_dispatch:
 
 permissions:

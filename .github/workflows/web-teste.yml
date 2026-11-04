@@ -96,15 +96,14 @@ jobs:
     needs: montar
     strategy:
       fail-fast: false
+      # Economia: por padrao so o Chrome e o teste rapido das janelas. Teste completo (Chrome +
+      # Safari/WebKit no Mac) quando a mensagem do commit tem [completo] ou rodando na mao.
       matrix:
-        include:
-          - browser: chromium
-            os: ubuntu-latest
-          - browser: webkit
-            os: macos-15
+        include: ${{ fromJSON((github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[completo]')) && '[{"browser":"chromium","os":"ubuntu-latest"},{"browser":"webkit","os":"macos-15"}]' || '[{"browser":"chromium","os":"ubuntu-latest"}]') }}
     runs-on: ${{ matrix.os }}
     env:
       JV_BROWSER: ${{ matrix.browser }}
+      JV_ESCOPO: ${{ (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[completo]')) && 'completo' || 'janelas' }}
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
