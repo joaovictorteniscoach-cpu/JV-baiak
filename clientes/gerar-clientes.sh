@@ -110,6 +110,12 @@ sed -i "s/^local defaultLocaleName = 'en'/local defaultLocaleName = 'pt'/" "$CLI
 # layout de celular) e o joystick comeca escondido (anda tocando no mapa, como no
 # Tibia; o botao do joystick continua no menu de cima para quem quiser).
 sed -i 's/^  keypadButton:setChecked(true)$/  keypadButton:setChecked(false)/' "$CLI/modules/client_mobile/mobile.lua"
+# Android com o layout classico: a janela de vida/mana fica fixa (forceOpen) e o botao dela
+# nao existe; o original do celular fechava a janela e usava o botao -> erro fatal ao abrir.
+HI="$CLI/modules/game_healthinfo/healthinfo.lua"
+sed -i 's/^    healthInfoWindow:close()$/    if not healthInfoWindow.forceOpen then healthInfoWindow:close() end/' "$HI"
+sed -i 's/^    healthInfoButton:setOn(false)[[:space:]]*$/    if healthInfoButton then healthInfoButton:setOn(false) end/' "$HI"
+grep -q 'if healthInfoButton then healthInfoButton:setOn(false) end' "$HI" || falha "nao consegui corrigir healthinfo.lua (Android abriria com erro)"
 sed -i "s|clientVersionLabel:setText('OTClientV8 ' .. g_app.getVersion()|clientVersionLabel:setText('$NOME_SERVIDOR - Tibia $VERSAO_CLIENTE\\\\nOTClientV8 ' .. g_app.getVersion()|" \
 	"$CLI/modules/client_background/background.lua"
 
