@@ -52,7 +52,7 @@ end
 
 -- Pagina no formato da janela "Skills" do Tibia 8.60: nome a esquerda, valor a direita,
 -- barra de progresso embaixo do Level, do Magic Level e de cada skill.
-local LINHA = 15
+local LINHA = 13
 local LINHAS = {
     {'exp', 'Experience'}, {'level', 'Level', 'vermelha'},
     {'-'},
@@ -83,15 +83,21 @@ local function criarPagina()
     p:setId('jvStatus'); p:setWidth(176)
     pcall(function() p:setText('Skills') end)
     S.valores, S.barras = {}, {}
-    local y = 8
+    -- botoes no alto (abaixo do botao do menu), sem digitar: vender, depot e hunt
+    local acoes = {{'Vender', '!venderloot'}, {'Depot', '!depot'}, {'Hunt', '!hunt'}}
+    for i, a in ipairs(acoes) do
+        local b = g_ui.createWidget('Button', p)
+        b:setText(a[1]); b:setSize({width = 52, height = 28})
+        b:addAnchor(AnchorTop, 'parent', AnchorTop)
+        b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+        b:setMarginTop(44); b:setMarginLeft(4 + (i - 1) * 56)
+        local fala = a[2]
+        b.onClick = function() if g_game.isOnline() then pcall(g_game.talk, fala) end end
+    end
+    local y = 78
     for _, l in ipairs(LINHAS) do
         if l[1] == '-' then
-            local sep = g_ui.createWidget('UIWidget', p)
-            sep:addAnchor(AnchorTop, 'parent', AnchorTop); sep:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-            sep:addAnchor(AnchorRight, 'parent', AnchorRight)
-            sep:setMarginTop(y + 3); sep:setMarginLeft(6); sep:setMarginRight(6); sep:setHeight(1)
-            sep:setBackgroundColor('#5a5a5a'); sep:setPhantom(true)
-            y = y + 8
+            y = y + 2
         else
             local nome = rotulo(p, l[2], AlignLeft)
             nome:addAnchor(AnchorTop, 'parent', AnchorTop); nome:addAnchor(AnchorLeft, 'parent', AnchorLeft)
@@ -105,29 +111,18 @@ local function criarPagina()
                 local fundo = g_ui.createWidget('UIWidget', p)
                 fundo:addAnchor(AnchorTop, 'parent', AnchorTop); fundo:addAnchor(AnchorLeft, 'parent', AnchorLeft)
                 fundo:addAnchor(AnchorRight, 'parent', AnchorRight)
-                fundo:setMarginTop(y - 2); fundo:setMarginLeft(8); fundo:setMarginRight(8); fundo:setHeight(4)
+                fundo:setMarginTop(y - 1); fundo:setMarginLeft(8); fundo:setMarginRight(8); fundo:setHeight(3)
                 fundo:setBackgroundColor('#2a1a1a'); fundo:setPhantom(true)
                 local barra = g_ui.createWidget('UIWidget', fundo)
                 barra:addAnchor(AnchorTop, 'parent', AnchorTop); barra:addAnchor(AnchorLeft, 'parent', AnchorLeft)
                 barra:addAnchor(AnchorBottom, 'parent', AnchorBottom)
                 barra:setBackgroundColor(l[3] == 'vermelha' and '#c01010' or '#10a010'); barra:setPhantom(true)
                 S.barras[l[1]] = {barra = barra, fundo = fundo}
-                y = y + 5
+                y = y + 4
             end
         end
     end
-    -- botoes sem digitar: vender o loot, mandar ao depot e ver a hunt
-    local acoes = {{'Vender', '!venderloot'}, {'Depot', '!depot'}, {'Hunt', '!hunt'}}
-    for i, a in ipairs(acoes) do
-        local b = g_ui.createWidget('Button', p)
-        b:setText(a[1]); b:setSize({width = 52, height = 32})
-        b:addAnchor(AnchorTop, 'parent', AnchorTop)
-        b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
-        b:setMarginTop(y + 6); b:setMarginLeft(4 + (i - 1) * 56)
-        local fala = a[2]
-        b.onClick = function() if g_game.isOnline() then pcall(g_game.talk, fala) end end
-    end
-    p.jvAltura = y + 6 + 32 + 8
+    p.jvAltura = y + 6
     p:setHeight(p.jvAltura); p.panelHeight = p.jvAltura
     p:hide()
     S.pagina = p
