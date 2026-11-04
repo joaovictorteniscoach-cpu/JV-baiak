@@ -222,17 +222,6 @@ local function colocarAlca(w, chave)
         escalar(w, w.jvEscala or 1, chave)
         dentroDaTela(w)
         g_logger.info(string.format('JV_JANELA_TAMANHO %d,%d escala=%.2f', w:getWidth(), w:getHeight(), w.jvEscala or 1))
-        -- diagnostico: tamanho real x original das primeiras pecas da janela
-        local n = 0
-        local function ver(x, nivel)
-            if n >= 40 then return end
-            n = n + 1
-            local o, r = x.jvOrig, x:getRect()
-            g_logger.info(string.format('JV_PECA %d %s %s rect=%d,%d,%d,%d orig=%s,%s', nivel, x:getClassName(), x:getId(),
-                r.x, r.y, r.width, r.height, o and o.w or '-', o and o.h or '-'))
-            for _, c in ipairs(x:getChildren()) do ver(c, nivel + 1) end
-        end
-        pcall(ver, w, 0)
         return true
     end
     alca:raise()
