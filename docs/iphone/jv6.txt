@@ -5,7 +5,7 @@
 # Andamento no celular: https://bayakjh.duckdns.org/jogar/atualizacao.txt
 set -Eeuo pipefail
 umask 022
-REVISAO=7e4125a9c5c9e6ea6a55a535fdddac0b8df09e32
+REVISAO=e04534df8e6da2c8d30b65e8ae61c4bbc54d2bc6
 REPOSITORIO=https://github.com/joaovictorteniscoach-cpu/JV-baiak.git
 printf "\nJV Baiak v6: preparando a atualizacao completa...\n"
 falha() { printf '\nERRO: %s\nEnvie uma foto desta mensagem.\n' "$*" >&2; exit 1; }
