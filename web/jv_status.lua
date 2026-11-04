@@ -111,7 +111,7 @@ function S.iniciar()
     if S.evento then return end
     if not (g_platform and g_platform.isMobile and g_platform.isMobile()) then return end
     S.evento = cycleEvent(function() pcall(atualizar) end, 1000)
-    g_keyboard.bindKeyDown('Ctrl+Shift+F7', function()
+    g_keyboard.bindKeyDown('Ctrl+Shift+F4', function()
         pcall(criarPagina)
         if JVToque and JVToque.selecionar then JVToque.selecionar('jvStatus', true) end
     end, rootWidget)

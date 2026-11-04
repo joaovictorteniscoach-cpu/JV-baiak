@@ -410,7 +410,7 @@
         });
         fecharPainel();
       }
-      [["jv-equipamento", "F8", 119], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F7", 118]].forEach(function (p) {
+      [["jv-equipamento", "F8", 119], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
       });
