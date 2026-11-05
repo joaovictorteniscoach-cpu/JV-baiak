@@ -25,7 +25,8 @@ local function pintar()
         local b = A.botoes[c[1]]
         local ligado = A.estado and A.estado[i] == '1'
         if b then
-            b:setText(c[2] .. ': ' .. (ligado and 'SIM' or 'nao'))
+            -- ate o servidor responder mostra "..." (nao "nao", que confundia)
+            b:setText(c[2] .. ': ' .. (not A.estado and '...' or (ligado and 'SIM' or 'nao')))
             b:setColor(ligado and '#80ff80' or '#c0c0c0')
         end
     end
