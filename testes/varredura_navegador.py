@@ -175,6 +175,22 @@ def main():
         pg.keyboard.press("Enter")
         time.sleep(2)
         foto("falou-oi")
+        # comando digitado chega certo no servidor: !autocura responde com o estado (JV_CURA)
+        antes = sum(1 for x in textos if "JV_CURA " in x)
+        if celular:
+            pg.tap("#menu-botao"); time.sleep(0.6); pg.tap("#abrir-teclado"); time.sleep(1)
+        else:
+            pg.keyboard.press("Enter"); time.sleep(0.5)
+        pg.keyboard.type("!autocura", delay=60)
+        pg.keyboard.press("Enter")
+        time.sleep(3)
+        foto("comando-digitado")
+        depois = sum(1 for x in textos if "JV_CURA " in x)
+        etapa("comando digitado (!autocura) chega no servidor", depois > antes, antes=antes, depois=depois)
+        juntos = "\n".join(textos)
+        etapa("servidor responde o sinal do jogo (protecao ao sair da aba)", "JV_VIVO" in juntos)
+        m = re.findall(r"JV_CURA (\d,\d,\d)", juntos)
+        etapa("estado da cura e auto pocao vem do servidor", bool(m), estado=m[-1] if m else None)
 
         if celular:
             # tela cheia: equipamento, mochila e skills abrem soltos por cima do mapa
@@ -191,6 +207,12 @@ def main():
             etapa("janelas soltas (equipamento/skills)", "JV_JANELA root=" in juntos)
             etapa("mochila solta por cima do mapa", "JV_SOLTA " in juntos,
                   mochila=[t for t in textos if "JV_SOLTA" in t][-1:] or None)
+            etapa("botoes rapidos (caca, cura, templo, comandos)", "JV_RAPIDO root=" in juntos)
+            if pg.locator("#jv-comandos").count():
+                pg.tap("#menu-botao"); pg.wait_for_timeout(600); pg.tap("#jv-comandos"); pg.wait_for_timeout(2000)
+                foto("janela-comandos")
+                etapa("janela Comandos abre", any("JV_COMANDOS aberta" in x for x in textos))
+                pg.keyboard.press("Control+Shift+F12"); pg.wait_for_timeout(800)
             pg.keyboard.press("Control+Shift+F12"); pg.wait_for_timeout(800)
             if "JV_SOLTA " in juntos:
                 pg.tap("#menu-botao"); pg.wait_for_timeout(600); pg.tap("#jv-mochila"); pg.wait_for_timeout(1500)
