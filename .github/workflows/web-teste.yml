@@ -20,6 +20,7 @@ on:
       - web/jv_layout.lua
       - web/jv_barra.lua
       - web/jv_autoloot.lua
+      - web/imagens-mobile/**
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py

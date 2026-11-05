@@ -28,6 +28,7 @@ RUN cd /workspace \
  && if [ -f /tmp/jv/fundo-login.png ]; then cp /tmp/jv/fundo-login.png data/images/background.png; fi \
  && if [ -f /tmp/jv/fundo-login-em-pe.png ]; then cp /tmp/jv/fundo-login-em-pe.png data/images/background-em-pe.png; fi \
  && if [ -d /tmp/jv/imagens ]; then cp /tmp/jv/imagens/*.png data/images/options/; fi \
+ && if [ -d /tmp/jv/imagens-mobile ]; then cp /tmp/jv/imagens-mobile/*.png data/images/game/mobile/; fi \
  && source /opt/emsdk/emsdk_env.sh \
  && touch /workspace/src/framework/net/jv_web_config.h \
  && rm -f ${BUILD_DIR}/bin/otclient.* \

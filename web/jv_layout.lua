@@ -491,6 +491,43 @@ function L.trocar()
     end
 end
 
+-- ------------------------------------------------------------- botoes de baixo
+-- Atacar / Seguir / Olhar / Usar com icones nitidos (imagens 128px) e o botao Mochila.
+-- Os que nao estao escolhidos ficam bem visiveis (antes ficavam apagados, 60%).
+local function prepararAtalhos()
+    local sc = modules.game_shortcuts
+    local painel = sc and sc.getPanel and sc.getPanel()
+    local icones = painel and painel:getChildById('shortcutIcons')
+    if not icones then return end
+    for _, b in ipairs(icones:getChildren()) do
+        if b.image and not b.jvBrilho then
+            b.jvBrilho = true
+            local img = b.image
+            local function clarear() if not img:isChecked() then img:setOpacity(0.92) end end
+            connect(img, {onCheckChange = function() scheduleEvent(clarear, 1) end})
+            clarear()
+        end
+    end
+    if icones:getChildById('mochila') then return end
+    local ok, m = pcall(function() return g_ui.createWidget('GameAction', icones) end)
+    if not ok or not m then return end
+    m:setId('mochila')
+    m:addAnchor(AnchorTop, 'parent', AnchorTop); m:addAnchor(AnchorLeft, 'look', AnchorRight)
+    m:setMarginTop(4); m:setMarginLeft(6)
+    if m.image then
+        m.image:setImageSource('/images/game/mobile/mochila')
+        m.image:setOpacity(0.92)
+    end
+    m.onClick = function() pcall(L.mochila) end
+    local usar = icones:getChildById('use')
+    if usar then
+        usar:breakAnchors()
+        usar:addAnchor(AnchorTop, 'parent', AnchorTop); usar:addAnchor(AnchorLeft, 'mochila', AnchorRight)
+        usar:setMarginTop(4); usar:setMarginLeft(6)
+    end
+    painel:setWidth(202)
+end
+
 function L.iniciar()
     if L.ligado or not (g_platform and g_platform.isMobile and g_platform.isMobile()) then return end
     L.ligado = true
@@ -511,6 +548,7 @@ function L.iniciar()
     connect(g_game, {
         onGameStart = function()
             L.entrou = os.time()
+            scheduleEvent(function() pcall(prepararAtalhos) end, 1200)
             scheduleEvent(function() pcall(prepararCombate) end, 1600)
             if modo == 'livre' then
                 if L.evento then removeEvent(L.evento) end
