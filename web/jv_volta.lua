@@ -30,13 +30,14 @@ local function deveVoltar()
     return ate > 0 and os.time() - ate <= JANELA
 end
 
+-- No celular "Lembrar conta" e "Entrar automaticamente" ficam SEMPRE marcados: sem a senha
+-- guardada, ao voltar de outro app o jogo nao consegue entrar sozinho (parecia que tinha saido).
 local function marcarCaixasPadrao()
-    if g_settings.getBoolean('jvLoginPadraoFeito') then return end
     local janela = rootWidget:recursiveGetChildById('enterGame')
     if not janela then return end
     for _, id in ipairs({'rememberEmailBox', 'autoLoginBox'}) do
         local caixa = janela:getChildById(id)
-        if caixa then pcall(function() caixa:setChecked(true) end) end
+        if caixa and not caixa:isChecked() then pcall(function() caixa:setChecked(true) end) end
     end
     g_settings.set('jvLoginPadraoFeito', true)
 end
@@ -85,7 +86,7 @@ function V.iniciar()
     connect(g_game, { onGameStart = function()
         marcarOnline()
         if V.evento then removeEvent(V.evento) end
-        V.evento = cycleEvent(marcarOnline, 10000)
+        V.evento = cycleEvent(marcarOnline, 30000)
         -- 5 minutos no jogo sem cair: volta a reconectar sozinho normalmente
         if V.estavel then removeEvent(V.estavel) end
         V.estavel = scheduleEvent(function()
@@ -132,5 +133,7 @@ function V.iniciar()
         end
     end
     scheduleEvent(marcarCaixasPadrao, 1500)
+    -- a tela de entrar volta depois de sair ou cair: marca as caixas de novo
+    connect(g_game, { onGameEnd = function() scheduleEvent(marcarCaixasPadrao, 1500) end })
     scheduleEvent(entrarNaConta, 2500)
 end

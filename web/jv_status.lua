@@ -50,6 +50,70 @@ local function criarFaixa()
     S.faixa, S.faixaTexto, S.faixaBarra = faixa, texto, barra
 end
 
+-- Vida e mana pequenas em volta do personagem (dos dois lados), meio transparentes para
+-- ver o mapa atraves. Substituem os arcos grandes de vida/mana do jogo.
+local ALT_BARRA, LARG_BARRA = 26, 4
+local function criarBarras()
+    if S.vida then return end
+    local mapa = modules.game_interface and modules.game_interface.getMapPanel and modules.game_interface.getMapPanel()
+    if not mapa then return end
+    local function barra(id, cor)
+        local fundo = g_ui.createWidget('UIWidget', mapa)
+        fundo:setId(id)
+        fundo:setSize({width = LARG_BARRA + 2, height = ALT_BARRA + 2})
+        fundo:setBackgroundColor('#00000080')
+        fundo:setOpacity(0.75)
+        fundo:setPhantom(true)
+        local cheio = g_ui.createWidget('UIWidget', fundo)
+        cheio:addAnchor(AnchorBottom, 'parent', AnchorBottom)
+        cheio:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+        cheio:setMarginBottom(1); cheio:setMarginLeft(1)
+        cheio:setWidth(LARG_BARRA); cheio:setHeight(ALT_BARRA)
+        cheio:setBackgroundColor(cor)
+        cheio:setPhantom(true)
+        fundo.cheio = cheio
+        return fundo
+    end
+    S.vida = barra('jvBarraVida', '#20d020')
+    S.mana = barra('jvBarraMana', '#3070ff')
+    -- tira os arcos grandes de vida/mana do jogo (ficavam por cima do mapa)
+    pcall(function() modules.game_healthcircle.setHealthCircle(false) end)
+    pcall(function() modules.game_healthcircle.setManaCircle(false) end)
+end
+
+local function posicionarBarras()
+    if not S.vida then return end
+    local pl = g_game.getLocalPlayer()
+    local mapa = modules.game_interface.getMapPanel()
+    if not pl or not mapa then return end
+    -- o personagem fica sempre no meio do mapa; o tamanho do quadrado vem do proprio mapa
+    local ok, r = pcall(function() return mapa:getTileRect(pl:getPosition()) end)
+    local lado = (ok and r and r.width > 0) and r.width or 32
+    local cx = mapa:getX() + math.floor(mapa:getWidth() / 2)
+    local cy = mapa:getY() + math.floor(mapa:getHeight() / 2)
+    local meio = cy - math.floor(ALT_BARRA / 2) - math.floor(lado / 6)
+    local nova = cx .. ',' .. meio .. ',' .. lado
+    if S.barrasEm == nova then return end
+    S.barrasEm = nova
+    S.vida:setPosition({x = cx - math.floor(lado / 2) - LARG_BARRA - 4, y = meio})
+    S.mana:setPosition({x = cx + math.floor(lado / 2) + 2, y = meio})
+end
+
+local function pintarBarras()
+    if not S.vida then return end
+    local pl = g_game.getLocalPlayer()
+    if not pl then return end
+    local function encher(b, atual, maximo)
+        local pct = maximo > 0 and math.max(0, math.min(1, atual / maximo)) or 0
+        b.cheio:setHeight(math.max(0, math.floor(ALT_BARRA * pct)))
+        return pct
+    end
+    local pv = encher(S.vida, pl:getHealth(), pl:getMaxHealth())
+    S.vida.cheio:setBackgroundColor(pv > 0.6 and '#20d020' or (pv > 0.3 and '#e0c020' or '#e02020'))
+    encher(S.mana, pl:getMana(), pl:getMaxMana())
+end
+S.posicionarBarras, S.pintarBarras = posicionarBarras, pintarBarras
+
 -- Pagina no formato da janela "Skills" do Tibia 8.60: nome a esquerda, valor a direita,
 -- barra de progresso embaixo do Level, do Magic Level e de cada skill. Compacta para
 -- caber no celular deitado sem passar por baixo dos atalhos.
@@ -158,7 +222,8 @@ local function atualizar()
     if not g_game.isOnline() then return end
     local pl = g_game.getLocalPlayer()
     if not pl then return end
-    criarFaixa(); criarPagina()
+    criarFaixa(); criarPagina(); criarBarras()
+    posicionarBarras(); pintarBarras()
     local lv, pct = pl:getLevel(), pl:getLevelPercent()
     if S.faixaTexto then
         S.faixaTexto:setText(string.format('Lv %d   %d%%', lv, pct))
@@ -195,6 +260,12 @@ function S.iniciar()
         -- a interface do jogo e recriada no proximo login
         if S.faixa then pcall(function() S.faixa:destroy() end) end
         if S.pagina then pcall(function() S.pagina:destroy() end) end
-        S.faixa, S.pagina = nil, nil
+        if S.vida then pcall(function() S.vida:destroy(); S.mana:destroy() end) end
+        S.faixa, S.pagina, S.vida, S.mana = nil, nil, nil, nil
     end })
+    -- vida/mana mudam na hora; a posicao acompanha o personagem (andar, girar a tela, zoom)
+    connect(LocalPlayer, { onHealthChange = function() pcall(pintarBarras) end,
+        onManaChange = function() pcall(pintarBarras) end,
+        onPositionChange = function() pcall(posicionarBarras) end })
+    connect(rootWidget, { onGeometryChange = function() S.barrasEm = nil; scheduleEvent(function() pcall(posicionarBarras) end, 200) end })
 end

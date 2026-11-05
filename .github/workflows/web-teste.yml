@@ -18,6 +18,8 @@ on:
       - web/jv_volta.lua
       - web/jv_listas.lua
       - web/jv_layout.lua
+      - web/jv_barra.lua
+      - web/jv_autoloot.lua
       - web/visual/**
       - web/jogar-extra/**
       - testes/web_e2e.py

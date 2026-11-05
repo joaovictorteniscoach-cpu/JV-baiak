@@ -79,7 +79,7 @@ def main():
         layouts, game_ready, map_probes, map_releases, game_layouts = [], [], [], [], []
         game_ends, layout_logs = [], []
         janelas, tamanhos = [], []
-        soltas = []
+        soltas, itens_log, extras = [], [], []
         seen = set()
         def console(message):
             text = message.text
@@ -92,6 +92,11 @@ def main():
                 game_ready.append(True)
             if 'JV_SOLTA ' in text:
                 soltas.append(text)
+            m3 = re.search(r'JV_ITEM (\S+) (\d+),(\d+) orig=(\d+),(\d+)', text)
+            if m3:
+                itens_log.append((m3.group(1), int(m3.group(2)), int(m3.group(4))))
+            if 'JV_BARRA ' in text or 'JV_LOOT ' in text or 'JV_GESTO ' in text:
+                extras.append(text.split('] ')[-1])
             if 'JV_JANELA root=' in text:
                 janelas.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect)=([0-9,-]+)',text)})
             m2 = re.search(r'JV_JANELA_TAMANHO (\d+),(\d+)(?: escala=([0-9.]+))?', text)
@@ -256,7 +261,7 @@ def main():
             pg.keyboard.press('Control+Shift+F12')  # fecha as janelas soltas (tela cheia)
             pg.wait_for_timeout(1000)
 
-        def testar_mochila():
+        def testar_mochila(cdp=None):
             # Mochila pelo menu: na tela cheia ela abre SOLTA por cima do mapa (nao num painel fixo)
             soltas.clear()
             pg.tap('#menu-botao'); pg.tap('#jv-mochila')
@@ -268,9 +273,31 @@ def main():
             assert soltas, 'A mochila nao abriu solta na tela cheia'
             larg = int(re.search(r'rect=-?\d+,-?\d+,(\d+),(\d+)', soltas[-1]).group(1))
             assert larg >= 100, ('A mochila abriu sem largura', soltas[-1])
+            if cdp:
+                # puxar a alca da mochila: os ITENS diminuem junto com a janela
+                x, y, w, h = map(int, re.search(r'rect=(-?\d+),(-?\d+),(\d+),(\d+)', soltas[-1]).groups())
+                rw, rh = janelas[-1]['root'] if janelas else (602, 278)
+                box = pg.locator('#canvas').bounding_box()
+                gx = box['x'] + (x + w - 8) * box['width'] / rw
+                gy = box['y'] + (y + h - 8) * box['height'] / rh
+                itens_log.clear()
+                cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": gx, "y": gy}]})
+                for i in range(1, 11):
+                    cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": gx - 5 * i, "y": gy - 3 * i}]})
+                    time.sleep(0.05)
+                cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+                pg.wait_for_timeout(1500)
+                foto('7i2-mochila-menor.png')
+                log.write(f"itens da mochila: {itens_log}\n")
+                assert itens_log and itens_log[-1][1] < itens_log[-1][2] * 0.95, ('Os itens da mochila nao diminuiram', itens_log)
             pg.tap('#menu-botao'); pg.tap('#jv-mochila')  # fecha de novo
             pg.wait_for_timeout(1500)
             foto('7j-mochila-fechada.png')
+            # janela do autoloot (os botoes mostram SIM/nao quando o servidor responde)
+            pg.tap('#menu-botao'); pg.tap('#jv-autoloot'); pg.wait_for_timeout(2500)
+            foto('7k-autoloot.png')
+            pg.keyboard.press('Control+Shift+F5'); pg.wait_for_timeout(800)
+            log.write(f"servidor novo (barra de magias / autoloot): {extras}\n")
 
         def testar_alca(cdp):
             # tela cheia: puxar a alca do canto diminui a caixa do Equipamento
@@ -357,9 +384,10 @@ def main():
             foto("7b-sem-janela.png")
             if ESCOPO == 'janelas':
                 # teste rapido: so as janelas (o que mudou), sem passear pelo resto do jogo
-                testar_paineis(); testar_mochila()
-                if engine != 'webkit':
-                    testar_alca(ctx.new_cdp_session(pg))
+                cdp_r = ctx.new_cdp_session(pg) if engine != 'webkit' else None
+                testar_paineis(); testar_mochila(cdp_r)
+                if cdp_r:
+                    testar_alca(cdp_r)
                 log.write("teste rapido (janelas) terminou\n")
                 nav.close(); srv.shutdown(); log.close(); return
             pg.tap('#menu-botao');pg.tap('#jv-ver-toque');time.sleep(0.5)

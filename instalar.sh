@@ -427,6 +427,28 @@ main() {
 		ok "rates: experiencia, skills e magic level 1000x; loot 100x"
 		REINICIAR_SERVIDOR=1
 	fi
+	if ! grep -qx 'xp-estagios-v1' "$AJUSTES"; then
+		# XP por estagios: 1000x no comeco e diminuindo nos levels altos (1000x o tempo todo
+		# levava ao level 500+ em poucos dias). Skills, magic level e loot continuam iguais.
+		LC_ALL=C awk '
+			/^experienceStages[ \t]*=[ \t]*\{/ { pula = 1
+				print "experienceStages = {"
+				print "\t{ minlevel = 1, maxlevel = 150, multiplier = 1000 },"
+				print "\t{ minlevel = 151, maxlevel = 250, multiplier = 600 },"
+				print "\t{ minlevel = 251, maxlevel = 350, multiplier = 300 },"
+				print "\t{ minlevel = 351, maxlevel = 450, multiplier = 150 },"
+				print "\t{ minlevel = 451, maxlevel = 550, multiplier = 60 },"
+				print "\t{ minlevel = 551, maxlevel = 650, multiplier = 25 },"
+				print "\t{ minlevel = 651, multiplier = 10 },"
+				print "}"; next }
+			pula && /^\}/ { pula = 0; next }
+			pula { next }
+			{ print }
+		' "$SRV/config.lua" > "$SRV/config.lua.tmp" && mv "$SRV/config.lua.tmp" "$SRV/config.lua"
+		echo 'xp-estagios-v1' >> "$AJUSTES"
+		ok "XP por estagios: 1000x ate o 150 e diminuindo ate 10x no 651+"
+		REINICIAR_SERVIDOR=1
+	fi
 	if ! grep -qx 'afk-60min' "$AJUSTES"; then
 		# AFK: sem mexer no jogo (ou com o celular em outro app) o personagem fica ate 60 min
 		lua_define kickIdlePlayerAfterMinutes 60
@@ -452,6 +474,29 @@ main() {
 			    open(arq, "w", encoding="latin-1").write(re.sub(r"<monster\b[^>]*>", troca, t))
 		PY
 		ok "respawn: 30 s (50x mais rapido que o original, nunca menos de 30 s)"
+	fi
+	if ! grep -qx 'npcs-barracas-v1' "$AJUSTES" && command -v python3 >/dev/null \
+		&& [ -f "$BASE/servidor-imagem/ferramentas/npcs-barracas.txt" ]; then
+		# NPCs nas barracas dos mercados que estavam vazias (armas, ferramentas, armaduras,
+		# compra de loot, distancia, banco, aneis...). Ficam parados atras do balcao (raio 0).
+		python3 - "$BASE/servidor-imagem/ferramentas/npcs-barracas.txt" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'npcs-barracas-v1' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+			import sys
+			linhas = [l.strip().split(";") for l in open(sys.argv[1]) if l.strip()]
+			arq = sys.argv[2]
+			t = open(arq, encoding="latin-1").read()
+			novos = ""
+			for nome, x, y, z in linhas:
+			    marca = 'centerx="%s" centery="%s" centerz="%s"' % (x, y, z)
+			    if marca in t:
+			        continue
+			    novos += ('\t<spawn %s radius="0">\n'
+			              '\t\t<npc name="%s" x="0" y="0" z="%s" spawntime="60" />\n\t</spawn>\n') % (marca, nome, z)
+			if novos:
+			    t = t.replace("</spawns>", novos + "</spawns>")
+			    open(arq, "w", encoding="latin-1").write(t)
+			print(len(novos.split("<npc")) - 1)
+		PY
+		ok "NPCs colocados nas barracas dos mercados"
 	fi
 	if ! grep -qx 'npcs-lojas-v2' "$AJUSTES" && command -v python3 >/dev/null; then
 		# NPCs de loja que faltavam (ferreiro, armeira, comprador de loot, maga, ferramentas,

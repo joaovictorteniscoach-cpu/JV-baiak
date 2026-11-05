@@ -222,6 +222,20 @@ local function colocarAlca(w, chave)
         escalar(w, w.jvEscala or 1, chave)
         dentroDaTela(w)
         g_logger.info(string.format('JV_JANELA_TAMANHO %d,%d escala=%.2f', w:getWidth(), w:getHeight(), w.jvEscala or 1))
+        -- o primeiro item da janela (mochila/equipamento) tem que diminuir junto
+        local function primeiroItem(x)
+            for _, c in ipairs(x:getChildren()) do
+                if c:getClassName() == 'UIItem' and c:getWidth() > 0 then return c end
+                local achou = primeiroItem(c)
+                if achou then return achou end
+            end
+        end
+        local it = primeiroItem(w)
+        if it then
+            local o = it.jvOrig
+            g_logger.info(string.format('JV_ITEM %s %d,%d orig=%d,%d', w:getId(), it:getWidth(), it:getHeight(),
+                o and o.w or 0, o and o.h or 0))
+        end
         return true
     end
     alca:raise()
@@ -293,9 +307,12 @@ function L.novaJanela(id, texto, largura, altura, chave, aoFechar)
 end
 
 -- depois de colocar o conteudo: alca de tamanho e a escala que a pessoa deixou
+-- tamanho de quem ainda nao mexeu na janela: um pouco menor que o normal (cabe melhor no celular)
+local ESCALA_PADRAO = 0.8
+
 function L.terminarJanela(w)
     colocarAlca(w, w.jvChave)
-    escalar(w, (w.jvChave and escalaSalva(w.jvChave)) or 1)
+    escalar(w, (w.jvChave and escalaSalva(w.jvChave)) or ESCALA_PADRAO)
 end
 
 local function criarJanela(id)
@@ -380,8 +397,7 @@ local function soltarDosPaineis()
                     -- mesma alca de tamanho das outras janelas (mochilas usam a mesma escala)
                     local chave = w:getId():match('^container') and 'mochila' or w:getId()
                     pcall(colocarAlca, w, chave)
-                    local f = escalaSalva(chave)
-                    if f and f ~= 1 then pcall(escalar, w, f) end
+                    pcall(escalar, w, escalaSalva(chave) or ESCALA_PADRAO)
                     pcall(function() w:raise() end)
                     dentroDaTela(w)
                     local r = w:getRect()
@@ -498,7 +514,7 @@ function L.iniciar()
             scheduleEvent(function() pcall(prepararCombate) end, 1600)
             if modo == 'livre' then
                 if L.evento then removeEvent(L.evento) end
-                L.evento = cycleEvent(cuidarDaTelaCheia, 400)
+                L.evento = cycleEvent(cuidarDaTelaCheia, 1000)
             end
         end,
         onGameEnd = function()
@@ -509,5 +525,7 @@ function L.iniciar()
     })
     if modo == 'livre' then
         connect(rootWidget, {onGeometryChange = function() scheduleEvent(cuidarDaTelaCheia, 150) end})
+        -- mochila/corpo aberto: solta na hora (sem esperar a volta do relogio)
+        pcall(function() connect(Container, {onOpen = function() scheduleEvent(cuidarDaTelaCheia, 30) end}) end)
     end
 end

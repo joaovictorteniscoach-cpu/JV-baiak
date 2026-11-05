@@ -201,6 +201,11 @@
       .jv-botao-teclado { border-radius: 3px; color: #f3dfb3; background: linear-gradient(#4d4335,#302a23); border-color: #a48b60; }
       /* Controles acessíveis sem invadir a área central do mapa. */
       #tela-cheia[hidden], .jv-botao-teclado[hidden] { display: none !important; }
+      #jv-voltando { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 8px; background: rgba(10,8,5,.82); color: #f3dfb3; font: 600 20px sans-serif;
+        text-align: center; pointer-events: none; }
+      #jv-voltando small { font: 400 14px sans-serif; opacity: .85; max-width: 80vw; }
+      #jv-voltando[hidden] { display: none !important; }
       #menu-botao { cursor: pointer; opacity: .85; }
       .jv-botao-teclado { cursor: pointer; min-height: 44px; }
       #menu-painel { max-height: calc(100dvh - 76px); overflow-y: auto; box-sizing: border-box; max-width: calc(100vw - 16px); }
@@ -213,6 +218,7 @@
   </head>
   <body>
     <div class="title" id="title-text" contenteditable virtualkeyboardpolicy="manual"></div>
+    <div id="jv-voltando" hidden>Voltando ao jogo...<small>Seu personagem ficou no mesmo lugar enquanto voc&ecirc; estava fora.</small></div>
     <div id="capa">
       <h1>__JV_NOME__</h1>
       <p id="capa-texto">Baixando o jogo...</p>
@@ -241,6 +247,7 @@
       <button type="button" id="jv-equipamento" class="jv-botao-teclado">Equipamento</button>
       <button type="button" id="jv-mochila" class="jv-botao-teclado">Mochila</button>
       <button type="button" id="jv-minimapa" class="jv-botao-teclado">Minimapa</button>
+      <button type="button" id="jv-autoloot" class="jv-botao-teclado">Autoloot</button>
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
       <button type="button" id="jv-status" class="jv-botao-teclado">Status (level e skills)</button>
       <button type="button" id="jv-fechar-painel" class="jv-botao-teclado">Voltar ao mapa</button>
@@ -412,7 +419,7 @@
         });
         fecharPainel();
       }
-      [["jv-equipamento", "F8", 119], ["jv-mochila", "F2", 113], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
+      [["jv-equipamento", "F8", 119], ["jv-mochila", "F2", 113], ["jv-autoloot", "F5", 116], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
       });
@@ -545,6 +552,14 @@
       // jogo ficava preso sem conseguir entrar. Se ficou fora mais de 20 s, recarrega e
       // entra de novo sozinho (o personagem continua no jogo, no mesmo lugar, enquanto isso).
       var jvSaiuEm = 0;
+      // Tela "Voltando ao jogo..." enquanto a pagina recarrega e entra de novo sozinha
+      // (o personagem continua no jogo; sem essa tela parecia que o jogo tinha fechado).
+      function esconderVoltando() { document.getElementById("jv-voltando").hidden = true; }
+      (function () {
+        var v = false;
+        try { v = sessionStorage.getItem("jvVoltar") === "1"; } catch (e) {}
+        if (v) { document.getElementById("jv-voltando").hidden = false; setTimeout(esconderVoltando, 45000); }
+      })();
       function jvVoltarAoJogo() {
         try { sessionStorage.setItem("jvVoltar", "1"); } catch (e) {}
         location.reload();
@@ -620,6 +635,7 @@
         print: function () {
           var message = Array.prototype.slice.call(arguments).join(" ");
           mostrarDestinoToque(message);
+          if (message.indexOf("JV_WEB_GAME_READY") >= 0) esconderVoltando();
           console.log(message);
         },
         printErr: function () {

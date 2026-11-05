@@ -1,0 +1,16 @@
+Ferreiro Joaquim;625;1231;5
+Riona;625;1235;5
+Armeira Lucia;625;1248;5
+Mercador Ze;641;1232;5
+Tyoric;641;1237;5
+Charbel;641;1242;5
+Maga Iris;641;1247;5
+Raimunda;1274;1014;7
+Ferreiro Joaquim;1293;1031;7
+Armeira Lucia;1305;1018;7
+Tyoric;706;1358;7
+Riona;706;1367;7
+Ferreiro Joaquim;1080;1334;5
+Armeira Lucia;1079;1333;6
+Riona;1102;1347;6
+Armeira Lucia;1196;1294;6

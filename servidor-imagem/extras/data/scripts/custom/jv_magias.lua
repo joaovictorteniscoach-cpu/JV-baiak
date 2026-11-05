@@ -82,6 +82,9 @@ local function lancar(player, words, tipo)
 	local info = infoMagia(words)
 	if not info then return false end
 	if player:castSpell(words) then
+		-- mostra as palavras da magia em cima do personagem, como quando o jogador fala
+		local tipo_fala = configManager.getBoolean(configKeys.EMOTE_SPELLS) and TALKTYPE_MONSTER_SAY or TALKTYPE_SAY
+		pcall(function() player:say(words, tipo_fala) end)
 		M.proximo[cid] = M.proximo[cid] or {}
 		M.proximo[cid][tipo] = agora + info.espera
 		return true
