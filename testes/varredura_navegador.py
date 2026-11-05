@@ -86,6 +86,19 @@ def main():
             else:
                 pg.mouse.click(x, y)
 
+        def tocar_campo(nome):
+            # toca no meio do campo da tela de entrar, pela posicao que o jogo informa (JV_LOGIN_LAYOUT)
+            for txt in reversed(textos):
+                m = re.search(r"JV_LOGIN_LAYOUT root=(\d+),(\d+) .*?" + nome + r"=(-?\d+),(-?\d+),(\d+),(\d+)", txt)
+                if m:
+                    rw, rh, x, y, w, h = map(int, m.groups())
+                    box = pg.locator("#canvas").bounding_box()
+                    px = box["x"] + (x + w / 2) * box["width"] / rw
+                    py = box["y"] + (y + h / 2) * box["height"] / rh
+                    pg.touchscreen.tap(px, py) if celular else pg.mouse.click(px, py)
+                    return True
+            return False
+
         t0 = time.time()
         pg.goto(SITE + "/jogar/", wait_until="load", timeout=120_000)
         foto("carregando")
@@ -106,7 +119,8 @@ def main():
         if not criada:
             return
         if celular:
-            toque(440 / 844, 140 / 390)  # campo da conta: aparece "Toque para digitar"
+            if not tocar_campo("account"):
+                toque(440 / 844, 140 / 390)  # campo da conta: aparece "Toque para digitar"
             time.sleep(2)
             visivel = pg.is_visible("#digitar")
             etapa("toque no campo mostra 'Toque para digitar'", visivel)
@@ -179,8 +193,6 @@ def main():
         antes = sum(1 for x in textos if "JV_CURA " in x)
         if celular:
             pg.tap("#menu-botao"); time.sleep(0.6); pg.tap("#abrir-teclado"); time.sleep(1)
-        else:
-            pg.keyboard.press("Enter"); time.sleep(0.5)
         pg.keyboard.type("!autocura", delay=60)
         pg.keyboard.press("Enter")
         time.sleep(3)
