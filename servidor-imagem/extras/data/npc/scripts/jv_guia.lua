@@ -1,5 +1,6 @@
 -- JV Baiak: GUIA DE HUNTS. Diga (ou toque) o nivel da hunt e depois a hunt:
--- o guia te leva direto para la. Cada hunt tem um level minimo.
+-- o guia te leva direto para la. Cada hunt tem um level minimo. Ao lado de onde voce chega
+-- tem um teleporte de volta ao templo (jv_templo.lua); !templo tambem volta.
 local keywordHandler = KeywordHandler:new()
 local npcHandler = NpcHandler:new(keywordHandler)
 NpcSystem.parseParameters(npcHandler)
@@ -11,35 +12,35 @@ function onThink()                          npcHandler:onThink()                
 
 local HUNTS = {
 	iniciante = {
-		{nome = "Rotworm", level = 8, pos = Position(983, 1219, 8)},
-		{nome = "Swamp Troll", level = 8, pos = Position(1061, 1189, 7)},
-		{nome = "Minotaur", level = 15, pos = Position(1632, 1598, 7)},
+		{nome = "Rotworm", level = 8, pos = Position(979, 1217, 8)},
+		{nome = "Swamp Troll", level = 8, pos = Position(1064, 1188, 7)},
+		{nome = "Minotaur", level = 15, pos = Position(1562, 1636, 7)},
 	},
 	medio = {
-		{nome = "Cyclops", level = 30, pos = Position(1677, 1368, 4)},
-		{nome = "Orc Berserker", level = 30, pos = Position(1418, 1304, 7)},
-		{nome = "Mummy", level = 30, pos = Position(1924, 1683, 7)},
-		{nome = "Pirate", level = 40, pos = Position(2004, 1915, 7)},
+		{nome = "Cyclops", level = 30, pos = Position(1678, 1369, 4)},
+		{nome = "Orc Berserker", level = 30, pos = Position(1030, 1755, 7)},
+		{nome = "Mummy", level = 30, pos = Position(1924, 1688, 7)},
+		{nome = "Pirata", level = 40, pos = Position(1970, 1875, 7)},
 	},
 	forte = {
-		{nome = "Dragon", level = 80, pos = Position(402, 1599, 7)},
-		{nome = "Ancient Scarab", level = 80, pos = Position(506, 1960, 7)},
-		{nome = "Bog Raider", level = 100, pos = Position(848, 1949, 7)},
-		{nome = "Wyvern", level = 80, pos = Position(1147, 328, 7)},
+		{nome = "Dragon", level = 80, pos = Position(1790, 1379, 5)},
+		{nome = "Ancient Scarab", level = 80, pos = Position(507, 1959, 7)},
+		{nome = "Bog Raider", level = 100, pos = Position(538, 1216, 8)},
+		{nome = "Wyvern", level = 80, pos = Position(1152, 331, 7)},
 	},
 	elite = {
-		{nome = "Dragon Lord", level = 200, pos = Position(402, 1599, 7)},
-		{nome = "Hydra", level = 200, pos = Position(221, 1701, 6)},
-		{nome = "Frost Dragon", level = 200, pos = Position(59, 1822, 7)},
-		{nome = "Warlock", level = 250, pos = Position(1024, 806, 7)},
-		{nome = "Medusa", level = 250, pos = Position(191, 1816, 7)},
-		{nome = "Destroyer", level = 250, pos = Position(1053, 260, 6)},
-		{nome = "Nightmare", level = 250, pos = Position(1745, 1508, 2)},
+		{nome = "Dragon Lord", level = 200, pos = Position(403, 1598, 7)},
+		{nome = "Hydra", level = 200, pos = Position(220, 1702, 6)},
+		{nome = "Frost Dragon", level = 200, pos = Position(58, 1823, 7)},
+		{nome = "Warlock", level = 250, pos = Position(1022, 809, 7)},
+		{nome = "Medusa", level = 250, pos = Position(190, 1815, 7)},
+		{nome = "Destroyer", level = 250, pos = Position(1051, 258, 6)},
+		{nome = "Nightmare", level = 250, pos = Position(1713, 1461, 5)},
 	},
 	lendario = {
-		{nome = "Demon", level = 400, pos = Position(72, 1588, 7)},
+		{nome = "Demon", level = 400, pos = Position(69, 1585, 7)},
 		{nome = "Grim Reaper", level = 400, pos = Position(49, 1920, 7)},
-		{nome = "Hellhound", level = 500, pos = Position(1149, 266, 7)},
+		{nome = "Hellhound", level = 500, pos = Position(1148, 260, 7)},
 		{nome = "Juggernaut", level = 600, pos = Position(1153, 384, 7)},
 	},
 }
@@ -76,7 +77,7 @@ local function creatureSayCallback(cid, type, msg)
 					npcHandler:say("Voce esta em batalha. Espere um pouco.", cid)
 					return true
 				end
-				npcHandler:say("Boa caca! Ligue a espada (caca automatica) quando chegar.", cid)
+				npcHandler:say("Boa caca! Ligue a espada (caca automatica) quando chegar. Para voltar: entre no teleporte ao lado ou toque no botao do templo (ou diga !templo).", cid)
 				npcHandler:releaseFocus(cid)
 				player:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
 				player:teleportTo(hunt.pos)

@@ -84,6 +84,7 @@ function V.iniciar()
         end
     end
     connect(g_game, { onGameStart = function()
+        V.inicio = os.time()
         marcarOnline()
         if V.evento then removeEvent(V.evento) end
         V.evento = cycleEvent(marcarOnline, 30000)
@@ -104,9 +105,11 @@ function V.iniciar()
         V.estavel = nil
         g_logger.info('JV_GAME_END')
         if V.saindo then V.saindo = false; return end
-        -- caiu sem apertar Sair: conta as quedas. 3 em 3 minutos = algo derrubando em
-        -- seguida (o jogo aberto em outra aba/aparelho). Para de reconectar sozinho.
+        -- caiu sem apertar Sair: conta as quedas RAPIDAS (menos de 45 s no jogo). 3 em 3 minutos
+        -- = algo derrubando em seguida (o jogo aberto em outra aba/aparelho): para de reconectar.
+        -- Cair depois de jogar um tempo (saiu para outro app e voltou) nao conta.
         local agora = os.time()
+        if V.inicio and agora - V.inicio >= 45 then return end
         local recentes = {}
         for _, t in ipairs(V.quedas or {}) do if agora - t <= 180 then recentes[#recentes + 1] = t end end
         recentes[#recentes + 1] = agora

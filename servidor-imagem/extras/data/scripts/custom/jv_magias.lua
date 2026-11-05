@@ -2,21 +2,27 @@
 -- JV Baiak - MAGIAS AUTOMATICAS (auto cast + auto cura), feito no servidor:
 -- funciona igual no navegador, no app do Android, no PC e em qualquer cliente 8.60.
 --
---  * Cura: vida abaixo de 70% -> usa a melhor magia de cura que o personagem tem
---    (exura vita / exura san / exura gran / exura), se tiver mana.
+--  * Cura (CURA AUTOMATICA, botao do coracao/pocao no celular, comeca ligada):
+--    vida abaixo de 70% -> a melhor magia de cura que o personagem tem (exura vita /
+--    exura san / exura gran / exura); vida abaixo de 50% -> pocao de vida; mana abaixo
+--    de 30% -> pocao de mana (qualquer pocao da mochila, a melhor que a vocacao/level usa).
 --  * Ataque: enquanto voce ataca um MONSTRO, usa a melhor magia de ataque que o
 --    personagem ja pode usar (level, magic level, vocacao e mana). Com 2 ou mais
 --    monstros perto usa a magia em area (exori, exevo gran mas ..., exevo mas san).
 --  * Nunca usa magia em jogadores e nao faz nada em zona de protecao.
 --  * Guarda mana para a cura antes de gastar com ataque.
 --
--- Comando: !automagia (mostra) | !automagia on | !automagia off  (comeca ligado)
--- O botao de espada (caca automatica) do jogo liga/desliga junto.
+-- Comandos: !automagia on | off  (magias de ATAQUE; o botao de espada liga/desliga junto)
+--           !autocura on | off   (cura: magias e pocoes; separado da espada)
+-- Opcode 79 (jogo do navegador): "" = pede o estado, "cura" / "ataque" = liga/desliga.
+--   Resposta: "cura,ataque" com 1/0 (ex.: "1,0").
 -- Precisa do player:castSpell (patch 0003 do JV Baiak).
 -- ============================================================================
 JV_MAGIAS = JV_MAGIAS or {proximo = {}, bloqueada = {}}
 local M = JV_MAGIAS
-local STORAGE = 79003
+local STORAGE = 79003      -- magias de ataque
+local STORAGE_CURA = 79004 -- cura automatica (magias de cura e pocoes)
+local OPCODE = 79
 local INTERVALO = 500
 local CURA_ABAIXO = 0.70
 local MSG = MESSAGE_STATUS_CONSOLE_BLUE
@@ -31,6 +37,65 @@ local CORPO_A_CORPO = {["exori"] = true, ["exori gran"] = true, ["exori mas"] = 
 
 local function ligado(player)
 	return player:getStorageValue(STORAGE) ~= 0
+end
+
+local function curaLigada(player)
+	return player:getStorageValue(STORAGE_CURA) ~= 0
+end
+
+local function enviarEstado(player)
+	if player:isUsingOtClient() then
+		player:sendExtendedOpcode(OPCODE, (curaLigada(player) and "1" or "0") .. "," .. (ligado(player) and "1" or "0"))
+	end
+end
+M.enviarEstado = enviarEstado
+
+local function fora(player)
+	return JV_AUSENTE and JV_AUSENTE.fora and JV_AUSENTE.fora(player) or false
+end
+
+-- pocoes (mesmos valores de data/actions/scripts/other/potions.lua). classe = clientid da
+-- vocacao: 1 knight, 2 paladin, 3 sorcerer, 4 druid (vale para promovidos e reborn)
+local POCOES_VIDA = {
+	{id = 8473, vida = {650, 850}, classes = {[1] = true}, level = 130},
+	{id = 7591, vida = {425, 575}, classes = {[1] = true}, level = 80},
+	{id = 8472, vida = {250, 350}, mana = {100, 200}, classes = {[2] = true}, level = 80},
+	{id = 7588, vida = {250, 350}, classes = {[1] = true, [2] = true}, level = 50},
+	{id = 7618, vida = {125, 175}},
+	{id = 8704, vida = {60, 90}},
+}
+local POCOES_MANA = {
+	{id = 7590, mana = {150, 250}, classes = {[3] = true, [4] = true}, level = 80},
+	{id = 8472, vida = {250, 350}, mana = {100, 200}, classes = {[2] = true}, level = 80},
+	{id = 7589, mana = {115, 185}, classes = {[2] = true, [3] = true, [4] = true}, level = 50},
+	{id = 7620, mana = {75, 125}},
+}
+local POCAO_ABAIXO, MANA_ABAIXO, ESPERA_POCAO = 0.50, 0.30, 1000
+
+local function podeBeber(player, p)
+	if p.level and player:getLevel() < p.level then return false end
+	if p.classes then
+		local voc = player:getVocation()
+		local ok, classe = pcall(function() return voc:getClientId() end)
+		if not ok or not p.classes[classe] then return false end
+	end
+	return player:getItemCount(p.id) > 0
+end
+
+local function beber(player, lista)
+	for _, p in ipairs(lista) do
+		if podeBeber(player, p) then
+			if p.vida then player:addHealth(math.random(p.vida[1], p.vida[2])) end
+			if p.mana then player:addMana(math.random(p.mana[1], p.mana[2])) end
+			player:say("Aaaah...", TALKTYPE_MONSTER_SAY)
+			player:getPosition():sendMagicEffect(CONST_ME_MAGIC_BLUE)
+			if configManager.getBoolean(configKeys.REMOVE_POTION_CHARGES) then
+				player:removeItem(p.id, 1)
+			end
+			return true
+		end
+	end
+	return false
 end
 
 local function infoMagia(words)
@@ -130,7 +195,23 @@ local function cuidar(player)
 		local s = minhas[CURAS[i]]
 		if s then menorCura = s.mana or 0 break end
 	end
-	if player:getHealth() < player:getMaxHealth() * CURA_ABAIXO and podeAgora(player, "", "cura") then
+	local cid = player:getId()
+	local agora = os.mtime and os.mtime() or os.time() * 1000
+	if curaLigada(player) and podeAgora(player, "", "pocao") then
+		local bebeu = false
+		if player:getHealth() < player:getMaxHealth() * POCAO_ABAIXO then
+			bebeu = beber(player, POCOES_VIDA)
+		end
+		if not bebeu and player:getMana() < player:getMaxMana() * MANA_ABAIXO then
+			bebeu = beber(player, POCOES_MANA)
+		end
+		if bebeu then
+			M.proximo[cid] = M.proximo[cid] or {}
+			M.proximo[cid].pocao = agora + ESPERA_POCAO
+			mana = player:getMana()
+		end
+	end
+	if curaLigada(player) and player:getHealth() < player:getMaxHealth() * CURA_ABAIXO and podeAgora(player, "", "cura") then
 		for i = 1, #CURAS do
 			local w = CURAS[i]
 			local s = minhas[w]
@@ -141,7 +222,8 @@ local function cuidar(player)
 		end
 	end
 
-	-- 2) ataque (so em monstro que voce esta atacando)
+	-- 2) ataque (so em monstro que voce esta atacando; nunca com o jogo fora da tela)
+	if not ligado(player) or fora(player) then return end
 	local alvo = player:getTarget()
 	if not alvo or not alvo:isMonster() or alvo:getHealth() <= 0 then return end
 	local pos, pAlvo = player:getPosition(), alvo:getPosition()
@@ -175,7 +257,7 @@ function evento.onThink(interval)
 	local players = Game.getPlayers()
 	for i = 1, #players do
 		local p = players[i]
-		if ligado(p) then
+		if ligado(p) or curaLigada(p) then
 			local ok, erro = pcall(cuidar, p)
 			if not ok and not M.avisou then
 				M.avisou = true
@@ -209,14 +291,63 @@ local function comando(player, words, param)
 	end
 	table.sort(magias)
 	player:sendTextMessage(MSG, "[Magias automaticas] " .. (ligado(player) and "LIGADAS" or "DESLIGADAS") ..
-		". Cura abaixo de 70% de vida e ataca o monstro que voce estiver atacando. Magias que voce ja tem: " ..
+		". Usa magias de ataque no monstro que voce estiver atacando (a cura e separada: !autocura). Magias que voce ja tem: " ..
 		(#magias > 0 and table.concat(magias, ", ") or "nenhuma ainda") .. ". Use !automagia on / off")
 	return false
 end
 
 for _, palavra in ipairs({"!automagia", "!autocast"}) do
 	local t = TalkAction(palavra)
-	t.onSay = comando
+	t.onSay = function(player, words, param)
+		local r = comando(player, words, param)
+		enviarEstado(player)
+		return r
+	end
 	t:separator(" ")
 	t:register()
 end
+
+local function avisarCura(player)
+	player:sendTextMessage(MSG, "[Cura automatica] " .. (curaLigada(player) and "LIGADA" or "DESLIGADA") ..
+		": magia de cura com vida abaixo de 70%, pocao de vida abaixo de 50% e pocao de mana abaixo de 30%." ..
+		" Use !autocura on / off")
+end
+
+for _, palavra in ipairs({"!autocura", "!autoheal"}) do
+	local t = TalkAction(palavra)
+	function t.onSay(player, words, param)
+		param = (param or ""):lower():gsub("%s+", "")
+		if param == "on" or param == "off" then
+			player:setStorageValue(STORAGE_CURA, param == "on" and 1 or 0)
+		end
+		avisarCura(player)
+		enviarEstado(player)
+		return false
+	end
+	t:separator(" ")
+	t:register()
+end
+
+-- jogo do navegador: botoes de cura e magias (opcode 79)
+local pedido = CreatureEvent("JVMagiasPedido")
+function pedido.onExtendedOpcode(player, opcode, buffer)
+	if opcode ~= OPCODE then return true end
+	if buffer == "cura" then
+		player:setStorageValue(STORAGE_CURA, curaLigada(player) and 0 or 1)
+		avisarCura(player)
+	elseif buffer == "ataque" then
+		player:setStorageValue(STORAGE, ligado(player) and 0 or 1)
+	end
+	enviarEstado(player)
+	return true
+end
+pedido:register()
+
+local entrar = CreatureEvent("JVMagiasLogin")
+function entrar.onLogin(player)
+	player:registerEvent("JVMagiasPedido")
+	local cid = player:getId()
+	addEvent(function() local p = Player(cid); if p then enviarEstado(p) end end, 4000)
+	return true
+end
+entrar:register()

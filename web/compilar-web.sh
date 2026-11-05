@@ -165,6 +165,7 @@ cp "$WEB/jv_listas.lua" "$CTX/jv/"
 cp "$WEB/jv_layout.lua" "$CTX/jv/"
 cp "$WEB/jv_barra.lua" "$CTX/jv/"
 cp "$WEB/jv_autoloot.lua" "$CTX/jv/"
+cp "$WEB/jv_rapido.lua" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login.png" ] && cp "$WEB/visual/fundo-login.png" "$CTX/jv/"
 [ -f "$WEB/visual/fundo-login-em-pe.png" ] && cp "$WEB/visual/fundo-login-em-pe.png" "$CTX/jv/"
 if ls "$WEB"/imagens-mobile/*.png >/dev/null 2>&1; then

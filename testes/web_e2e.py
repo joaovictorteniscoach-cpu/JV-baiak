@@ -80,6 +80,7 @@ def main():
         game_ends, layout_logs = [], []
         janelas, tamanhos = [], []
         soltas, itens_log, extras = [], [], []
+        rapido, comandos = [], []
         seen = set()
         def console(message):
             text = message.text
@@ -92,6 +93,10 @@ def main():
                 game_ready.append(True)
             if 'JV_SOLTA ' in text:
                 soltas.append(text)
+            if 'JV_RAPIDO root=' in text:
+                rapido.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect)=([0-9,-]+)',text)})
+            if 'JV_COMANDOS ' in text or 'JV_CURA ' in text:
+                comandos.append(text.split('] ')[-1])
             m3 = re.search(r'JV_ITEM (\S+) (\d+),(\d+) orig=(\d+),(\d+)', text)
             if m3:
                 itens_log.append((m3.group(1), int(m3.group(2)), int(m3.group(4))))
@@ -261,6 +266,25 @@ def main():
             pg.keyboard.press('Control+Shift+F12')  # fecha as janelas soltas (tela cheia)
             pg.wait_for_timeout(1000)
 
+        def testar_rapido():
+            # botoes rapidos ao lado do Lv/XP (caca, cura, templo, comandos): toca no de Comandos
+            for _ in range(10):
+                if rapido: break
+                pg.wait_for_timeout(500)
+            foto('7l-botoes-rapidos.png')
+            assert rapido, 'Os botoes rapidos (caca/cura/templo/comandos) nao apareceram'
+            rw, rh = rapido[-1]['root']; x, y, w, h = rapido[-1]['rect']
+            box = pg.locator('#canvas').bounding_box()
+            comandos.clear()
+            pg.touchscreen.tap(box['x'] + (x + 3 * 31 + 14) * box['width'] / rw, box['y'] + (y + 3 + 14) * box['height'] / rh)
+            for _ in range(8):
+                if any('JV_COMANDOS aberta' in c for c in comandos): break
+                pg.wait_for_timeout(500)
+            foto('7m-comandos.png')
+            log.write(f"botoes rapidos: {rapido[-1]} comandos: {comandos}\n")
+            assert any('JV_COMANDOS aberta' in c for c in comandos), 'Tocar no botao Comandos nao abriu a janela'
+            pg.keyboard.press('Control+Shift+F12'); pg.wait_for_timeout(800)
+
         def testar_mochila(cdp=None):
             # Mochila pelo menu: na tela cheia ela abre SOLTA por cima do mapa (nao num painel fixo)
             soltas.clear()
@@ -385,7 +409,7 @@ def main():
             if ESCOPO == 'janelas':
                 # teste rapido: so as janelas (o que mudou), sem passear pelo resto do jogo
                 cdp_r = ctx.new_cdp_session(pg) if engine != 'webkit' else None
-                testar_paineis(); testar_mochila(cdp_r)
+                testar_paineis(); testar_rapido(); testar_mochila(cdp_r)
                 if cdp_r:
                     testar_alca(cdp_r)
                 log.write("teste rapido (janelas) terminou\n")
@@ -395,6 +419,7 @@ def main():
             foto("7b-marcadores-toque.png")
             conferir_margens()
             testar_paineis()
+            testar_rapido()
             testar_mochila()
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)

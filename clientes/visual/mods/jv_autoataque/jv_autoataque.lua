@@ -1,16 +1,19 @@
 -- JV Baiak: CACA AUTOMATICA, no estilo dos "Tibia idle" (jogo no navegador e apps PC/Android)
 -- Ligada (botao de espada no menu; no celular ja comeca ligada):
 --  * ataca sozinho o monstro mais perto (ate 7 quadrados, mesmo andar) e vai atras dele;
---  * pocoes sozinho: vida abaixo de 60% -> pocao de vida; mana abaixo de 35% -> pocao de mana
---    (pocao numa mochila aberta);
---  * magias de ataque e de cura: feitas pelo SERVIDOR (!automagia), que o botao liga junto;
+--  * magias de ataque: feitas pelo SERVIDOR (!automagia), que o botao liga junto;
+--  * a CURA (magias de cura e pocoes) e separada e tambem fica no servidor (!autocura,
+--    botao da pocao no celular): funciona com a espada ligada ou desligada;
 --  * nunca ataca jogadores e nao faz nada em zona de protecao.
 -- O loot de moedas vai sozinho para a mochila pelo autoloot do servidor.
+-- Sinal "estou na tela" (opcode 80) a cada 2 s: com o jogo fora da tela (outro app, tela
+-- bloqueada) o sinal para e o servidor protege o personagem dos monstros (jv_ausente.lua).
 -- Mesmo arquivo em web/ e em clientes/visual/mods/jv_autoataque/ (o teste confere).
 JVAutoAtaque = JVAutoAtaque or {}
 local A = JVAutoAtaque
 local ALCANCE = 7
 local INTERVALO = 400
+local SINAL = 80
 
 local function mobile()
     if g_platform and g_platform.isMobile then return g_platform.isMobile() end
@@ -45,39 +48,6 @@ end
 
 A.ignorar = {}
 A.tentativa = nil
-A.ultimaCura = 0
-A.ultimaMana = 0
-
-local POCOES_VIDA = {8473, 7591, 7588, 7618}   -- ultimate, great, strong, health
-local POCOES_MANA = {7590, 7589, 7620}         -- great, strong, mana
-
-local function acharPocao(lista)
-    for _, id in ipairs(lista) do
-        local ok, item = pcall(function() return g_game.findPlayerItem(id, -1) end)
-        if ok and item then return item end
-    end
-    return nil
-end
-
-local function cuidar(player)
-    local agora = g_clock.millis()
-    local vida = player:getHealth() / math.max(1, player:getMaxHealth())
-    if vida < 0.6 and agora - A.ultimaCura > 1100 then
-        local pocao = acharPocao(POCOES_VIDA)
-        if pocao then
-            g_game.useWith(pocao, player)
-        end
-        A.ultimaCura = agora
-        return
-    end
-    local mana = player:getMana() / math.max(1, player:getMaxMana())
-    if mana < 0.35 and agora - A.ultimaMana > 1100 then
-        local pocao = acharPocao(POCOES_MANA)
-        if pocao then g_game.useWith(pocao, player) end
-        A.ultimaMana = agora
-    end
-end
-
 local function maisPerto(player)
     local pos = player:getPosition()
     if not pos then return nil end
@@ -103,7 +73,6 @@ local function ciclo()
     if not A.ligado or not g_game.isOnline() then return end
     local player = g_game.getLocalPlayer()
     if not player or naProtecao(player) then return end
-    pcall(cuidar, player)
     if g_game.isAttacking() then
         A.tentativa = nil -- deu certo: esta atacando
         return
@@ -133,7 +102,7 @@ function A.definir(ligado)
     avisarServidor()
     marcar(A.botao, ligado)
     if g_game.isOnline() then
-        aviso(ligado and 'Caca automatica LIGADA (ataca, usa magias e cura sozinho)' or 'Caca automatica DESLIGADA')
+        aviso(ligado and 'Caca automatica LIGADA (ataca e usa magias de ataque sozinho)' or 'Caca automatica DESLIGADA')
     end
 end
 
@@ -155,11 +124,26 @@ function A.iniciar()
     end)
     A.evento = cycleEvent(ciclo, INTERVALO)
     connect(g_game, { onGameStart = function() scheduleEvent(avisarServidor, 3000) end })
+    -- sinal "estou na tela" para o servidor; a resposta prova que a conexao esta viva
+    pcall(ProtocolGame.registerExtendedOpcode, SINAL, function(protocol, opcode, buffer)
+        local agora = g_clock.millis()
+        -- avisa a pagina (shell.html) so quando volta depois de um tempo sem resposta
+        if agora - (A.ultimoEco or 0) > 6000 then g_logger.info('JV_VIVO') end
+        A.ultimoEco = agora
+    end)
+    A.sinal = cycleEvent(function()
+        if not g_game.isOnline() then return end
+        local p = g_game.getProtocolGame and g_game.getProtocolGame()
+        if p and p.sendExtendedOpcode then pcall(function() p:sendExtendedOpcode(SINAL, 'v') end) end
+    end, 2000)
 end
 
 function A.parar()
     if A.evento then removeEvent(A.evento) end
     A.evento = nil
+    if A.sinal then removeEvent(A.sinal) end
+    A.sinal = nil
+    pcall(ProtocolGame.unregisterExtendedOpcode, SINAL)
     if A.botao then pcall(function() A.botao:destroy() end) end
     A.botao = nil
 end

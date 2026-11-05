@@ -247,6 +247,7 @@
       <button type="button" id="jv-equipamento" class="jv-botao-teclado">Equipamento</button>
       <button type="button" id="jv-mochila" class="jv-botao-teclado">Mochila</button>
       <button type="button" id="jv-minimapa" class="jv-botao-teclado">Minimapa</button>
+      <button type="button" id="jv-comandos" class="jv-botao-teclado">Comandos (templo, AOL, bless, cura...)</button>
       <button type="button" id="jv-autoloot" class="jv-botao-teclado">Autoloot</button>
       <button type="button" id="jv-combate" class="jv-botao-teclado">Combate</button>
       <button type="button" id="jv-status" class="jv-botao-teclado">Status (level e skills)</button>
@@ -298,10 +299,22 @@
           canvas.dispatchEvent(new KeyboardEvent("keypress", { key: ch, charCode: ch.charCodeAt(0), bubbles: true }));
         }
       }
+      // O texto do campo escondido e ESPELHADO no jogo: a cada mudanca manda so a diferenca
+      // (apaga o que mudou e digita o novo). Assim funciona com teclados que montam a palavra
+      // aos poucos ou corrigem sozinhos (Gboard no Android), sem letras repetidas ou perdidas.
+      var jvEnviado = "";
+      function espelharTexto() {
+        var antes = Array.from(jvEnviado), agora = Array.from(teclado.value), i = 0;
+        while (i < antes.length && i < agora.length && antes[i] === agora[i]) i++;
+        for (var k = antes.length; k > i; k--) enviarTecla("Backspace", "Backspace", 8, false);
+        if (i < agora.length) enviarTexto(agora.slice(i).join(""));
+        jvEnviado = teclado.value;
+      }
+      function limparCampo() { teclado.value = ""; jvEnviado = ""; }
       function abrirTeclado(ev) {
         if (ev) { ev.preventDefault(); ev.stopPropagation(); }
         botaoDigitar.style.display = "none";
-        teclado.value = "";
+        limparCampo();
         fecharPainel();
         teclado.focus();
         tecladoAberto = true;
@@ -324,18 +337,27 @@
       botaoFechar.addEventListener("click", fecharTeclado);
       teclado.addEventListener("blur", function () {
         tecladoAberto = false;
+        limparCampo();
         botaoFechar.style.display = "none";
         canvas.focus({ preventScroll: true });
       });
       teclado.addEventListener("input", function (ev) {
-        var t = teclado.value;
-        teclado.value = "";
-        if (t) enviarTexto(t);
+        espelharTexto();
         ev.stopPropagation();
       });
+      function enviarEnter() {
+        espelharTexto();
+        enviarTecla("Enter", "Enter", 13, true);
+        limparCampo();
+        teclado.blur();
+      }
+      teclado.addEventListener("beforeinput", function (ev) {
+        if (ev.inputType === "insertLineBreak" || ev.inputType === "insertParagraph") { ev.preventDefault(); enviarEnter(); }
+      });
       function tratarTeclaEspecial(ev) {
-        if (ev.key === "Backspace") { ev.preventDefault(); enviarTecla("Backspace", "Backspace", 8, false); }
-        else if (ev.key === "Enter") { ev.preventDefault(); enviarTecla("Enter", "Enter", 13, true); teclado.blur(); }
+        // com texto no campo o proprio campo apaga (e o espelho manda o apagar); vazio, apaga no jogo
+        if (ev.key === "Backspace") { if (!teclado.value) { ev.preventDefault(); enviarTecla("Backspace", "Backspace", 8, false); } }
+        else if (ev.key === "Enter") { ev.preventDefault(); enviarEnter(); }
         else if (ev.key === "Tab") { ev.preventDefault(); enviarTecla("Tab", "Tab", 9, false); }
       }
       // O jogo escuta o teclado na janela em modo "captura" (antes do campo). As teclas
@@ -360,12 +382,21 @@
       var TELA_TOQUE = /Android|iPhone|iPad|iPod/.test(navigator.userAgent || "") || (navigator.maxTouchPoints || 0) > 1;
       var ZOOM_MIN = TELA_TOQUE ? 1 : 0.6;
       var ZOOM_PASSOS = [0.6, 0.7, 0.8, 0.9, 1, 1.15, 1.3, 1.5, 1.75, 2];
+      // Layout do jogo (o jogo avisa com "JV_LAYOUT ..."): na tela cheia (livre) nao ha
+      // coluna do lado, entao a pinca vai de 80% ate 160% (o quanto couber na tela).
+      var jvLayout = "livre";
+      try { jvLayout = localStorage.getItem("jvLayoutJs") || "livre"; } catch (e) {}
+      function emLivre() { return TELA_TOQUE && jvLayout === "livre"; }
+      function zoomMin() { return emLivre() ? 0.8 : ZOOM_MIN; }
       // Uma coluna lateral e o mapa precisam continuar cabendo depois do zoom.
-      function limiteZoom() { return TELA_TOQUE ? Math.max(1, Math.min(2, window.innerWidth * 0.72 / 300, window.innerHeight * 0.72 / 244)) : 2; }
+      function limiteZoom() {
+        if (emLivre()) return Math.max(1, Math.min(1.6, window.innerWidth / 330, window.innerHeight / 230));
+        return TELA_TOQUE ? Math.max(1, Math.min(2, window.innerWidth * 0.72 / 300, window.innerHeight * 0.72 / 244)) : 2;
+      }
       function orientacao() { return window.innerHeight > window.innerWidth ? "em-pe" : "deitado"; }
       function lerZoom() {
         var padrao = TELA_TOQUE ? 1 : (orientacao() === "em-pe" ? 0.8 : 1);
-        try { var v = Number(localStorage.getItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao())); return Number.isFinite(v) && v > 0 ? Math.max(ZOOM_MIN, Math.min(limiteZoom(), v)) : padrao; }
+        try { var v = Number(localStorage.getItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao())); return Number.isFinite(v) && v > 0 ? Math.max(zoomMin(), Math.min(limiteZoom(), v)) : padrao; }
         catch (e) { return padrao; }
       }
       function gravarZoom(v) { try { localStorage.setItem((TELA_TOQUE ? "jvZoom-mobile-v3-" : "jvZoom-") + orientacao(), String(v)); } catch (e) {} }
@@ -393,7 +424,7 @@
       function mudarZoom(dir, ev) {
         if (ev) { ev.preventDefault(); ev.stopPropagation(); }
         var atual = lerZoom();
-        var candidatos = ZOOM_PASSOS.filter(function (v) { return v >= ZOOM_MIN && v <= limiteZoom() && (dir > 0 ? v > atual + 0.001 : v < atual - 0.001); });
+        var candidatos = ZOOM_PASSOS.filter(function (v) { return v >= zoomMin() - 0.001 && v <= limiteZoom() && (dir > 0 ? v > atual + 0.001 : v < atual - 0.001); });
         if (candidatos.length) gravarZoom(dir > 0 ? candidatos[0] : candidatos[candidatos.length - 1]);
         window.dispatchEvent(new Event("resize"));  // o jogo recalcula o tamanho na hora
         mostrarZoom();
@@ -419,7 +450,7 @@
         });
         fecharPainel();
       }
-      [["jv-equipamento", "F8", 119], ["jv-mochila", "F2", 113], ["jv-autoloot", "F5", 116], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
+      [["jv-equipamento", "F8", 119], ["jv-mochila", "F2", 113], ["jv-comandos", "F1", 112], ["jv-autoloot", "F5", 116], ["jv-minimapa", "F9", 120], ["jv-opcoes", "F10", 121], ["jv-combate", "F11", 122], ["jv-status", "F4", 115]].forEach(function (p) {
         document.getElementById(p[0]).hidden = !TELA_TOQUE;
         ligar(p[0], function (ev) { ev.preventDefault(); ev.stopPropagation(); enviarAtalhoPainel(p[1], p[2]); });
       });
@@ -518,7 +549,7 @@
       var pinca = null, avisoZoom = document.getElementById("zoom-aviso"), timerAviso = null, timerPinca = null;
       function distancia(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy); }
       function aplicarPinca(valor) {
-        valor = Math.max(ZOOM_MIN, Math.min(limiteZoom(), Math.round(valor * 20) / 20));
+        valor = Math.max(zoomMin(), Math.min(limiteZoom(), Math.round(valor * 20) / 20));
         if (Math.abs(valor - lerZoom()) < 0.001) return;
         gravarZoom(valor);
         avisoZoom.textContent = Math.round(valor * 100) + "%";
@@ -564,9 +595,20 @@
         try { sessionStorage.setItem("jvVoltar", "1"); } catch (e) {}
         location.reload();
       }
+      // O jogo avisa "JV_VIVO" quando o servidor responde depois de um tempo sem resposta.
+      // Voltou e o jogo respondeu sozinho em 6 s (Android costuma manter a conexao): segue
+      // jogando, sem recarregar. Nao respondeu (iPhone corta a conexao): recarrega e entra.
+      var jvUltimoVivo = 0, jvEsperaVolta = null;
       document.addEventListener("visibilitychange", function () {
-        if (document.visibilityState === "hidden") { jvSaiuEm = Date.now(); return; }
-        if (jvSaiuEm && Date.now() - jvSaiuEm > 20000 && document.body.classList.contains("jv-jogando")) jvVoltarAoJogo();
+        if (document.visibilityState === "hidden") { jvSaiuEm = Date.now(); clearTimeout(jvEsperaVolta); return; }
+        if (!(jvSaiuEm && Date.now() - jvSaiuEm > 20000 && document.body.classList.contains("jv-jogando"))) return;
+        if (!jvUltimoVivo) { jvVoltarAoJogo(); return; }
+        var voltouEm = Date.now();
+        document.getElementById("jv-voltando").hidden = false;
+        clearTimeout(jvEsperaVolta);
+        jvEsperaVolta = setTimeout(function () {
+          if (jvUltimoVivo >= voltouEm) esconderVoltando(); else jvVoltarAoJogo();
+        }, 6000);
       });
       window.addEventListener("pageshow", function (ev) {
         if (ev.persisted && document.body.classList.contains("jv-jogando")) jvVoltarAoJogo();
@@ -636,6 +678,13 @@
           var message = Array.prototype.slice.call(arguments).join(" ");
           mostrarDestinoToque(message);
           if (message.indexOf("JV_WEB_GAME_READY") >= 0) esconderVoltando();
+          if (message.indexOf("JV_VIVO") >= 0) { jvUltimoVivo = Date.now(); if (document.visibilityState === "visible") esconderVoltando(); }
+          var layout = message.match(/JV_LAYOUT (livre|classico|paginas)/);
+          if (layout && layout[1] !== jvLayout) {
+            jvLayout = layout[1];
+            try { localStorage.setItem("jvLayoutJs", jvLayout); } catch (e) {}
+            window.dispatchEvent(new Event("resize"));
+          }
           console.log(message);
         },
         printErr: function () {

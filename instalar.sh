@@ -337,6 +337,14 @@ main() {
 	AJUSTES="$SRV/.jvbaiak-ajustes"
 	REINICIAR_SERVIDOR=0
 	touch "$AJUSTES"
+	# Scripts do JV Baiak mudaram (magias, templo, protecao...): o servidor so carrega os
+	# scripts novos ao reiniciar. Guarda uma "impressao digital" dos arquivos para comparar.
+	EXTRAS_HASH="$(cd "$BASE/servidor-imagem/extras" && find . -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | cut -c1-40)"
+	if [ "$(cat "$SRV/.jvbaiak-extras-hash" 2>/dev/null)" != "$EXTRAS_HASH" ]; then
+		printf '%s\n' "$EXTRAS_HASH" > "$SRV/.jvbaiak-extras-hash"
+		REINICIAR_SERVIDOR=1
+		ok "scripts do jogo atualizados (o servidor vai reiniciar para carregar)"
+	fi
 	if ! grep -qx 'exp-800-fixo' "$AJUSTES"; then
 		# Baiak com 800x de experiencia em todos os levels
 		LC_ALL=C awk '

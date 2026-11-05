@@ -306,7 +306,8 @@ def testar(host, conta, senha, gm=False, clonar=True):
         jg.receber(3)
         txt = b"".join(x for _, x in jg.recebidos[antes:])
         etapa("magias automaticas: !automagia responde", b"Magias automaticas" in txt)
-        for cmd, trecho in (("!loot", b"[Loot] Autoloot: sim"), ("!loot raros", b"Itens raros: nao"), ("!loot raros", b"Itens raros: sim"),
+        for cmd, trecho in (("!autocura", b"[Cura automatica] LIGADA"), ("!autocura off", b"DESLIGADA"), ("!autocura on", b"LIGADA"),
+                            ("!loot", b"[Loot] Autoloot: sim"), ("!loot raros", b"Itens raros: nao"), ("!loot raros", b"Itens raros: sim"),
                             ("!hunt", b"[Hunt]"), ("!venderloot add, magic sword", b"entrou na lista"),
                             ("!venderloot lista", b"magic sword"), ("!venderloot", b"[Venda]"),
                             ("!depot add, 2160", b"entrou na lista"), ("!depot", b"[Depot]")):
@@ -342,9 +343,16 @@ def testar(host, conta, senha, gm=False, clonar=True):
         jg.receber(2)
         pos = b"".join(x for _, x in jg.recebidos[antes:])
         i = pos.find(b"posi")
-        etapa("Guia Lia leva para a hunt (rotworm)", b"983, 1219, 8" in pos,
+        etapa("Guia Lia leva para a hunt (rotworm)", b"979, 1217, 8" in pos,
               posicao=pos[i:i + 50].decode("latin-1", "replace") if i >= 0 else None,
               guia=respostas[respostas.find(b"Hunts"):respostas.find(b"Hunts") + 60].decode("latin-1", "replace") if b"Hunts" in respostas else None)
+        # da hunt de volta ao templo com !templo
+        antes = len(jg.recebidos)
+        jg.falar("!templo")
+        jg.receber(3)
+        txt = b"".join(x for _, x in jg.recebidos[antes:])
+        etapa("!templo volta da hunt para o templo", b"[Templo] Voce voltou" in txt,
+              resposta=txt[txt.find(b"[Templo]"):txt.find(b"[Templo]") + 60].decode("latin-1", "replace") if b"[Templo]" in txt else None)
         jg.falar("/t")
         jg.receber(2)
 

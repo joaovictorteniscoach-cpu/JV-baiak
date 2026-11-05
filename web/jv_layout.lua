@@ -543,7 +543,14 @@ function L.iniciar()
             local destino = pagina
             g_keyboard.bindKeyDown('Ctrl+Shift+' .. key, function() L.abrir(destino) end, rootWidget)
         end
-        g_keyboard.bindKeyDown('Ctrl+Shift+F12', L.fecharSoltas, rootWidget)
+        -- "Voltar ao mapa": fecha as janelas soltas, a conversa com NPC, Comandos e Autoloot
+        g_keyboard.bindKeyDown('Ctrl+Shift+F12', function()
+            L.fecharSoltas()
+            if JVNpc and JVNpc.fechar then pcall(JVNpc.fechar) end
+            for _, m in ipairs({JVRapido, JVAutoLoot}) do
+                if m and m.janela and not m.janela:isDestroyed() then pcall(function() m.janela:hide() end); m.aberta = false end
+            end
+        end, rootWidget)
     end
     connect(g_game, {
         onGameStart = function()

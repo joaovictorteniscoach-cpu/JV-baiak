@@ -80,6 +80,7 @@ function fixture(mobile=false) {
 console.log('OK: zoom bounds/steps/reset, orientation, single start, menu, keyboard focus, unsupported fullscreen and pinch cancellation');
 for(const dpr of [1,2,3,4]) {
  const f=fixture(true);f.c.devicePixelRatio=dpr;
+ f.c.Module.print('JV_LAYOUT classico');
  assert.equal(f.c.jvPixelRatio(),1);
  assert.ok(32*1.4/f.c.jvPixelRatio()>=44);
  f.storage.set('jvZoom-em-pe','0.6');
@@ -94,6 +95,45 @@ for(const dpr of [1,2,3,4]) {
  assert.ok(f.c.Module.locateFile('otclient.wasm').includes('?v=toque-v5'));
 }
 console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
+
+{
+ // tela cheia (layout livre, o padrao): pinca e A+/A- de 80% ate o que couber (max 160%)
+ const f=fixture(true);
+ f.c.innerWidth=390;f.c.innerHeight=844;
+ assert.equal(f.c.lerZoom(),1);
+ f.click('zoom-menos');assert.equal(f.c.lerZoom(),0.9);
+ f.c.aplicarPinca(0.1);assert.equal(f.c.lerZoom(),0.8);
+ f.c.aplicarPinca(3);assert.ok(Math.abs(f.c.lerZoom()-390/330)<0.001);
+ f.c.innerWidth=844;f.c.innerHeight=390;
+ f.click('zoom-restaurar');f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
+ f.c.aplicarPinca(5);assert.equal(f.c.lerZoom(),1.6);
+ f.c.Module.print('JV_LAYOUT classico');assert.ok(Math.abs(f.c.lerZoom()-390*0.72/244)<0.001);
+ assert.equal(f.storage.get('jvLayoutJs'),'classico');
+}
+{
+ // teclado espelhado: palavra montada aos poucos (Gboard) chega certa no jogo
+ // reconstroi o que o jogo recebeu (keypress no canvas + Backspace na janela, na ordem)
+ const f2=fixture(true);const tec2=f2.nodes.get('teclado');const cv2=f2.nodes.get('canvas');
+ const ordem=[];cv2.dispatchEvent=e=>{ordem.push(e);return true;};
+ f2.c.dispatchEvent=e=>{ordem.push(e);};
+ f2.click('menu-botao');f2.click('abrir-teclado');ordem.length=0;
+ for(const v of ['!','!a','!ao','!aol','!aok','!aol']){tec2.value=v;tec2.dispatchEvent({type:'input',stopPropagation(){}});}
+ let jogo='';
+ for(const e of ordem){ if(e.type==='keypress'&&e.key&&e.key.length===1) jogo+=e.key; else if(e.type==='keydown'&&e.key==='Backspace') jogo=jogo.slice(0,-1); }
+ assert.equal(jogo,'!aol');
+ // Enter manda o Enter e limpa o campo
+ f2.listeners.keydown[0]({target:tec2,key:'Enter',stopImmediatePropagation(){},preventDefault(){}});
+ assert.ok(ordem.some(e=>e.type==='keydown'&&e.key==='Enter'));
+ assert.equal(tec2.value,'');
+}
+{
+ // menu: Comandos manda Ctrl+Shift+F1
+ const f=fixture(true);
+ f.click('jv-comandos');
+ assert.ok(f.dispatched.some(e=>e.type==='keydown'&&e.code==='F1'));
+ assert.equal(f.nodes.get('jv-comandos').hidden,false);
+}
+console.log('OK: zoom da tela cheia, teclado espelhado (Gboard), botao Comandos');
 
 {
  const f=fixture(true);

@@ -1,0 +1,170 @@
+-- JV Baiak: BOTOES RAPIDOS NA TELA (jogo no navegador, celular)
+-- Ao lado do Lv/XP, em cima do mapa:
+--   espada  = caca automatica (ataca sozinho e usa magias de ataque) liga/desliga
+--   pocao   = CURA AUTOMATICA liga/desliga (magia de cura com vida < 70%, pocao de vida
+--             < 50%, pocao de mana < 30%; feita pelo servidor, com a espada ligada ou nao)
+--   ankh    = volta para o templo da sua cidade (de qualquer hunt)
+--   papel   = janela Comandos: AOL, bless, vender loot, depot, autoloot... sem digitar
+-- Aceso = ligado; apagado = desligado. O servidor guarda a cura (opcode 79).
+JVRapido = JVRapido or {}
+local R = JVRapido
+local OPCODE = 79
+local TAM, ESPACO = 28, 3
+
+local function aviso(texto)
+    pcall(function() modules.game_textmessage.displayStatusMessage(texto) end)
+end
+
+local function falar(texto)
+    if g_game.isOnline() then pcall(g_game.talk, texto) end
+end
+
+local function mandar(texto)
+    local p = g_game.getProtocolGame and g_game.getProtocolGame()
+    if p and p.sendExtendedOpcode then pcall(function() p:sendExtendedOpcode(OPCODE, texto or '') end) end
+end
+
+local function acender(b, ligado)
+    if not b or b:isDestroyed() then return end
+    b:setOpacity(ligado and 1 or 0.45)
+    b:setBorderWidth(ligado and 1 or 0)
+    b:setBorderColor(ligado and '#80ff80' or '#00000000')
+end
+
+function R.pintar()
+    if not R.botoes then return end
+    acender(R.botoes.caca, JVAutoAtaque and JVAutoAtaque.ligado)
+    acender(R.botoes.cura, R.cura ~= false)
+    acender(R.botoes.templo, true)
+    acender(R.botoes.comandos, true)
+    if R.janela and not R.janela:isDestroyed() and R.linhaCura then
+        local ligada = R.cura ~= false
+        R.linhaCura:setText('Cura automatica: ' .. (R.cura == nil and '...' or (ligada and 'SIM' or 'nao')))
+        R.linhaCura:setColor(ligada and '#80ff80' or '#c0c0c0')
+    end
+end
+
+-- ------------------------------------------------------------- janela Comandos
+local COMANDOS = {
+    {'Voltar ao templo', function() falar('!templo') end},
+    {'Cura automatica', function() mandar('cura') end, 'cura'},
+    {'Comprar AOL (10k)', function() falar('!aol') end},
+    {'Comprar bless', function() falar('!bless') end},
+    {'Vender o loot', function() falar('!venderloot') end},
+    {'Mandar pro depot', function() falar('!depot') end},
+    {'Lucro da hunt', function() falar('!hunt') end},
+    {'Autoloot...', function() if JVAutoLoot and JVAutoLoot.alternar then pcall(JVAutoLoot.alternar) end end},
+    {'Quem esta online', function() falar('!online') end},
+}
+
+local function criarJanela()
+    if R.janela and not R.janela:isDestroyed() then return R.janela end
+    if not (JVLayout and JVLayout.novaJanela) then return nil end
+    local largura, altura, espaco = 170, 22, 3
+    local w = JVLayout.novaJanela('jvJanelaComandos', 'Comandos', largura, #COMANDOS * (altura + espaco) - espaco, 'comandos')
+    for i, c in ipairs(COMANDOS) do
+        local b = g_ui.createWidget('Button', w)
+        b:setSize({width = largura, height = altura})
+        b:addAnchor(AnchorTop, 'parent', AnchorTop); b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+        b:setMarginTop((i - 1) * (altura + espaco))
+        b:setText(c[1])
+        local acao = c[2]
+        b.onClick = function() pcall(acao) end
+        if c[3] == 'cura' then R.linhaCura = b end
+    end
+    JVLayout.terminarJanela(w)
+    R.janela = w
+    return w
+end
+
+function R.comandos()
+    if not g_game.isOnline() then return end
+    local w = criarJanela()
+    if not w then return end
+    if w:isVisible() and R.aberta then w:hide(); R.aberta = false; return end
+    local r = w:getParent()
+    w:show(); w:raise(); R.aberta = true
+    if r then w:setPosition({x = r:getX() + 8, y = r:getY() + 48}) end
+    R.pintar()
+    mandar('')
+    g_logger.info('JV_COMANDOS aberta')
+end
+
+-- ------------------------------------------------------------- botoes na tela
+local function botao(pai, id, icone, x, fn)
+    local b = g_ui.createWidget('UIButton', pai)
+    b:setId(id)
+    b:setSize({width = TAM, height = TAM})
+    b:addAnchor(AnchorTop, 'parent', AnchorTop)
+    b:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+    b:setMarginTop(3); b:setMarginLeft(x)
+    b:setBackgroundColor('#00000099')
+    b:setImageSource(icone)
+    pcall(function() b:setImageSize({width = TAM - 4, height = TAM - 4}) end)
+    pcall(function() b:setImageOffset({x = 2, y = 2}) end)
+    b.onClick = function() pcall(fn) end
+    return b
+end
+
+local function criarBotoes()
+    if R.painel and not R.painel:isDestroyed() then return end
+    local mapa = modules.game_interface and modules.game_interface.getMapPanel and modules.game_interface.getMapPanel()
+    if not mapa then return end
+    local x0 = 160 -- logo depois da faixa do Lv/XP (150 + margens)
+    local p = g_ui.createWidget('UIWidget', mapa)
+    p:setId('jvBotoesRapidos')
+    p:setSize({width = 4 * (TAM + ESPACO) + 4, height = TAM + 6})
+    p:addAnchor(AnchorTop, 'parent', AnchorTop)
+    p:addAnchor(AnchorLeft, 'parent', AnchorLeft)
+    p:setMarginTop(1); p:setMarginLeft(x0)
+    p:setPhantom(true)
+    R.painel = p
+    R.botoes = {}
+    R.botoes.caca = botao(p, 'jvRapidoCaca', '/images/game/mobile/caca', 0, function()
+        if JVAutoAtaque and JVAutoAtaque.definir then JVAutoAtaque.definir(not JVAutoAtaque.ligado) end
+        R.pintar()
+    end)
+    R.botoes.cura = botao(p, 'jvRapidoCura', '/images/game/mobile/cura', TAM + ESPACO, function()
+        R.cura = not (R.cura ~= false)
+        R.pintar()
+        aviso(R.cura and 'Cura automatica LIGADA (magia e pocao)' or 'Cura automatica DESLIGADA')
+        mandar('cura')
+    end)
+    R.botoes.templo = botao(p, 'jvRapidoTemplo', '/images/game/mobile/templo', 2 * (TAM + ESPACO), function()
+        falar('!templo')
+    end)
+    R.botoes.comandos = botao(p, 'jvRapidoComandos', '/images/game/mobile/comandos', 3 * (TAM + ESPACO), R.comandos)
+    R.pintar()
+    -- a posicao so existe depois de o jogo montar a tela: registra um pouco depois
+    scheduleEvent(function()
+        if p:isDestroyed() then return end
+        local r, s = p:getRect(), rootWidget:getSize()
+        g_logger.info(string.format('JV_RAPIDO root=%d,%d rect=%d,%d,%d,%d', s.width, s.height, r.x, r.y, r.width, r.height))
+    end, 400)
+end
+
+function R.iniciar()
+    if R.ligado then return end
+    if not ProtocolGame or not ProtocolGame.registerExtendedOpcode then return end
+    R.ligado = true
+    pcall(ProtocolGame.registerExtendedOpcode, OPCODE, function(protocol, opcode, buffer)
+        local cura, ataque = tostring(buffer or ''):match('^(%d),(%d)$')
+        if cura then R.cura = cura == '1' end
+        g_logger.info('JV_CURA ' .. tostring(buffer))
+        R.pintar()
+    end)
+    g_keyboard.bindKeyDown('Ctrl+Shift+F1', function() pcall(R.comandos) end, rootWidget)
+    local mobile = g_platform and g_platform.isMobile and g_platform.isMobile()
+    connect(g_game, {
+        onGameStart = function()
+            if mobile then scheduleEvent(function() pcall(criarBotoes) end, 1500) end
+            scheduleEvent(function() mandar('') end, 5000)
+        end,
+        onGameEnd = function()
+            if R.janela and not R.janela:isDestroyed() then pcall(function() R.janela:destroy() end) end
+            R.janela, R.aberta, R.linhaCura = nil, false, nil
+        end
+    })
+    -- a espada pode mudar por outro caminho (menu de opcoes): repinta de vez em quando
+    cycleEvent(function() if R.painel and not R.painel:isDestroyed() then R.pintar() end end, 1500)
+end
