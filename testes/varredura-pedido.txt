@@ -1,3 +1,4 @@
 # Mude a ultima linha para pedir a varredura: servidor | aovivo | tudo
 2026-11-05 servidor
 2026-11-05b servidor
+2026-11-05c servidor

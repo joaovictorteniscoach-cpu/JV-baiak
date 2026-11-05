@@ -2,6 +2,10 @@
 -- O servidor manda (opcode 77) a lista das magias que o personagem ja pode usar; cada magia
 -- nova vai para um espaco vazio da barra de baixo. E so tocar para lancar (as palavras
 -- aparecem em cima do personagem). Se voce tirar uma magia da barra, ela nao volta.
+-- HOTKEYS SALVAS NA HORA: o jogo original so grava a barra (e o minimapa) ao fechar o
+-- programa; no navegador a pagina nunca "fecha" (o celular congela/recarrega a aba), entao
+-- a barra voltava vazia toda vez. Agora cada mudanca na barra e gravada em seguida, e o
+-- minimapa a cada 3 minutos e ao sair.
 JVBarra = JVBarra or {}
 local B = JVBarra
 local OPCODE = 77
@@ -96,13 +100,66 @@ local function receber(texto)
     tentar()
 end
 
+-- grava a barra logo depois de qualquer mudanca (colocar, tirar, arrastar, trocar o conjunto)
+local function salvarBarraJa()
+    local AB = modules.game_actionbar
+    local Api = AB and AB.ApiJson
+    if not Api or not Api.saveData then return end
+    if B.salvar then removeEvent(B.salvar) end
+    B.salvar = scheduleEvent(function()
+        B.salvar = nil
+        if pcall(Api.saveData) then g_logger.info('JV_BARRA_SALVA') end
+    end, 700)
+end
+B.salvarBarraJa = salvarBarraJa
+
+local function vigiarBarra()
+    local AB = modules.game_actionbar
+    local Api = AB and AB.ApiJson
+    if not Api or Api.jvVigiada then return end
+    Api.jvVigiada = true
+    for _, nome in ipairs({'createOrUpdateText', 'createOrUpdateAction', 'createOrUpdatePassive',
+                           'createOrUpdateSpecialAction', 'createOrUpdateMultiAction', 'removeAction',
+                           'setCurrentHotkeySetName', 'createHotkeySet', 'renameHotkeySet', 'removeHotkeySet'}) do
+        local original = Api[nome]
+        if type(original) == 'function' then
+            Api[nome] = function(...)
+                local r = {original(...)}
+                salvarBarraJa()
+                return unpack(r)
+            end
+        end
+    end
+end
+
+local function salvarMinimapa()
+    pcall(function()
+        local m = modules.game_minimap
+        local c = m and m.mapController
+        if c and c.onGameEnd and g_game.isOnline() then
+            -- o mesmo que o jogo faz ao sair (minimapa explorado e marcas)
+            c:onGameEnd()
+        end
+    end)
+end
+
 function B.iniciar()
     if B.ligado then return end
     if not ProtocolGame or not ProtocolGame.registerExtendedOpcode then return end
     B.ligado = true
     pcall(ProtocolGame.registerExtendedOpcode, OPCODE, function(protocol, opcode, buffer) receber(buffer) end)
     -- voltou ao jogo (reconectou): pede a lista de novo
+    pcall(vigiarBarra)
+    connect(g_game, { onGameEnd = function()
+        local AB = modules.game_actionbar
+        if AB and AB.ApiJson and AB.ApiJson.saveData then pcall(AB.ApiJson.saveData) end
+        if B.minimapa then removeEvent(B.minimapa) end
+        B.minimapa = nil
+    end })
     connect(g_game, { onGameStart = function()
+        pcall(vigiarBarra)
+        if B.minimapa then removeEvent(B.minimapa) end
+        B.minimapa = cycleEvent(salvarMinimapa, 180000)
         scheduleEvent(function()
             local p = g_game.getProtocolGame and g_game.getProtocolGame()
             if p and p.sendExtendedOpcode then pcall(function() p:sendExtendedOpcode(OPCODE, '') end) end

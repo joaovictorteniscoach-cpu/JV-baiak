@@ -1,8 +1,9 @@
 -- JV Baiak: BOTOES RAPIDOS NA TELA (jogo no navegador, celular)
 -- Ao lado do Lv/XP, em cima do mapa:
 --   espada  = caca automatica (ataca sozinho e usa magias de ataque) liga/desliga
---   pocao   = CURA AUTOMATICA liga/desliga (magia de cura com vida < 70%, pocao de vida
---             < 50%, pocao de mana < 30%; feita pelo servidor, com a espada ligada ou nao)
+--   pocao   = CURA AUTOMATICA liga/desliga tudo: magia de cura (vida < 70%) e AUTO POCAO
+--             (pocao de vida < 50%, pocao de mana < 30%); feita pelo servidor, com a espada
+--             ligada ou nao. Na janela Comandos da para ligar so a magia ou so a pocao.
 --   ankh    = volta para o templo da sua cidade (de qualquer hunt)
 --   papel   = janela Comandos: AOL, bless, vender loot, depot, autoloot... sem digitar
 -- Aceso = ligado; apagado = desligado. O servidor guarda a cura (opcode 79).
@@ -31,23 +32,30 @@ local function acender(b, ligado)
     b:setBorderColor(ligado and '#80ff80' or '#00000000')
 end
 
+local function linha(b, texto, valor)
+    if not b or b:isDestroyed() then return end
+    b:setText(texto .. ': ' .. (valor == nil and '...' or (valor and 'SIM' or 'nao')))
+    b:setColor(valor ~= false and '#80ff80' or '#c0c0c0')
+end
+
 function R.pintar()
-    if not R.botoes then return end
-    acender(R.botoes.caca, JVAutoAtaque and JVAutoAtaque.ligado)
-    acender(R.botoes.cura, R.cura ~= false)
-    acender(R.botoes.templo, true)
-    acender(R.botoes.comandos, true)
-    if R.janela and not R.janela:isDestroyed() and R.linhaCura then
-        local ligada = R.cura ~= false
-        R.linhaCura:setText('Cura automatica: ' .. (R.cura == nil and '...' or (ligada and 'SIM' or 'nao')))
-        R.linhaCura:setColor(ligada and '#80ff80' or '#c0c0c0')
+    if R.botoes then
+        acender(R.botoes.caca, JVAutoAtaque and JVAutoAtaque.ligado)
+        acender(R.botoes.cura, R.cura ~= false or R.pocao ~= false)
+        acender(R.botoes.templo, true)
+        acender(R.botoes.comandos, true)
+    end
+    if R.janela and not R.janela:isDestroyed() then
+        linha(R.linhaCura, 'Magia de cura', R.cura)
+        linha(R.linhaPocao, 'Pocao automatica', R.pocao)
     end
 end
 
 -- ------------------------------------------------------------- janela Comandos
 local COMANDOS = {
     {'Voltar ao templo', function() falar('!templo') end},
-    {'Cura automatica', function() mandar('cura') end, 'cura'},
+    {'Magia de cura', function() mandar('cura') end, 'cura'},
+    {'Pocao automatica', function() mandar('pocao') end, 'pocao'},
     {'Comprar AOL (10k)', function() falar('!aol') end},
     {'Comprar bless', function() falar('!bless') end},
     {'Vender o loot', function() falar('!venderloot') end},
@@ -71,6 +79,7 @@ local function criarJanela()
         local acao = c[2]
         b.onClick = function() pcall(acao) end
         if c[3] == 'cura' then R.linhaCura = b end
+        if c[3] == 'pocao' then R.linhaPocao = b end
     end
     JVLayout.terminarJanela(w)
     R.janela = w
@@ -125,10 +134,11 @@ local function criarBotoes()
         R.pintar()
     end)
     R.botoes.cura = botao(p, 'jvRapidoCura', '/images/game/mobile/cura', TAM + ESPACO, function()
-        R.cura = not (R.cura ~= false)
+        local ligar = not (R.cura ~= false or R.pocao ~= false)
+        R.cura, R.pocao = ligar, ligar
         R.pintar()
-        aviso(R.cura and 'Cura automatica LIGADA (magia e pocao)' or 'Cura automatica DESLIGADA')
-        mandar('cura')
+        aviso(ligar and 'Cura automatica LIGADA (magia de cura e auto pocao)' or 'Cura automatica DESLIGADA (magia e pocao)')
+        mandar('tudo')
     end)
     R.botoes.templo = botao(p, 'jvRapidoTemplo', '/images/game/mobile/templo', 2 * (TAM + ESPACO), function()
         falar('!templo')
@@ -148,8 +158,9 @@ function R.iniciar()
     if not ProtocolGame or not ProtocolGame.registerExtendedOpcode then return end
     R.ligado = true
     pcall(ProtocolGame.registerExtendedOpcode, OPCODE, function(protocol, opcode, buffer)
-        local cura, ataque = tostring(buffer or ''):match('^(%d),(%d)$')
+        local cura, ataque, pocao = tostring(buffer or ''):match('^(%d),(%d),?(%d?)$')
         if cura then R.cura = cura == '1' end
+        if pocao and pocao ~= '' then R.pocao = pocao == '1' end
         g_logger.info('JV_CURA ' .. tostring(buffer))
         R.pintar()
     end)
@@ -162,7 +173,7 @@ function R.iniciar()
         end,
         onGameEnd = function()
             if R.janela and not R.janela:isDestroyed() then pcall(function() R.janela:destroy() end) end
-            R.janela, R.aberta, R.linhaCura = nil, false, nil
+            R.janela, R.aberta, R.linhaCura, R.linhaPocao = nil, false, nil, nil
         end
     })
     -- a espada pode mudar por outro caminho (menu de opcoes): repinta de vez em quando

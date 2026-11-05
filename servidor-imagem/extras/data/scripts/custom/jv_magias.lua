@@ -13,15 +13,18 @@
 --  * Guarda mana para a cura antes de gastar com ataque.
 --
 -- Comandos: !automagia on | off  (magias de ATAQUE; o botao de espada liga/desliga junto)
---           !autocura on | off   (cura: magias e pocoes; separado da espada)
--- Opcode 79 (jogo do navegador): "" = pede o estado, "cura" / "ataque" = liga/desliga.
---   Resposta: "cura,ataque" com 1/0 (ex.: "1,0").
+--           !autocura on | off   (cura: magias e pocoes juntas; separado da espada)
+--           !autopocao on | off  (so as pocoes automaticas)
+-- Opcode 79 (jogo do navegador): "" = pede o estado; "cura" (magia de cura), "pocao",
+--   "ataque" = liga/desliga; "tudo" = cura e pocao juntas (botao da tela).
+--   Resposta: "cura,ataque,pocao" com 1/0 (ex.: "1,0,1").
 -- Precisa do player:castSpell (patch 0003 do JV Baiak).
 -- ============================================================================
 JV_MAGIAS = JV_MAGIAS or {proximo = {}, bloqueada = {}}
 local M = JV_MAGIAS
 local STORAGE = 79003      -- magias de ataque
-local STORAGE_CURA = 79004 -- cura automatica (magias de cura e pocoes)
+local STORAGE_CURA = 79004 -- cura automatica (magias de cura)
+local STORAGE_POCAO = 79005 -- pocoes automaticas
 local OPCODE = 79
 local INTERVALO = 500
 local CURA_ABAIXO = 0.70
@@ -43,9 +46,14 @@ local function curaLigada(player)
 	return player:getStorageValue(STORAGE_CURA) ~= 0
 end
 
+local function pocaoLigada(player)
+	return player:getStorageValue(STORAGE_POCAO) ~= 0
+end
+
 local function enviarEstado(player)
 	if player:isUsingOtClient() then
-		player:sendExtendedOpcode(OPCODE, (curaLigada(player) and "1" or "0") .. "," .. (ligado(player) and "1" or "0"))
+		player:sendExtendedOpcode(OPCODE, (curaLigada(player) and "1" or "0") .. "," .. (ligado(player) and "1" or "0")
+			.. "," .. (pocaoLigada(player) and "1" or "0"))
 	end
 end
 M.enviarEstado = enviarEstado
@@ -197,7 +205,7 @@ local function cuidar(player)
 	end
 	local cid = player:getId()
 	local agora = os.mtime and os.mtime() or os.time() * 1000
-	if curaLigada(player) and podeAgora(player, "", "pocao") then
+	if pocaoLigada(player) and podeAgora(player, "", "pocao") then
 		local bebeu = false
 		if player:getHealth() < player:getMaxHealth() * POCAO_ABAIXO then
 			bebeu = beber(player, POCOES_VIDA)
@@ -257,7 +265,7 @@ function evento.onThink(interval)
 	local players = Game.getPlayers()
 	for i = 1, #players do
 		local p = players[i]
-		if ligado(p) or curaLigada(p) then
+		if ligado(p) or curaLigada(p) or pocaoLigada(p) then
 			local ok, erro = pcall(cuidar, p)
 			if not ok and not M.avisou then
 				M.avisou = true
@@ -308,9 +316,9 @@ for _, palavra in ipairs({"!automagia", "!autocast"}) do
 end
 
 local function avisarCura(player)
-	player:sendTextMessage(MSG, "[Cura automatica] " .. (curaLigada(player) and "LIGADA" or "DESLIGADA") ..
-		": magia de cura com vida abaixo de 70%, pocao de vida abaixo de 50% e pocao de mana abaixo de 30%." ..
-		" Use !autocura on / off")
+	player:sendTextMessage(MSG, "[Cura automatica] magia de cura (vida abaixo de 70%): " ..
+		(curaLigada(player) and "LIGADA" or "DESLIGADA") .. " | pocoes (vida abaixo de 50%, mana abaixo de 30%): " ..
+		(pocaoLigada(player) and "LIGADAS" or "DESLIGADAS") .. ". Use !autocura on / off e !autopocao on / off")
 end
 
 for _, palavra in ipairs({"!autocura", "!autoheal"}) do
@@ -319,6 +327,22 @@ for _, palavra in ipairs({"!autocura", "!autoheal"}) do
 		param = (param or ""):lower():gsub("%s+", "")
 		if param == "on" or param == "off" then
 			player:setStorageValue(STORAGE_CURA, param == "on" and 1 or 0)
+			player:setStorageValue(STORAGE_POCAO, param == "on" and 1 or 0)
+		end
+		avisarCura(player)
+		enviarEstado(player)
+		return false
+	end
+	t:separator(" ")
+	t:register()
+end
+
+for _, palavra in ipairs({"!autopocao", "!autopotion"}) do
+	local t = TalkAction(palavra)
+	function t.onSay(player, words, param)
+		param = (param or ""):lower():gsub("%s+", "")
+		if param == "on" or param == "off" then
+			player:setStorageValue(STORAGE_POCAO, param == "on" and 1 or 0)
 		end
 		avisarCura(player)
 		enviarEstado(player)
@@ -334,6 +358,14 @@ function pedido.onExtendedOpcode(player, opcode, buffer)
 	if opcode ~= OPCODE then return true end
 	if buffer == "cura" then
 		player:setStorageValue(STORAGE_CURA, curaLigada(player) and 0 or 1)
+		avisarCura(player)
+	elseif buffer == "pocao" then
+		player:setStorageValue(STORAGE_POCAO, pocaoLigada(player) and 0 or 1)
+		avisarCura(player)
+	elseif buffer == "tudo" then
+		local ligar = not (curaLigada(player) or pocaoLigada(player))
+		player:setStorageValue(STORAGE_CURA, ligar and 1 or 0)
+		player:setStorageValue(STORAGE_POCAO, ligar and 1 or 0)
 		avisarCura(player)
 	elseif buffer == "ataque" then
 		player:setStorageValue(STORAGE, ligado(player) and 0 or 1)

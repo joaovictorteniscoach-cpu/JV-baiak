@@ -306,7 +306,8 @@ def testar(host, conta, senha, gm=False, clonar=True):
         jg.receber(3)
         txt = b"".join(x for _, x in jg.recebidos[antes:])
         etapa("magias automaticas: !automagia responde", b"Magias automaticas" in txt)
-        for cmd, trecho in (("!autocura", b"[Cura automatica] LIGADA"), ("!autocura off", b"DESLIGADA"), ("!autocura on", b"LIGADA"),
+        for cmd, trecho in (("!autocura", b"[Cura automatica] magia de cura"), ("!autocura off", b"DESLIGADAS"), ("!autocura on", b"LIGADAS"),
+                            ("!autopocao", b"pocoes (vida abaixo de 50%"),
                             ("!loot", b"[Loot] Autoloot: sim"), ("!loot raros", b"Itens raros: nao"), ("!loot raros", b"Itens raros: sim"),
                             ("!hunt", b"[Hunt]"), ("!venderloot add, magic sword", b"entrou na lista"),
                             ("!venderloot lista", b"magic sword"), ("!venderloot", b"[Venda]"),
