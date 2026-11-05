@@ -464,6 +464,17 @@ main() {
 		ok "AFK: personagem fica no jogo ate 60 min parado ou com o app fechado"
 		REINICIAR_SERVIDOR=1
 	fi
+	if ! grep -qx 'treino-fora-da-aba-v1' "$AJUSTES"; then
+		# Treinar nos trainers com o jogo fora da tela (outro app, tela bloqueada): o Baiak
+		# original mandava para o templo quem ficava sem conexao atacando o trainer.
+		ARQ_EV="$SRV/data/events/scripts/creature.lua"
+		if [ -f "$ARQ_EV" ] && grep -q 'if player:getIp() == 0 then' "$ARQ_EV"; then
+			sed -i 's/if player:getIp() == 0 then/if false and player:getIp() == 0 then -- JV Baiak: treina com o jogo fora da tela/' "$ARQ_EV"
+			REINICIAR_SERVIDOR=1
+			ok "trainers: continua treinando com o jogo fora da tela"
+		fi
+		echo 'treino-fora-da-aba-v1' >> "$AJUSTES"
+	fi
 	if ! grep -qx 'respawn-30s' "$AJUSTES" && command -v python3 >/dev/null; then
 		# Respawn: 50x mais rapido que o original, mas NUNCA menos de 30 s (10-15 s nascia mais
 		# monstro do que da para matar e o jogador morria cercado). O original do mapa e 60 s
