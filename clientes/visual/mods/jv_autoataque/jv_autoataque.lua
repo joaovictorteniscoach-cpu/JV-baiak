@@ -98,12 +98,21 @@ end
 
 function A.definir(ligado)
     A.ligado = ligado
+    A.tentativa, A.ignorar = nil, {}
     g_settings.set('jvAutoAtaque', ligado and 'true' or 'false')
     avisarServidor()
     marcar(A.botao, ligado)
     if g_game.isOnline() then
         aviso(ligado and 'Caca automatica LIGADA (ataca e usa magias de ataque sozinho)' or 'Caca automatica DESLIGADA')
     end
+end
+
+-- Parar e uma ordem manual: a espada permite retomar depois. Cura e auto pocao
+-- continuam independentes; so a caca e as magias de ataque sao desligadas.
+function A.pararCombate()
+    if A.ligado then A.definir(false) end
+    g_game.cancelAttack()
+    g_game.cancelFollow()
 end
 
 function A.iniciar()

@@ -9,6 +9,7 @@
 --
 --   Comandos: !loot (mostra) | !loot on | !loot off
 --             !loot dinheiro | caros | raros | lista | depot raros | depot caros  (liga/desliga)
+--             !loot ignorar, nome ou id | permitir, nome ou id | ignorados
 --   No celular (navegador): menu > Autoloot (janela com botoes). Opcode 78.
 -- ============================================================================
 JV_LOOT = JV_LOOT or {raros = {}, avisos = {}}
@@ -17,6 +18,53 @@ local OPCODE = 78
 local MSG = MESSAGE_STATUS_CONSOLE_BLUE
 local CARO = 2000
 local RARO = 1000 -- chance de 100000 (= 1%)
+-- Faixa exclusiva de storages persistentes por personagem; nao altera a lista antiga.
+local IGNORADOS_INICIO, IGNORADOS_FIM = 79300, 79399
+
+local function ignorados(player)
+	local ids = {}
+	for s = IGNORADOS_INICIO, IGNORADOS_FIM do
+		local id = player:getStorageValue(s)
+		if id > 0 then ids[id] = true end
+	end
+	return ids
+end
+
+local function regraIgnorar(player, acao, nome)
+	if acao == "ignorados" then
+		local nomes = {}
+		for id in pairs(ignorados(player)) do
+			nomes[#nomes + 1] = ItemType(id):getName() .. " (" .. id .. ")"
+		end
+		table.sort(nomes)
+		player:showTextDialog(1950, #nomes > 0 and table.concat(nomes, "\n") or "Nenhum item ignorado.", false)
+		return
+	end
+	local tipo = nome ~= "" and ItemType(tonumber(nome) or nome) or nil
+	local id = tipo and tipo:getId() or 0
+	if id <= 0 then
+		player:sendTextMessage(MSG, "[Loot] Item desconhecido. Use !loot " .. acao .. ", nome ou id do item.")
+		return
+	end
+	local vazio
+	for s = IGNORADOS_INICIO, IGNORADOS_FIM do
+		local atual = player:getStorageValue(s)
+		if atual == id then
+			if acao == "permitir" then player:setStorageValue(s, 0) end
+			player:sendTextMessage(MSG, "[Loot] " .. tipo:getName() .. (acao == "permitir" and ": exclusao removida; segue as categorias e sua lista." or ": ja esta sendo ignorado."))
+			return
+		end
+		if atual <= 0 and not vazio then vazio = s end
+	end
+	if acao == "permitir" then
+		player:sendTextMessage(MSG, "[Loot] Este item ja segue as categorias e sua lista.")
+	elseif vazio then
+		player:setStorageValue(vazio, id)
+		player:sendTextMessage(MSG, "[Loot] " .. tipo:getName() .. ": ignorado mesmo se for raro, caro ou estiver na lista.")
+	else
+		player:sendTextMessage(MSG, "[Loot] Lista de ignorados cheia (100 itens). Use !loot permitir, nome para liberar espaco.")
+	end
+end
 
 local CAMPOS = {"ligado", "dinheiro", "caros", "raros", "lista", "depotRaros", "depotCaros"}
 local ST = {ligado = 79200, dinheiro = 79201, caros = 79202, raros = 79203, lista = 79204, depotRaros = 79205, depotCaros = 79206}
@@ -83,7 +131,9 @@ local function coletar(player, container, c)
 		local item = container:getItem(i)
 		if item then
 			local id = item:getId()
-			if item:isContainer() and item:getSize() > 0 then
+			if c.ignorados[id] then
+				-- A exclusao vem antes das moedas, categorias e da lista de coleta.
+			elseif item:isContainer() and item:getSize() > 0 then
 				coletar(player, item, c)
 			elseif item:getWorth() > 0 then
 				if c.dinheiro then
@@ -117,7 +167,8 @@ local function abrirCorpo(cid, posicao, nomeMonstro)
 	if not corpo or not corpo:getType():isCorpse() or corpo:getAttribute(ITEM_ATTRIBUTE_CORPSEOWNER) ~= cid then return end
 	local c = {ouro = 0, itens = 0, ficou = 0, noDepot = 0, raros = raros(nomeMonstro),
 		dinheiro = opcao(player, "dinheiro"), pegaCaros = opcao(player, "caros"), pegaRaros = opcao(player, "raros"),
-		lista = opcao(player, "lista"), depotRaros = opcao(player, "depotRaros"), depotCaros = opcao(player, "depotCaros")}
+		lista = opcao(player, "lista"), depotRaros = opcao(player, "depotRaros"), depotCaros = opcao(player, "depotCaros"),
+		ignorados = ignorados(player)}
 	if c.depotRaros or c.depotCaros then
 		local ok, caixa = pcall(function() return player:getDepotChest(player:getTown():getId(), true) end)
 		if ok then c.caixa = caixa end
@@ -168,6 +219,12 @@ pedido:register()
 local comando = TalkAction("!loot")
 function comando.onSay(player, words, param)
 	local p = (param or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+	local acao, nome = p:match("^(%a+)%s*,%s*(.-)%s*$")
+	if p == "ignorados" or acao == "ignorar" or acao == "permitir" then
+		regraIgnorar(player, p == "ignorados" and p or acao, nome or "")
+		enviarEstado(player)
+		return false
+	end
 	local mapa = {on = "ligado", off = "ligado", dinheiro = "dinheiro", gold = "dinheiro", caros = "caros",
 		raros = "raros", lista = "lista", ["depot raros"] = "depotRaros", ["depot caros"] = "depotCaros"}
 	if p == "on" or p == "off" then
@@ -175,7 +232,7 @@ function comando.onSay(player, words, param)
 	elseif mapa[p] then
 		alternar(player, mapa[p])
 	elseif p ~= "" then
-		player:sendTextMessage(MSG, "[Loot] Use: !loot on | off | dinheiro | caros | raros | lista | depot raros | depot caros")
+		player:sendTextMessage(MSG, "[Loot] Use: !loot on | off | dinheiro | caros | raros | lista | depot raros | depot caros | ignorar, nome | permitir, nome | ignorados")
 	end
 	player:sendTextMessage(MSG, resumo(player))
 	enviarEstado(player)

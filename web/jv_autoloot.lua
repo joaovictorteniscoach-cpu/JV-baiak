@@ -78,6 +78,6 @@ function A.iniciar()
     g_keyboard.bindKeyDown('Ctrl+Shift+F5', function() pcall(A.alternar) end, rootWidget)
     connect(g_game, { onGameEnd = function()
         if A.janela and not A.janela:isDestroyed() then pcall(function() A.janela:destroy() end) end
-        A.janela, A.aberta = nil, false
+        A.janela, A.aberta, A.estado = nil, false, nil
     end })
 end

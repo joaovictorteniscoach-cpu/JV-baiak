@@ -337,6 +337,12 @@ main() {
 	AJUSTES="$SRV/.jvbaiak-ajustes"
 	REINICIAR_SERVIDOR=0
 	touch "$AJUSTES"
+	if ! grep -qx 'pocoes-infinitas-v1' "$AJUSTES"; then
+		lua_define removeChargesFromPotions false
+		echo 'pocoes-infinitas-v1' >> "$AJUSTES"
+		REINICIAR_SERVIDOR=1
+		ok "pocoes infinitas no uso manual e no auto pot (intervalos mantidos)"
+	fi
 	# Scripts do JV Baiak mudaram (magias, templo, protecao...): o servidor so carrega os
 	# scripts novos ao reiniciar. Guarda uma "impressao digital" dos arquivos para comparar.
 	EXTRAS_HASH="$(cd "$BASE/servidor-imagem/extras" && find . -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum | cut -c1-40)"

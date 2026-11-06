@@ -1,10 +1,10 @@
 name: Controles web (sem conta ou rede de jogo)
 on:
   pull_request:
-    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_realce_mapa.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', 'web/instalar-correcao-toque*.sh', 'testes/teste_instalador_toque*.py', '.github/workflows/controles-web.yml']
+    paths: ['instalar.sh', 'web/jv_autoataque.lua', 'web/jv_rapido.lua', 'web/jv_layout.lua', 'web/jv_autoloot.lua', 'clientes/visual/mods/jv_autoataque/**', 'servidor-imagem/extras/data/scripts/custom/jv_loot.lua', 'testes/teste_jogabilidade.lua', 'web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_realce_mapa.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', 'web/instalar-correcao-toque*.sh', 'testes/teste_instalador_toque*.py', '.github/workflows/controles-web.yml']
   push:
     branches: [main, codex/jogabilidade-mobile, codex/iphone-layout-toque]
-    paths: ['web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_realce_mapa.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', 'web/instalar-correcao-toque*.sh', 'testes/teste_instalador_toque*.py', '.github/workflows/controles-web.yml']
+    paths: ['instalar.sh', 'web/jv_autoataque.lua', 'web/jv_rapido.lua', 'web/jv_layout.lua', 'web/jv_autoloot.lua', 'clientes/visual/mods/jv_autoataque/**', 'servidor-imagem/extras/data/scripts/custom/jv_loot.lua', 'testes/teste_jogabilidade.lua', 'web/shell.html', 'testes/teste_controles_web.cjs', 'testes/teste_toque_web.py', 'testes/teste_realce_mapa.py', 'testes/teste_instalador_iphone_v2.py', 'testes/teste_coordenadas_canvas.cjs', 'testes/verificar_layout_mobile.py', 'testes/verificar_paineis_toque.py', 'testes/verificar_login_mobile.py', 'testes/verificar_escala_hud.py', 'testes/teste_instalador_login_v3.py', 'web/otclientrc-extra.lua', 'web/patches-final/**', 'web/instalar-correcao-iphone*.sh', 'web/instalar-correcao-login*.sh', 'web/instalar-correcao-toque*.sh', 'testes/teste_instalador_toque*.py', '.github/workflows/controles-web.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -43,3 +43,12 @@ jobs:
           python testes/verificar_paineis_toque.py
           python testes/verificar_login_mobile.py
           python testes/verificar_escala_hud.py "$fonte"
+      - name: Jogabilidade (Lua 5.1, sem alterar arte ou layout)
+        run: |
+          bash -n instalar.sh
+          cmp web/jv_autoataque.lua clientes/visual/mods/jv_autoataque/jv_autoataque.lua
+          python - <<'PYTEST'
+          from pathlib import Path
+          from lupa.lua51 import LuaRuntime
+          LuaRuntime().execute(Path('testes/teste_jogabilidade.lua').read_text())
+          PYTEST
