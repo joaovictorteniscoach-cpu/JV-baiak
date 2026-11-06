@@ -27,7 +27,7 @@ end
 
 local function acender(b, ligado)
     if not b or b:isDestroyed() then return end
-    b:setOpacity(ligado and 1 or 0.45)
+    b:setOpacity(ligado == nil and 0.65 or (ligado and 1 or 0.45))
     b:setBorderWidth(ligado and 1 or 0)
     b:setBorderColor(ligado and '#80ff80' or '#00000000')
 end
@@ -41,7 +41,10 @@ end
 function R.pintar()
     if R.botoes then
         acender(R.botoes.caca, JVAutoAtaque and JVAutoAtaque.ligado)
-        acender(R.botoes.cura, R.cura ~= false or R.pocao ~= false)
+        local confirmado = R.cura ~= nil and R.pocao ~= nil and not R.pendente
+        local estado
+        if confirmado then estado = R.cura or R.pocao end
+        acender(R.botoes.cura, estado)
         acender(R.botoes.templo, true)
         acender(R.botoes.comandos, true)
     end
@@ -134,11 +137,22 @@ local function criarBotoes()
         R.pintar()
     end)
     R.botoes.cura = botao(p, 'jvRapidoCura', '/images/game/mobile/cura', TAM + ESPACO, function()
-        local ligar = not (R.cura ~= false or R.pocao ~= false)
-        R.cura, R.pocao = ligar, ligar
+        if R.cura == nil or R.pocao == nil or R.pendente then
+            mandar('')
+            aviso('Aguardando o servidor confirmar a cura e a auto pocao.')
+            return
+        end
+        R.pendente = true
         R.pintar()
-        aviso(ligar and 'Cura automatica LIGADA (magia de cura e auto pocao)' or 'Cura automatica DESLIGADA (magia e pocao)')
         mandar('tudo')
+        local sessao = R.sessao
+        scheduleEvent(function()
+            if R.sessao ~= sessao or not R.pendente then return end
+            R.pendente = false
+            R.cura, R.pocao = nil, nil
+            R.pintar()
+            mandar('')
+        end, 2500)
     end)
     R.botoes.templo = botao(p, 'jvRapidoTemplo', '/images/game/mobile/templo', 2 * (TAM + ESPACO), function()
         falar('!templo')
@@ -158,9 +172,9 @@ function R.iniciar()
     if not ProtocolGame or not ProtocolGame.registerExtendedOpcode then return end
     R.ligado = true
     pcall(ProtocolGame.registerExtendedOpcode, OPCODE, function(protocol, opcode, buffer)
-        local cura, ataque, pocao = tostring(buffer or ''):match('^(%d),(%d),?(%d?)$')
-        if cura then R.cura = cura == '1' end
-        if pocao and pocao ~= '' then R.pocao = pocao == '1' end
+        local cura, ataque, pocao = tostring(buffer or ''):match('^([01]),([01]),([01])$')
+        if not cura then return end
+        R.cura, R.pocao, R.pendente = cura == '1', pocao == '1', false
         g_logger.info('JV_CURA ' .. tostring(buffer))
         R.pintar()
     end)
@@ -168,10 +182,16 @@ function R.iniciar()
     local mobile = g_platform and g_platform.isMobile and g_platform.isMobile()
     connect(g_game, {
         onGameStart = function()
+            R.sessao = (R.sessao or 0) + 1
+            R.cura, R.pocao, R.pendente = nil, nil, false
+            R.pintar()
             if mobile then scheduleEvent(function() pcall(criarBotoes) end, 1500) end
             scheduleEvent(function() mandar('') end, 5000)
         end,
         onGameEnd = function()
+            R.sessao = (R.sessao or 0) + 1
+            R.cura, R.pocao, R.pendente = nil, nil, false
+            R.pintar()
             if R.janela and not R.janela:isDestroyed() then pcall(function() R.janela:destroy() end) end
             R.janela, R.aberta, R.linhaCura, R.linhaPocao = nil, false, nil, nil
         end

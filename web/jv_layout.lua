@@ -52,7 +52,10 @@ local function prepararCombate()
         {'Parado', function() inv.selectPosture('stand') end},
         {'Seguir', function() inv.selectPosture('follow') end},
         {'Seguro', function() g_game.setSafeFight(not g_game.isSafeFight()) end},
-        {'Parar', function() g_game.cancelAttack(); g_game.cancelFollow() end}
+        {'Parar', function()
+            if JVAutoAtaque and JVAutoAtaque.pararCombate then JVAutoAtaque.pararCombate()
+            else g_game.cancelAttack(); g_game.cancelFollow() end
+        end}
     }
     for i, a in ipairs(acoes) do
         botao(panel, 'jvCombate' .. i, a[1], 8 + ((i - 1) % 3) * 54, 8 + math.floor((i - 1) / 3) * 46, a[2])
