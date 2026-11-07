@@ -1,0 +1,4 @@
+1-jogador novo entra 2x: OK (servidor vivo)
+2-gm sem clonar + jogador novo: OK (servidor vivo)
+3-gm com clonar + jogador novo: OK (servidor vivo)
+4-tres logins de jogadores: OK (servidor vivo)

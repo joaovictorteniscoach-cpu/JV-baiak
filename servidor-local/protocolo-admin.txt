@@ -1,0 +1,37 @@
+OK    login 7171 {"ms": 2, "erro": null, "personagens": ["Robo Gm"]}
+OK    lista aponta para o servidor certo {"ip": "127.0.0.1", "porta": 7172, "mundo": "JV Baiak"}
+OK    entrar no mundo 7172 {"ms": 58, "erro": null, "primeiro_opcode": "0xa"}
+OK    recebeu o mapa {"bytes": 5493}
+OK    andar (resposta do servidor) {"passos": 2, "ms_por_passo": [1, 5]}
+OK    falar no chat {"ms": 2}
+OK    admin: /comandos abre a lista {}
+OK    admin: /i cria item {"pacotes": 12}
+OK    admin: /clonar copia o item da mao {"resposta": "Clonado: 2x magic sword.Ý\u0003»\u0004\u0007á\u0003»\u0004\u0007\u0004á\u0003¸", "pediu_item_na_mao": false}
+OK    admin: /a teletransporta {}
+OK    magias automaticas: !automagia responde {}
+OK    comando !autocura responde {}
+OK    comando !autocura off responde {}
+OK    comando !autocura on responde {}
+OK    comando !autopocao responde {}
+OK    comando !loot responde {}
+OK    comando !loot raros responde {}
+OK    comando !loot raros responde {}
+OK    comando !hunt responde {}
+OK    comando !venderloot add, magic sword responde {}
+OK    comando !venderloot lista responde {}
+OK    comando !venderloot responde {}
+OK    comando !depot add, 2160 responde {}
+OK    comando !depot responde {}
+OK    acento chega em latin-1 (sem letras trocadas) {"trecho": "21004ee36f2074656d206974656d2063"}
+OK    NPC Mercador Ze nao puxa conversa sozinho {}
+OK    NPC Mercador Ze responde ao toque (hi) com opcoes {"trecho": "mento: armas, escudos e armaduras. Diga {trade}."}
+OK    NPC Ferreiro Joaquim nao puxa conversa sozinho {}
+OK    NPC Ferreiro Joaquim responde ao toque (hi) com opcoes {"trecho": "uim\u0000\u0000\u0005\r\u0005\u0007\u0004\u0007K\u0000Ola Robo Gm! Faco e compro {armas} e {escudos}. Diga {trade} para v"}
+OK    NPC Felipe nao puxa conversa sozinho {}
+OK    NPC Felipe responde ao toque (hi) com opcoes {"trecho": " eu vendo alguns poções especiais, diga {troca} ou {trocar}.á\u0003¸\u0004\u0007Ý\u0003¸\u0004\u0007\u0004Ý\u0003»\u0004\u0007á\u0003"}
+OK    NPC Guia Lia nao puxa conversa sozinho {}
+OK    NPC Guia Lia responde ao toque (hi) com opcoes {"trecho": "vo para uma hunt do seu nivel. Escolha: {iniciante}, {medio}, {forte}, {elite} o"}
+OK    Guia Lia leva para a hunt (rotworm) {"posicao": "posição atual é: 979, 1217, 8.", "guia": "Hunts iniciante: {Rotworm} (lv 8+), {Swamp Troll} (lv 8+), {"}
+OK    teleporte de volta da hunt tem nome (Templo) {}
+OK    !templo volta da hunt para o templo {"resposta": "[Templo] Voce voltou para o templo de Thunder City.á\u0003¸\u0004\u0007Ý\u0003¸"}
+OK    sair do jogo {}

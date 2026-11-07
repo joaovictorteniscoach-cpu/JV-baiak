@@ -1,0 +1,52 @@
+{
+ "host": "127.0.0.1",
+ "etapas": [
+  {
+   "etapa": "login 7171",
+   "ok": true,
+   "ms": 2,
+   "erro": null,
+   "personagens": [
+    "Robo Cojumo"
+   ]
+  },
+  {
+   "etapa": "lista aponta para o servidor certo",
+   "ok": true,
+   "ip": "127.0.0.1",
+   "porta": 7172,
+   "mundo": "JV Baiak"
+  },
+  {
+   "etapa": "entrar no mundo 7172",
+   "ok": true,
+   "ms": 30,
+   "erro": null,
+   "primeiro_opcode": "0xa"
+  },
+  {
+   "etapa": "recebeu o mapa",
+   "ok": true,
+   "bytes": 5776
+  },
+  {
+   "etapa": "andar (resposta do servidor)",
+   "ok": true,
+   "passos": 2,
+   "ms_por_passo": [
+    50,
+    3
+   ]
+  },
+  {
+   "etapa": "falar no chat",
+   "ok": true,
+   "ms": 7
+  },
+  {
+   "etapa": "sair do jogo",
+   "ok": true
+  }
+ ],
+ "ok": true
+}

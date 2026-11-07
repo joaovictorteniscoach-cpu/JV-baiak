@@ -1,0 +1,183 @@
+{
+ "host": "127.0.0.1",
+ "etapas": [
+  {
+   "etapa": "login 7171",
+   "ok": true,
+   "ms": 2,
+   "erro": null,
+   "personagens": [
+    "Robo Gm"
+   ]
+  },
+  {
+   "etapa": "lista aponta para o servidor certo",
+   "ok": true,
+   "ip": "127.0.0.1",
+   "porta": 7172,
+   "mundo": "JV Baiak"
+  },
+  {
+   "etapa": "entrar no mundo 7172",
+   "ok": true,
+   "ms": 58,
+   "erro": null,
+   "primeiro_opcode": "0xa"
+  },
+  {
+   "etapa": "recebeu o mapa",
+   "ok": true,
+   "bytes": 5493
+  },
+  {
+   "etapa": "andar (resposta do servidor)",
+   "ok": true,
+   "passos": 2,
+   "ms_por_passo": [
+    1,
+    5
+   ]
+  },
+  {
+   "etapa": "falar no chat",
+   "ok": true,
+   "ms": 2
+  },
+  {
+   "etapa": "admin: /comandos abre a lista",
+   "ok": true
+  },
+  {
+   "etapa": "admin: /i cria item",
+   "ok": true,
+   "pacotes": 12
+  },
+  {
+   "etapa": "admin: /clonar copia o item da mao",
+   "ok": true,
+   "resposta": "Clonado: 2x magic sword.Ý\u0003»\u0004\u0007á\u0003»\u0004\u0007\u0004á\u0003¸",
+   "pediu_item_na_mao": false
+  },
+  {
+   "etapa": "admin: /a teletransporta",
+   "ok": true
+  },
+  {
+   "etapa": "magias automaticas: !automagia responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !autocura responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !autocura off responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !autocura on responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !autopocao responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !loot responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !loot raros responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !loot raros responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !hunt responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !venderloot add, magic sword responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !venderloot lista responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !venderloot responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !depot add, 2160 responde",
+   "ok": true
+  },
+  {
+   "etapa": "comando !depot responde",
+   "ok": true
+  },
+  {
+   "etapa": "acento chega em latin-1 (sem letras trocadas)",
+   "ok": true,
+   "trecho": "21004ee36f2074656d206974656d2063"
+  },
+  {
+   "etapa": "NPC Mercador Ze nao puxa conversa sozinho",
+   "ok": true
+  },
+  {
+   "etapa": "NPC Mercador Ze responde ao toque (hi) com opcoes",
+   "ok": true,
+   "trecho": "mento: armas, escudos e armaduras. Diga {trade}."
+  },
+  {
+   "etapa": "NPC Ferreiro Joaquim nao puxa conversa sozinho",
+   "ok": true
+  },
+  {
+   "etapa": "NPC Ferreiro Joaquim responde ao toque (hi) com opcoes",
+   "ok": true,
+   "trecho": "uim\u0000\u0000\u0005\r\u0005\u0007\u0004\u0007K\u0000Ola Robo Gm! Faco e compro {armas} e {escudos}. Diga {trade} para v"
+  },
+  {
+   "etapa": "NPC Felipe nao puxa conversa sozinho",
+   "ok": true
+  },
+  {
+   "etapa": "NPC Felipe responde ao toque (hi) com opcoes",
+   "ok": true,
+   "trecho": " eu vendo alguns poções especiais, diga {troca} ou {trocar}.á\u0003¸\u0004\u0007Ý\u0003¸\u0004\u0007\u0004Ý\u0003»\u0004\u0007á\u0003"
+  },
+  {
+   "etapa": "NPC Guia Lia nao puxa conversa sozinho",
+   "ok": true
+  },
+  {
+   "etapa": "NPC Guia Lia responde ao toque (hi) com opcoes",
+   "ok": true,
+   "trecho": "vo para uma hunt do seu nivel. Escolha: {iniciante}, {medio}, {forte}, {elite} o"
+  },
+  {
+   "etapa": "Guia Lia leva para a hunt (rotworm)",
+   "ok": true,
+   "posicao": "posição atual é: 979, 1217, 8.",
+   "guia": "Hunts iniciante: {Rotworm} (lv 8+), {Swamp Troll} (lv 8+), {"
+  },
+  {
+   "etapa": "teleporte de volta da hunt tem nome (Templo)",
+   "ok": true
+  },
+  {
+   "etapa": "!templo volta da hunt para o templo",
+   "ok": true,
+   "resposta": "[Templo] Voce voltou para o templo de Thunder City.á\u0003¸\u0004\u0007Ý\u0003¸"
+  },
+  {
+   "etapa": "sair do jogo",
+   "ok": true
+  }
+ ],
+ "ok": true
+}

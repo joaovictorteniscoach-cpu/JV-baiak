@@ -1,0 +1,22 @@
+== 1-jogador novo entra 2x
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+== 2-gm sem clonar + jogador novo
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+== 3-gm com clonar + jogador novo
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+== 4-tres logins de jogadores
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
+FALHA login 7171 {"erro": "ConnectionResetError(104, 'Connection reset by peer')"}
+--
