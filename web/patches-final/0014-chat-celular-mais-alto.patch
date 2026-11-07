@@ -7,8 +7,8 @@ index bd6de13..802867d 100644
          local footer = gameRootPanel:getWidth() < gameRootPanel:getHeight() and 42 or 0
          gameBottomPanel:setMarginBottom(footer)
 -        local desired = math.min(80 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 160))
-+        -- JV Baiak: chat com 3 linhas de mensagem (antes cabia 1 e as abas cobriam)
-+        local desired = math.min(104 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 160))
++        -- JV Baiak: chat com 3 linhas de mensagem (antes cabia 1 e as abas cobriam); mapa >= 140
++        local desired = math.min(104 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 140))
          if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
          bottomSplitter:setEnabled(false)
          gameBottomPanel:setDraggable(false)

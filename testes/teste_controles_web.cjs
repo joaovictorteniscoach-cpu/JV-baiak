@@ -97,7 +97,7 @@ for(const dpr of [1,2,3,4]) {
 console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de assets');
 
 {
- // tela cheia (layout livre, o padrao): pinca e A+/A- de 80% ate o que couber (max 160%)
+ // tela cheia (layout livre, o padrao): pinca e A+/A- de 80% ate o que couber (300 pontos de altura, max 160%)
  const f=fixture(true);
  f.c.innerWidth=390;f.c.innerHeight=844;
  assert.equal(f.c.lerZoom(),1);
@@ -106,7 +106,7 @@ console.log('OK: escala mobile independente do DPR, limite dos alvos e versao de
  f.c.aplicarPinca(3);assert.ok(Math.abs(f.c.lerZoom()-390/330)<0.001);
  f.c.innerWidth=844;f.c.innerHeight=390;
  f.click('zoom-restaurar');f.click('zoom-mais');assert.equal(f.c.lerZoom(),1.15);
- f.c.aplicarPinca(5);assert.equal(f.c.lerZoom(),1.6);
+ f.c.aplicarPinca(5);assert.ok(Math.abs(f.c.lerZoom()-1.3)<0.001);
  f.c.Module.print('JV_LAYOUT classico');assert.ok(Math.abs(f.c.lerZoom()-390*0.72/244)<0.001);
  assert.equal(f.storage.get('jvLayoutJs'),'classico');
 }

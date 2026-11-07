@@ -390,7 +390,8 @@
       function zoomMin() { return emLivre() ? 0.8 : ZOOM_MIN; }
       // Uma coluna lateral e o mapa precisam continuar cabendo depois do zoom.
       function limiteZoom() {
-        if (emLivre()) return Math.max(1, Math.min(1.6, window.innerWidth / 330, window.innerHeight / 230));
+        // altura minima de 300 pontos: mapa + chat com 3 linhas + barra de atalhos
+        if (emLivre()) return Math.max(1, Math.min(1.6, window.innerWidth / 330, window.innerHeight / 300));
         return TELA_TOQUE ? Math.max(1, Math.min(2, window.innerWidth * 0.72 / 300, window.innerHeight * 0.72 / 244)) : 2;
       }
       function orientacao() { return window.innerHeight > window.innerWidth ? "em-pe" : "deitado"; }
