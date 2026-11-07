@@ -80,7 +80,7 @@ def main():
         game_ends, layout_logs = [], []
         janelas, tamanhos = [], []
         soltas, itens_log, extras = [], [], []
-        rapido, comandos, consoles = [], [], []
+        rapido, comandos, consoles, acentos = [], [], [], []
         seen = set()
         def console(message):
             text = message.text
@@ -99,6 +99,8 @@ def main():
                 d = {k: tuple(map(int, v.split(','))) for k, v in re.findall(r'(root|abas|conteudo)=([0-9,-]+)', text)}
                 m = re.search(r' n=(\d+)', text); d['n'] = int(m.group(1)) if m else 0
                 consoles.append(d)
+            if 'JV_TEXTO ' in text:
+                acentos.append(text.split('JV_TEXTO ', 1)[1])
             if 'JV_COMANDOS ' in text or 'JV_CURA ' in text:
                 comandos.append(text.split('] ')[-1])
             m3 = re.search(r'JV_ITEM (\S+) (\d+),(\d+) orig=(\d+),(\d+)', text)
@@ -287,6 +289,20 @@ def main():
             foto('7m-comandos.png')
             log.write(f"botoes rapidos: {rapido[-1]} comandos: {comandos}\n")
             assert any('JV_COMANDOS aberta' in c for c in comandos), 'Tocar no botao Comandos nao abriu a janela'
+            # botao "Comprar AOL" (sem dinheiro): a resposta do servidor tem acento ("Voce nao tem")
+            m = [re.search(r'root=(\d+),(\d+) aol=(-?\d+),(-?\d+),(\d+),(\d+)', c) for c in comandos]
+            m = [x for x in m if x]
+            if m and int(m[-1].group(5)) > 0:
+                rw2, rh2, ax, ay, aw, ah = map(int, m[-1].groups())
+                acentos.clear()
+                pg.touchscreen.tap(box['x'] + (ax + aw / 2) * box['width'] / rw2, box['y'] + (ay + ah / 2) * box['height'] / rh2)
+                for _ in range(8):
+                    if acentos: break
+                    pg.wait_for_timeout(500)
+                foto('7m2-aol-acento.png')
+                log.write(f"acentos: {acentos}\n")
+                assert acentos, 'O servidor nao respondeu o Comprar AOL'
+                assert any(('\u00ea' in a or '\u00e3' in a) and '\ufffd' not in a for a in acentos), ('Acento chegou errado', acentos)
             pg.keyboard.press('Control+Shift+F12'); pg.wait_for_timeout(800)
 
         def testar_chat():

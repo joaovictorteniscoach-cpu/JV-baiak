@@ -83,6 +83,7 @@ local function criarJanela()
         b.onClick = function() pcall(acao) end
         if c[3] == 'cura' then R.linhaCura = b end
         if c[3] == 'pocao' then R.linhaPocao = b end
+        if c[1]:find('AOL') then R.botaoAol = b end
     end
     JVLayout.terminarJanela(w)
     R.janela = w
@@ -99,7 +100,11 @@ function R.comandos()
     if r then w:setPosition({x = r:getX() + 8, y = r:getY() + 48}) end
     R.pintar()
     mandar('')
-    g_logger.info('JV_COMANDOS aberta')
+    scheduleEvent(function()
+        local b, s = R.botaoAol, rootWidget:getSize()
+        local r = (b and not b:isDestroyed()) and b:getRect() or {x = 0, y = 0, width = 0, height = 0}
+        g_logger.info(string.format('JV_COMANDOS aberta root=%d,%d aol=%d,%d,%d,%d', s.width, s.height, r.x, r.y, r.width, r.height))
+    end, 300)
 end
 
 -- ------------------------------------------------------------- botoes na tela
@@ -182,6 +187,10 @@ end
 
 function R.iniciar()
     if R.ligado then return end
+    -- conferencia dos acentos (testes): mensagens do servidor com letra acentuada
+    connect(g_game, { onTextMessage = function(mode, text)
+        if type(text) == 'string' and text:find('[\128-\255]') then g_logger.info('JV_TEXTO ' .. text) end
+    end })
     if not ProtocolGame or not ProtocolGame.registerExtendedOpcode then return end
     R.ligado = true
     pcall(ProtocolGame.registerExtendedOpcode, OPCODE, function(protocol, opcode, buffer)
