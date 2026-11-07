@@ -425,6 +425,51 @@ local function aoGirar()
     end
 end
 
+-- ------------------------------------------------------------- chat no celular
+-- O chat do celular e baixinho: as abas (NPCs, Registro do servidor, Local Chat) ficavam
+-- POR CIMA das mensagens e as letras se misturavam, sem dar para ler. Agora as abas ficam
+-- em cima e as mensagens embaixo, sem invadir; e em pe o botao largo da direita encolhe
+-- para as abas caberem.
+local function rectTxt(w)
+    if not w then return 'nil' end
+    local r = w:getRect()
+    return string.format('%d,%d,%d,%d', r.x, r.y, r.width, r.height)
+end
+
+local function ajustarConsole()
+    local C = modules.game_console
+    if not C then return end
+    local abas, conteudo = C.consoleTabBar, C.consoleContentPanel
+    if not abas or not conteudo or abas:isDestroyed() then return end
+    local painel = conteudo:getParent()
+    local alturaAbas = math.max(18, abas:getHeight())
+    if abas:getMarginBottom() ~= 0 then abas:setMarginBottom(0) end
+    if conteudo:getMarginTop() ~= alturaAbas + 2 then conteudo:setMarginTop(alturaAbas + 2) end
+    conteudo:setClipping(true)
+    local somenteLeitura = painel and painel:getChildById('readOnlyPanel')
+    if somenteLeitura then
+        somenteLeitura:setClipping(true)
+        if somenteLeitura:getMarginTop() ~= alturaAbas + 2 then somenteLeitura:setMarginTop(alturaAbas + 2) end
+    end
+    local botaoLeitura = painel and painel:getChildById('readOnlyButton')
+    local emPe = rootWidget:getWidth() < rootWidget:getHeight()
+    if botaoLeitura then
+        botaoLeitura.jvLargura = botaoLeitura.jvLargura or botaoLeitura:getWidth()
+        local largura = emPe and 0 or botaoLeitura.jvLargura
+        if botaoLeitura:getWidth() ~= largura then botaoLeitura:setWidth(largura) end
+    end
+    -- registro para os testes (so quando muda)
+    local n = 0
+    pcall(function() n = #(abas.tabs or {}) end)
+    local linha = string.format('JV_CONSOLE root=%d,%d abas=%s conteudo=%s n=%d emPe=%s',
+        rootWidget:getWidth(), rootWidget:getHeight(), rectTxt(abas), rectTxt(conteudo), n, tostring(emPe))
+    if linha ~= L.ultimoConsole then
+        L.ultimoConsole = linha
+        g_logger.info(linha)
+    end
+end
+L.ajustarConsole = ajustarConsole
+
 local function cuidarDaTelaCheia()
     if not g_game.isOnline() then return end
     pcall(esconderPaineis)
@@ -555,6 +600,7 @@ function L.iniciar()
             end
         end, rootWidget)
     end
+    cycleEvent(function() if g_game.isOnline() then pcall(ajustarConsole) end end, 1000)
     connect(g_game, {
         onGameStart = function()
             L.entrou = os.time()

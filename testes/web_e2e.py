@@ -80,7 +80,7 @@ def main():
         game_ends, layout_logs = [], []
         janelas, tamanhos = [], []
         soltas, itens_log, extras = [], [], []
-        rapido, comandos = [], []
+        rapido, comandos, consoles = [], [], []
         seen = set()
         def console(message):
             text = message.text
@@ -95,6 +95,10 @@ def main():
                 soltas.append(text)
             if 'JV_RAPIDO root=' in text:
                 rapido.append({k: tuple(map(int,v.split(','))) for k,v in re.findall(r'(root|rect)=([0-9,-]+)',text)})
+            if 'JV_CONSOLE root=' in text:
+                d = {k: tuple(map(int, v.split(','))) for k, v in re.findall(r'(root|abas|conteudo)=([0-9,-]+)', text)}
+                m = re.search(r' n=(\d+)', text); d['n'] = int(m.group(1)) if m else 0
+                consoles.append(d)
             if 'JV_COMANDOS ' in text or 'JV_CURA ' in text:
                 comandos.append(text.split('] ')[-1])
             m3 = re.search(r'JV_ITEM (\S+) (\d+),(\d+) orig=(\d+),(\d+)', text)
@@ -285,6 +289,26 @@ def main():
             assert any('JV_COMANDOS aberta' in c for c in comandos), 'Tocar no botao Comandos nao abriu a janela'
             pg.keyboard.press('Control+Shift+F12'); pg.wait_for_timeout(800)
 
+        def testar_chat():
+            # chat do celular: abas em cima, mensagens embaixo, sem uma cobrir a outra (deitado e em pe)
+            def conferir(nome):
+                for _ in range(8):
+                    if consoles: break
+                    pg.wait_for_timeout(500)
+                assert consoles, 'O chat nao informou a posicao (JV_CONSOLE)'
+                c = consoles[-1]
+                ax, ay, aw, ah = c['abas']; cx, cy, cw, ch = c['conteudo']
+                log.write(f"chat {nome}: {c}\n")
+                assert ay + ah <= cy + 1, ('Abas do chat cobrem as mensagens', nome, c)
+                assert ch >= 28, ('Area das mensagens pequena demais', nome, c)
+                assert aw >= 95, ('Abas do chat sem espaco (nao aparecem)', nome, c)
+            conferir('deitado'); foto('7n-chat-deitado.png')
+            consoles.clear()
+            pg.set_viewport_size({"width": 390, "height": 844}); pg.wait_for_timeout(4500)
+            foto('7o-chat-em-pe.png')
+            conferir('em pe')
+            pg.set_viewport_size({"width": 844, "height": 390}); pg.wait_for_timeout(3500)
+
         def testar_mochila(cdp=None):
             # Mochila pelo menu: na tela cheia ela abre SOLTA por cima do mapa (nao num painel fixo)
             soltas.clear()
@@ -409,7 +433,7 @@ def main():
             if ESCOPO == 'janelas':
                 # teste rapido: so as janelas (o que mudou), sem passear pelo resto do jogo
                 cdp_r = ctx.new_cdp_session(pg) if engine != 'webkit' else None
-                testar_paineis(); testar_rapido(); testar_mochila(cdp_r)
+                testar_paineis(); testar_rapido(); testar_chat(); testar_mochila(cdp_r)
                 if cdp_r:
                     testar_alca(cdp_r)
                 log.write("teste rapido (janelas) terminou\n")
@@ -420,6 +444,7 @@ def main():
             conferir_margens()
             testar_paineis()
             testar_rapido()
+            testar_chat()
             testar_mochila()
             pg.touchscreen.tap(400 + 70, 150)  # toque no mapa: anda
             time.sleep(4)

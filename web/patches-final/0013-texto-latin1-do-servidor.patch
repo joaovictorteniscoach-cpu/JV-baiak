@@ -1,0 +1,56 @@
+diff --git a/src/client/protocolgamesend.cpp b/src/client/protocolgamesend.cpp
+index d206e97..c3d5639 100644
+--- a/src/client/protocolgamesend.cpp
++++ b/src/client/protocolgamesend.cpp
+@@ -28,6 +28,7 @@
+ #include "thingtypemanager.h"
+ #include "thingtype.h"
+ #include "framework/util/crypt.h"
++#include "framework/stdext/string.h"
+ 
+ #ifndef USE_PRECOMPILED_HEADERS
+ #include <algorithm>
+@@ -582,7 +583,15 @@ void ProtocolGame::sendTalk(const Otc::MessageMode mode, const uint16_t channelI
+             break;
+     }
+ 
+-    msg->addString(message);
++    // JV Baiak: o servidor 8.60 le latin-1; o que voce digita (UTF-8) vai em latin-1, para os
++    // NPCs entenderem palavras com acento e os outros jogadores lerem certo.
++    const std::string texto(message);
++    if (stdext::is_valid_utf8(texto)) {
++        const std::string latin = stdext::utf8_to_latin1(texto);
++        msg->addString(latin.empty() ? texto : latin);
++    } else {
++        msg->addString(texto);
++    }
+     send(msg);
+ }
+ 
+diff --git a/src/framework/net/inputmessage.cpp b/src/framework/net/inputmessage.cpp
+index 3a47f51..1e85da4 100644
+--- a/src/framework/net/inputmessage.cpp
++++ b/src/framework/net/inputmessage.cpp
+@@ -23,6 +23,7 @@
+ #include "inputmessage.h"
+ 
+ #include "client/game.h"
++#include "framework/stdext/string.h"
+ #include "framework/util/crypt.h"
+ 
+ InputMessage::InputMessage() {
+@@ -95,7 +96,13 @@ std::string InputMessage::getString()
+     checkRead(stringLength);
+     const char* v = (char*)(m_buffer + m_readPos);
+     m_readPos += stringLength;
+-    return std::string(v, stringLength);
++    // JV Baiak: o servidor 8.60 manda texto em latin-1 (acento = 1 byte). As fontes deste
++    // cliente leem UTF-8 e, com latin-1, juntavam o acento com as letras seguintes e
++    // trocavam tudo ("Voc? est?"). Texto que nao e UTF-8 valido vira UTF-8 aqui.
++    std::string texto(v, stringLength);
++    if (!stdext::is_valid_utf8(texto))
++        return stdext::latin1_to_utf8(texto);
++    return texto;
+ }
+ 
+ double InputMessage::getDouble()

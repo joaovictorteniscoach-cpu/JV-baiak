@@ -1,0 +1,14 @@
+diff --git a/modules/game_interface/gameinterface.lua b/modules/game_interface/gameinterface.lua
+index bd6de13..802867d 100644
+--- a/modules/game_interface/gameinterface.lua
++++ b/modules/game_interface/gameinterface.lua
+@@ -511,7 +511,8 @@ function updateStretchShrink()
+         local stats = gameBottomStatsBarPanel and gameBottomStatsBarPanel:getHeight() or 0
+         local footer = gameRootPanel:getWidth() < gameRootPanel:getHeight() and 42 or 0
+         gameBottomPanel:setMarginBottom(footer)
+-        local desired = math.min(80 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 160))
++        -- JV Baiak: chat com 3 linhas de mensagem (antes cabia 1 e as abas cobriam)
++        local desired = math.min(104 + 35 * bars + stats + footer, math.max(64, gameRootPanel:getHeight() - 160))
+         if bottomSplitter:getMarginBottom() ~= desired then bottomSplitter:setMarginBottom(desired) end
+         bottomSplitter:setEnabled(false)
+         gameBottomPanel:setDraggable(false)

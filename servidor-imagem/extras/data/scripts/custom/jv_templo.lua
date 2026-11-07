@@ -144,6 +144,11 @@ local VOLTAS = {
 
 -- teleportes do mapa sem destino (ou com destino fora do mapa): levam ao templo mais perto
 local CONSERTOS = {
+	-- com nome no chao e sem destino: Premia "NPCs" e "Bosses" (mesmo lugar dos de Thunder City)
+	-- e "Bhark" na sala das cidades
+	{destino = Position(633, 1239, 5), lugares = {{473, 1379, 6}}},
+	{destino = Position(583, 1242, 7), lugares = {{478, 1379, 6}}},
+	{destino = Position(1238, 1307, 3), lugares = {{827, 1408, 7}}},
 	{destino = Position(474, 1364, 7), lugares = {
 		{22, 1429, 6}, {31, 1182, 4}, {62, 1410, 7}, {81, 1956, 7}, {192, 1000, 7}, {193, 1865, 7}, {198, 1444, 8},
 		{204, 636, 7}, {229, 1612, 7}, {251, 759, 7}, {273, 739, 7}, {303, 1063, 7}, {312, 755, 7}, {315, 647, 7},
@@ -183,6 +188,23 @@ local CONSERTOS = {
 
 local TELEPORTES = {[1387] = true, [12509] = true}
 
+-- "Castle 48H" no templo: o teleporte nunca teve destino (o evento do Baiak usa outra entrada).
+-- Agora explica quando abre em vez de nao fazer nada.
+local AID_CASTELO = 47101
+local castelo = MoveEvent()
+castelo:type("stepin")
+function castelo.onStepIn(creature, item, position, fromPosition)
+	local player = creature and creature:getPlayer()
+	if not player then return true end
+	player:sendTextMessage(MSG, "[Castle 48H] Evento de guild (level 100+): domingo, terca, quinta, sexta e sabado as 20h." ..
+		" Fique de olho no aviso no chat quando abrir.")
+	player:teleportTo(fromPosition, true)
+	fromPosition:sendMagicEffect(CONST_ME_POFF)
+	return true
+end
+castelo:aid(AID_CASTELO)
+castelo:register()
+
 local inicio = GlobalEvent("JVTemploInicio")
 inicio:type("startup")
 function inicio.onStartup()
@@ -215,6 +237,9 @@ function inicio.onStartup()
 			end
 		end
 	end
+	local tileCastelo = Tile(Position(997, 1203, 7))
+	local tpCastelo = tileCastelo and tileCastelo:getItemById(1387)
+	if tpCastelo and tpCastelo:getActionId() == 0 then tpCastelo:setActionId(AID_CASTELO) end
 	print(string.format(">> JV Templo: %d teleportes de volta nas hunts, %d teleportes consertados", criados, consertados))
 	return true
 end

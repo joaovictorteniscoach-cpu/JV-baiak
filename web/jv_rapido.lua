@@ -118,6 +118,18 @@ local function botao(pai, id, icone, x, fn)
     return b
 end
 
+-- em pe (mapa estreito) os 4 botoes nao cabem do lado do Lv: descem para baixo dele
+local function posicionar()
+    local p = R.painel
+    if not p or p:isDestroyed() or not p:getParent() then return end
+    local largura = p:getParent():getWidth()
+    local cabeAoLado = largura >= 160 + 4 * (TAM + ESPACO) + 44
+    local topo, esquerda = cabeAoLado and 1 or 32, cabeAoLado and 160 or 4
+    if p:getMarginTop() ~= topo then p:setMarginTop(topo) end
+    if p:getMarginLeft() ~= esquerda then p:setMarginLeft(esquerda) end
+end
+R.posicionar = posicionar
+
 local function criarBotoes()
     if R.painel and not R.painel:isDestroyed() then return end
     local mapa = modules.game_interface and modules.game_interface.getMapPanel and modules.game_interface.getMapPanel()
@@ -159,6 +171,7 @@ local function criarBotoes()
     end)
     R.botoes.comandos = botao(p, 'jvRapidoComandos', '/images/game/mobile/comandos', 3 * (TAM + ESPACO), R.comandos)
     R.pintar()
+    pcall(posicionar)
     -- a posicao so existe depois de o jogo montar a tela: registra um pouco depois
     scheduleEvent(function()
         if p:isDestroyed() then return end
@@ -197,5 +210,7 @@ function R.iniciar()
         end
     })
     -- a espada pode mudar por outro caminho (menu de opcoes): repinta de vez em quando
-    cycleEvent(function() if R.painel and not R.painel:isDestroyed() then R.pintar() end end, 1500)
+    cycleEvent(function()
+        if R.painel and not R.painel:isDestroyed() then R.pintar(); pcall(posicionar) end
+    end, 1500)
 end

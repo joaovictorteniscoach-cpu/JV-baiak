@@ -347,6 +347,11 @@ def testar(host, conta, senha, gm=False, clonar=True):
         etapa("Guia Lia leva para a hunt (rotworm)", b"979, 1217, 8" in pos,
               posicao=pos[i:i + 50].decode("latin-1", "replace") if i >= 0 else None,
               guia=respostas[respostas.find(b"Hunts"):respostas.find(b"Hunts") + 60].decode("latin-1", "replace") if b"Hunts" in respostas else None)
+        # nome em cima do teleporte de volta (aparece a cada 3,5 s para quem esta perto)
+        antes = len(jg.recebidos)
+        jg.receber(5)
+        txt = b"".join(x for _, x in jg.recebidos[antes:])
+        etapa("teleporte de volta da hunt tem nome (Templo)", b"Templo" in txt)
         # da hunt de volta ao templo com !templo
         antes = len(jg.recebidos)
         jg.falar("!templo")
