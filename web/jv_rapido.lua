@@ -187,9 +187,17 @@ end
 
 function R.iniciar()
     if R.ligado then return end
-    -- conferencia dos acentos (testes): mensagens do servidor com letra acentuada
+    -- conferencia dos acentos (testes): este cliente desenha 1 byte por letra (latin-1). O
+    -- servidor tem que mandar latin-1; UTF-8 aparece como letras trocadas ("Voc" + lixo).
     connect(g_game, { onTextMessage = function(mode, text)
-        if type(text) == 'string' and text:find('[\128-\255]') then g_logger.info('JV_TEXTO ' .. text) end
+        if type(text) ~= 'string' or not text:find('[\128-\255]') then return end
+        local tipo = text:find('[\194-\244][\128-\191]') and 'utf8' or 'latin1'
+        -- no registro (UTF-8) mostra como a letra foi desenhada
+        local legivel = text:gsub('[\128-\255]', function(c)
+            local b = c:byte()
+            return string.char(0xC0 + math.floor(b / 64), 0x80 + b % 64)
+        end)
+        g_logger.info('JV_TEXTO ' .. tipo .. ' ' .. legivel)
     end })
     if not ProtocolGame or not ProtocolGame.registerExtendedOpcode then return end
     R.ligado = true

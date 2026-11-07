@@ -302,7 +302,9 @@ def main():
                 foto('7m2-aol-acento.png')
                 log.write(f"acentos: {acentos}\n")
                 assert acentos, 'O servidor nao respondeu o Comprar AOL'
-                assert any(('\u00ea' in a or '\u00e3' in a) and '\ufffd' not in a for a in acentos), ('Acento chegou errado', acentos)
+                # o cliente desenha latin-1: a mensagem tem que chegar em latin-1 (sem letras trocadas)
+                assert all(a.startswith('latin1 ') for a in acentos), ('Acento chegou em UTF-8 (letras trocadas)', acentos)
+                assert any('\u00ea' in a or '\u00e3' in a for a in acentos), ('Sem o acento esperado', acentos)
             pg.keyboard.press('Control+Shift+F12'); pg.wait_for_timeout(800)
 
         def testar_chat():

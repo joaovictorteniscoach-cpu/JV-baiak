@@ -1,0 +1,53 @@
+diff --git a/src/networkmessage.cpp b/src/networkmessage.cpp
+index 93147c5..3141bd2 100644
+--- a/src/networkmessage.cpp
++++ b/src/networkmessage.cpp
+@@ -48,8 +48,47 @@ Position NetworkMessage::getPosition()
+ 	return pos;
+ }
+ 
+-void NetworkMessage::addString(const std::string& value)
++// JV Baiak: o cliente 8.60 desenha texto em latin-1 (1 byte por letra). Alguns scripts do
++// Baiak estao salvos em UTF-8 (acento = 2 bytes) e o XML declarado ISO-8859-1 e convertido
++// para UTF-8 ao carregar: no jogo apareciam letras trocadas ("Voc" + 2 letras estranhas). Texto que e UTF-8
++// valido com acento vai em latin-1; o resto vai como esta.
++static bool jvUtf8ParaLatin1(const std::string& texto, std::string& saida)
+ {
++	bool temAcento = false;
++	for (unsigned char c : texto) {
++		if (c >= 0x80) { temAcento = true; break; }
++	}
++	if (!temAcento) {
++		return false;
++	}
++	saida.clear();
++	saida.reserve(texto.size());
++	for (size_t i = 0; i < texto.size(); ) {
++		unsigned char c = static_cast<unsigned char>(texto[i]);
++		uint32_t cp;
++		size_t n;
++		if (c < 0x80) { cp = c; n = 1; }
++		else if ((c & 0xE0) == 0xC0) { cp = c & 0x1F; n = 2; }
++		else if ((c & 0xF0) == 0xE0) { cp = c & 0x0F; n = 3; }
++		else if ((c & 0xF8) == 0xF0) { cp = c & 0x07; n = 4; }
++		else { return false; }
++		if (i + n > texto.size()) { return false; }
++		for (size_t k = 1; k < n; ++k) {
++			unsigned char d = static_cast<unsigned char>(texto[i + k]);
++			if ((d & 0xC0) != 0x80) { return false; }
++			cp = (cp << 6) | (d & 0x3F);
++		}
++		if (n == 2 && cp < 0x80) { return false; }
++		saida.push_back(cp <= 0xFF ? static_cast<char>(cp) : '?');
++		i += n;
++	}
++	return true;
++}
++
++void NetworkMessage::addString(const std::string& original)
++{
++	std::string convertido;
++	const std::string& value = jvUtf8ParaLatin1(original, convertido) ? convertido : original;
+ 	size_t stringLen = value.length();
+ 	if (!canAdd(stringLen + 2)) {
+ 		return;

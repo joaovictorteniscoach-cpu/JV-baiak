@@ -317,6 +317,14 @@ def testar(host, conta, senha, gm=False, clonar=True):
             jg.receber(3)
             txt = b"".join(x for _, x in jg.recebidos[antes:])
             etapa("comando %s responde" % cmd, trecho in txt)
+        # acentos: o cliente 8.60 desenha latin-1. Mensagem de script salvo em UTF-8 (autoloot.lua
+        # do Baiak: "Nao tem item...") tem que chegar em latin-1, sem as letras trocadas.
+        antes = len(jg.recebidos)
+        jg.falar("!autoloot add, itemquenaoexiste")
+        jg.receber(3)
+        txt = b"".join(x for _, x in jg.recebidos[antes:])
+        etapa("acento chega em latin-1 (sem letras trocadas)", b"N\xe3o tem item" in txt and b"N\xc3\xa3o" not in txt,
+              trecho=txt[txt.find(b"tem item") - 6:txt.find(b"tem item") + 10].hex() if b"tem item" in txt else None)
         # NPCs novos no templo: so conversam quando o jogador toca neles (o jogo diz "hi")
         for npc, trecho in (("Mercador Ze", b"Compro"), ("Ferreiro Joaquim", b"armas"), ("Felipe", b"Felipe"), ("Guia Lia", b"iniciante")):
             antes = len(jg.recebidos)
