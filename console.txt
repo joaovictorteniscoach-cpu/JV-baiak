@@ -1,0 +1,165 @@
+[error] Failed to load resource: the server responded with a status of 404 (File not found)
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[worker] http://127.0.0.1:8080/otclient.js
+[log] status: Downloading data...
+[log] status: Downloading data... (491520/90559518)
+[log] status: Downloading data... (557056/90559518)
+[log] status: Downloading data... (622592/90559518)
+[log] status: Downloading data... (688128/90559518)
+[log] status: Downloading data... (753664/90559518)
+[log] status: Downloading data... (819200/90559518)
+[log] status: Downloading data... (884736/90559518)
+[log] status: Downloading data... (950272/90559518)
+[log] status: Downloading data... (1015808/90559518)
+[log] status: Downloading data... (1081344/90559518)
+[log] status: Downloading data... (1409024/90559518)
+[log] status: Downloading data... (1605632/90559518)
+[log] status: Downloading data... (1736704/90559518)
+[log] status: Downloading data... (1998848/90559518)
+[log] status: Downloading data... (2097152/90559518)
+[log] status: Downloading data... (2162688/90559518)
+[log] status: Downloading data... (2228224/90559518)
+[log] status: Downloading data... (2424832/90559518)
+[log] status: Downloading data... (2686976/90559518)
+[log] status: Downloading data... (2883584/90559518)
+[log] status: Downloading data... (3080192/90559518)
+[log] status: Downloading data... (3276800/90559518)
+[log] status: Downloading data... (4194304/90559518)
+[log] status: Downloading data... (4390912/90559518)
+[log] status: Downloading data... (4456448/90559518)
+[log] status: Downloading data... (4521984/90559518)
+[log] status: Downloading data... (4587520/90559518)
+[log] status: Downloading data... (4653056/90559518)
+[log] status: Downloading data... (4718592/90559518)
+[log] status: Downloading data... (4784128/90559518)
+[log] status: Downloading data... (4849664/90559518)
+[log] status: Downloading data... (6291456/90559518)
+[log] status: Downloading data... (7077888/90559518)
+[log] status: Downloading data... (8388608/90559518)
+[log] status: Downloading data... (9175040/90559518)
+[log] status: Downloading data... (10485760/90559518)
+[log] status: Downloading data... (11730944/90559518)
+[log] status: Downloading data... (11993088/90559518)
+[log] status: Downloading data... (12582912/90559518)
+[log] status: Downloading data... (14680064/90559518)
+[log] status: Downloading data... (16777216/90559518)
+[log] status: Downloading data... (18874368/90559518)
+[log] status: Downloading data... (20971520/90559518)
+[log] status: Downloading data... (23068672/90559518)
+[log] status: Downloading data... (25165824/90559518)
+[log] status: Downloading data... (27262976/90559518)
+[log] status: Downloading data... (27394048/90559518)
+[log] status: Downloading data... (28901376/90559518)
+[log] status: Downloading data... (29360128/90559518)
+[log] status: Downloading data... (31129600/90559518)
+[log] status: Downloading data... (31457280/90559518)
+[log] status: Downloading data... (31588352/90559518)
+[log] status: Downloading data... (31653888/90559518)
+[log] status: Downloading data... (33554432/90559518)
+[log] status: Downloading data... (34537472/90559518)
+[log] status: Downloading data... (34930688/90559518)
+[log] status: Downloading data... (35651584/90559518)
+[log] status: Downloading data... (37027840/90559518)
+[log] status: Downloading data... (37748736/90559518)
+[log] status: Downloading data... (39124992/90559518)
+[log] status: Downloading data... (39845888/90559518)
+[log] status: Downloading data... (41943040/90559518)
+[log] status: Downloading data... (44040192/90559518)
+[log] status: Downloading data... (46137344/90559518)
+[log] status: Downloading data... (48234496/90559518)
+[log] status: Downloading data... (50331648/90559518)
+[log] status: Downloading data... (52428800/90559518)
+[log] status: Downloading data... (54525952/90559518)
+[log] status: Downloading data... (56623104/90559518)
+[log] status: Downloading data... (58589184/90559518)
+[log] status: Downloading data... (58720256/90559518)
+[log] status: Downloading data... (60686336/90559518)
+[log] status: Downloading data... (60817408/90559518)
+[log] status: Downloading data... (61603840/90559518)
+[log] status: Downloading data... (62914560/90559518)
+[log] status: Downloading data... (65011712/90559518)
+[log] status: Downloading data... (66125824/90559518)
+[log] status: Downloading data... (67108864/90559518)
+[log] status: Downloading data... (68222976/90559518)
+[log] status: Downloading data... (69206016/90559518)
+[log] status: Downloading data... (70516736/90559518)
+[log] status: Downloading data... (71303168/90559518)
+[log] status: Downloading data... (71368704/90559518)
+[log] status: Downloading data... (73400320/90559518)
+[log] status: Downloading data... (74842112/90559518)
+[log] status: Downloading data... (75497472/90559518)
+[log] status: Downloading data... (75563008/90559518)
+[log] status: Downloading data... (77594624/90559518)
+[log] status: Downloading data... (79691776/90559518)
+[log] status: Downloading data... (81788928/90559518)
+[log] status: Downloading data... (83886080/90559518)
+[log] status: Downloading data... (83951616/90559518)
+[log] status: Downloading data... (85000192/90559518)
+[log] status: Downloading data... (85983232/90559518)
+[log] status: Downloading data... (86048768/90559518)
+[log] status: Downloading data... (88080384/90559518)
+[log] status: Downloading data... (90177536/90559518)
+[log] status: Downloading data... (90559518/90559518)
+[log] status: Downloading...
+[log] status: Running...
+[log] status: 
+pronto para jogar em 1s
+[log] [2026-11-07 10:10:03.783] [[32minfo[m] Application started at Nov 07 2026 10:10:03
+[log] [2026-11-07 10:10:03.792] [[31m[1merror[m] Failed to parse public config 'config.ini': unable to open file '/config.ini': not found
+[worker] http://127.0.0.1:8080/otclient.js
+[log] [2026-11-07 10:10:03.870] [[32minfo[m] GPU WebKit WebGL
+[log] [2026-11-07 10:10:03.871] [[32minfo[m] OpenGL OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))
+[log] [2026-11-07 10:10:03.979] [[32minfo[m] Operating system: browser
+[log] [2026-11-07 10:10:03.980] [[32minfo[m] JV Baiak 4.x rev 0.000 (desenv) built on Oct 31 2026 for arch WASM32
+[log] [2026-11-07 10:10:08.644] [[32minfo[m] Startup done :]
+[log] [2026-11-07 10:10:08.651] [[32minfo[m] JV_LAYOUT livre
+[log] [2026-11-07 10:10:09.112] [[32minfo[m] JV_LOGIN_LAYOUT root=844,390 win=242,43,360,304 account=327,79,259,44 password=327,130,259,44 login=258,279,328,44
+[log] [2026-11-07 10:10:29.440] [[32minfo[m] JV_LOGIN_LAYOUT root=390,844 win=15,270,360,304 account=100,306,259,44 password=100,357,259,44 login=31,506,328,44
+conta de teste: roboyfs8873t / personagem Robo Dilufe / criada=True
+[log] [2026-11-07 10:10:33.640] [[32minfo[m] JV_LOGIN_LAYOUT root=844,390 win=242,43,360,304 account=327,79,259,44 password=327,130,259,44 login=258,279,328,44
+botao 'Toque para digitar' apareceu: True
+campo do teclado com foco: teclado
+[log] [2026-11-07 10:10:59.771] [[32minfo[m] JV_WEB_GAME_READY
+[log] [2026-11-07 10:10:59.840] [[32minfo[m] JV_TEXTO latin1 Você ganhou todas as blesses por estar abaixo do level 100.
+[log] [2026-11-07 10:11:00.444] [[32minfo[m] JV_CONSOLE root=602,278 abas=17,150,397,28 conteudo=2,177,598,77 n=1 emPe=false
+[log] [2026-11-07 10:11:01.241] [[32minfo[m] JV_CONSOLE root=602,278 abas=17,186,397,28 conteudo=2,213,598,41 n=3 emPe=false
+[log] [2026-11-07 10:11:01.371] [[32minfo[m] JV_VIVO
+[log] [2026-11-07 10:11:01.686] [[32minfo[m] JV_RAPIDO root=602,278 rect=164,30,128,34
+[log] [2026-11-07 10:11:02.667] [[32minfo[m] JV_BARRA 2 de 2 magias
+[log] [2026-11-07 10:11:02.897] [[32minfo[m] JV_CURA 1,1,1
+[log] [2026-11-07 10:11:03.132] [[32minfo[m] JV_LOOT 1,1,1,1,1,0,0
+[log] [2026-11-07 10:11:03.352] [[32minfo[m] JV_BARRA_SALVA
+[log] [2026-11-07 10:11:03.635] [[32minfo[m] JV_CURA 1,1,1
+[log] [2026-11-07 10:11:04.904] [[32minfo[m] JV_CURA 1,1,1
+[log] [2026-11-07 10:11:05.916] [[32minfo[m] JV_BARRA 0 de 2 magias
+[log] [2026-11-07 10:11:22.271] [[32minfo[m] JV_JANELA root=602,278 rect=424,66,146,137
+[log] [2026-11-07 10:11:24.032] [[32minfo[m] JV_JANELA root=602,278 rect=398,84,146,146
+[log] [2026-11-07 10:11:25.820] [[32minfo[m] JV_JANELA root=602,278 rect=372,90,146,146
+[log] [2026-11-07 10:11:27.761] [[32minfo[m] JV_JANELA root=602,278 rect=346,62,146,174
+[log] [2026-11-07 10:11:29.748] [[32minfo[m] JV_JANELA root=602,278 rect=450,48,146,146
+[log] [2026-11-07 10:11:34.518] [[32minfo[m] JV_CURA 1,1,1
+[log] [2026-11-07 10:11:34.695] [[32minfo[m] JV_COMANDOS aberta root=602,278 aol=10,122,136,18
+botoes rapidos: {'root': (602, 278), 'rect': (164, 30, 128, 34)} comandos: ['JV_CURA 1,1,1', 'JV_COMANDOS aberta root=602,278 aol=10,122,136,18']
+[log] [2026-11-07 10:11:35.744] [[32minfo[m] JV_TEXTO latin1 Você comprou um Amulet of Loss.
+acentos: ['latin1 Você comprou um Amulet of Loss.']
+chat deitado: {'root': (602, 278), 'abas': (17, 186, 397, 28), 'conteudo': (2, 213, 598, 41), 'n': 3}
+[log] [2026-11-07 10:11:39.264] [[32minfo[m] JV_CONSOLE root=278,602 abas=17,467,73,28 conteudo=2,494,274,42 n=0 emPe=true
+[log] [2026-11-07 10:11:40.249] [[32minfo[m] JV_CONSOLE root=278,602 abas=17,467,169,28 conteudo=2,494,274,42 n=1 emPe=true
+chat em pe: {'root': (278, 602), 'abas': (17, 467, 169, 28), 'conteudo': (2, 494, 274, 42), 'n': 1}
+[log] [2026-11-07 10:11:44.255] [[32minfo[m] JV_CONSOLE root=602,278 abas=17,186,493,28 conteudo=2,213,598,41 n=3 emPe=false
+[log] [2026-11-07 10:11:45.255] [[32minfo[m] JV_CONSOLE root=602,278 abas=17,186,397,28 conteudo=2,213,598,41 n=3 emPe=false
+[log] [2026-11-07 10:11:47.099] [[32minfo[m] JV_SOLTA container0 rect=420,48,141,94
+mochila: ['[2026-11-07 10:11:47.099] [\x1b[32minfo\x1b[m] JV_SOLTA container0 rect=420,48,141,94']
+[log] [2026-11-07 10:11:48.497] [[32minfo[m] JV_JANELA_TAMANHO 115,77 escala=0.65
+[log] [2026-11-07 10:11:48.499] [[32minfo[m] JV_ITEM container0 10,10 orig=15,15
+itens da mochila: [('container0', 10, 15)]
+[log] [2026-11-07 10:11:52.568] [[32minfo[m] JV_LOOT 1,1,1,1,1,0,0
+servidor novo (barra de magias / autoloot): ['JV_BARRA 2 de 2 magias', 'JV_LOOT 1,1,1,1,1,0,0', 'JV_BARRA 0 de 2 magias', 'JV_LOOT 1,1,1,1,1,0,0']
+[log] [2026-11-07 10:11:57.116] [[32minfo[m] JV_JANELA root=602,278 rect=450,48,146,146
+[log] [2026-11-07 10:11:58.380] [[32minfo[m] JV_JANELA_TAMANHO 110,111 escala=0.61
+[log] [2026-11-07 10:11:58.382] [[32minfo[m] JV_ITEM jvJanela_maininventorypanel 21,21 orig=34,34
+janela antes=146x146 depois=[(110, 111, 0.61)]
+[log] [2026-11-07 10:12:00.174] [[32minfo[m] JV_JANELA_FECHADA maininventorypanel
+teste rapido (janelas) terminou
