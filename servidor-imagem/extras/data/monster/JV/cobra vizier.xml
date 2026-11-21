@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
 <monster name="Cobra Vizier" nameDescription="a cobra vizier" race="blood" experience="6600" speed="230" manacost="0">
-	<health now="7800" max="7800"/>
+	<health now="15600" max="15600"/><!-- jv-vida-2x -->
 	<look type="115" corpse="6041"/>
 	<targetchange interval="4000" chance="10"/>
 	<flags>

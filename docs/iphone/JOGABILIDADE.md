@@ -7,6 +7,15 @@ Esta atualização mantém os sprites, o mapa, os ícones e a organização da i
 - **Autoloot**: exclusões por item ficam salvas no personagem e prevalecem sobre dinheiro, raros, caros, lista e envio ao depot. As categorias e a lista antiga continuam funcionando.
 - **Poções infinitas**: a atualização define `removeChargesFromPotions = false` uma vez na instalação existente. Vale para uso manual e auto pot, mantendo a necessidade de possuir a poção, os requisitos de vocação/nível e os intervalos. Não altera regras de runas ou munição.
 
+## Evolução de classe (Mestre das Classes)
+
+- NPC **Mestre das Classes** no templo de Thunder City, à esquerda do templo (988, 1213, 7). Toque nele e escolha **evoluir** ou **niveis**.
+- 4 níveis, **100.000 gold cada** (mochila e/ou banco), sem level mínimo: nível 1 = 2x, nível 2 = 4x, nível 3 = 7x, nível 4 = 10x.
+- **Ataque**: o dano que você (ou sua invocação) causa em monstros é multiplicado. Contra jogadores o ataque continua normal.
+- **Defesa**: todo dano recebido (monstro ou jogador, vida e mana) é dividido pelo mesmo número.
+- **Monstros com o dobro de vida**; experiência e loot iguais.
+- `!evolucao` mostra o seu nível.
+
 ## Atualizar pelo SSH
 
 Na VPS que já está instalada em `/opt/jvbaiak`, execute:

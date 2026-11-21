@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
 <monster name="Falcon Paladin" nameDescription="a falcon paladin" race="blood" experience="7500" speed="250" manacost="0">
-	<health now="8500" max="8500"/>
+	<health now="17000" max="17000"/><!-- jv-vida-2x -->
 	<look type="129" head="57" body="96" legs="38" feet="105" addons="3" corpse="6080"/>
 	<targetchange interval="4000" chance="10"/>
 	<flags>

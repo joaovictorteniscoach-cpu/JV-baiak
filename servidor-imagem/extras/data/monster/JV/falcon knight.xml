@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
 <monster name="Falcon Knight" nameDescription="a falcon knight" race="blood" experience="7500" speed="250" manacost="0">
-	<health now="9000" max="9000"/>
+	<health now="18000" max="18000"/><!-- jv-vida-2x -->
 	<look type="131" head="57" body="96" legs="38" feet="105" addons="3" corpse="6080"/>
 	<targetchange interval="4000" chance="10"/>
 	<flags>

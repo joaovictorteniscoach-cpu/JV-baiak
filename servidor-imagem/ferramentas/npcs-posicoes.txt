@@ -6,3 +6,4 @@ Riona;978;1209;7
 Tyoric;981;1213;7
 The Forgotten King;976;1206;7
 Guia Lia;994;1213;7
+Mestre das Classes;988;1213;7

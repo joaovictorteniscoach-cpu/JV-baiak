@@ -470,6 +470,22 @@ main() {
 		ok "AFK: personagem fica no jogo ate 60 min parado ou com o app fechado"
 		REINICIAR_SERVIDOR=1
 	fi
+	# Monstros com o dobro de vida (experiencia e loot iguais). Roda sempre: cada arquivo
+	# e marcado e so e dobrado uma vez (os recolocados pelos extras sao dobrados de novo).
+	if command -v python3 >/dev/null; then
+		N_VIDA="$(python3 "$BASE/servidor-imagem/ferramentas/vida_monstros.py" "$SRV/data/monster" 2>/dev/null || echo 0)"
+		if [ "${N_VIDA:-0}" != "0" ]; then
+			REINICIAR_SERVIDOR=1
+			ok "monstros com o dobro de vida ($N_VIDA arquivo(s))"
+		fi
+	fi
+	# Evolucao de classe: liga o "ataque multiplicado" no monstro quando um jogador o ataca
+	ARQ_EV="$SRV/data/events/scripts/creature.lua"
+	if [ -f "$ARQ_EV" ] && ! grep -q 'JVEvolucaoDano' "$ARQ_EV" && grep -q '^function Creature:onTargetCombat(target)' "$ARQ_EV"; then
+		sed -i 's/^function Creature:onTargetCombat(target)$/function Creature:onTargetCombat(target)\n    -- JV Baiak: evolucao de classe (ataque multiplicado contra monstros)\n    if self and target and target:isMonster() and (self:isPlayer() or (self:getMaster() and self:getMaster():isPlayer())) then target:registerEvent("JVEvolucaoDano") end/' "$ARQ_EV"
+		REINICIAR_SERVIDOR=1
+		ok "evolucao de classe: ataque ligado nos monstros"
+	fi
 	if ! grep -qx 'treino-fora-da-aba-v1' "$AJUSTES"; then
 		# Treinar nos trainers com o jogo fora da tela (outro app, tela bloqueada): o Baiak
 		# original mandava para o templo quem ficava sem conexao atacando o trainer.
@@ -523,10 +539,10 @@ main() {
 		PY
 		ok "NPCs colocados nas barracas dos mercados"
 	fi
-	if ! grep -qx 'npcs-lojas-v2' "$AJUSTES" && command -v python3 >/dev/null; then
+	if ! grep -qx 'npcs-lojas-v3' "$AJUSTES" && command -v python3 >/dev/null; then
 		# NPCs de loja que faltavam (ferreiro, armeira, comprador de loot, maga, ferramentas,
 		# armas de distancia e o rei da promocao) no templo de Thunder City
-		python3 - "$BASE/servidor-imagem/ferramentas/npcs-posicoes.txt" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'npcs-lojas-v2' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
+		python3 - "$BASE/servidor-imagem/ferramentas/npcs-posicoes.txt" "$SRV"/data/world/*-spawn.xml <<-'PY' && echo 'npcs-lojas-v3' >> "$AJUSTES" && REINICIAR_SERVIDOR=1
 			import sys
 			linhas = [l.strip().split(";") for l in open(sys.argv[1]) if l.strip()]
 			arq = sys.argv[2]

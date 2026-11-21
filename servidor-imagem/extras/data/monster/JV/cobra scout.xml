@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
 <monster name="Cobra Scout" nameDescription="a cobra scout" race="blood" experience="6600" speed="250" manacost="0">
-	<health now="8000" max="8000"/>
+	<health now="16000" max="16000"/><!-- jv-vida-2x -->
 	<look type="113" corpse="4251"/>
 	<targetchange interval="4000" chance="10"/>
 	<flags>

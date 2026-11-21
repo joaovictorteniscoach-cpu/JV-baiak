@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- JV Baiak: criatura nova (ideia do Styller-Baiak) com o visual mais parecido que existe no Tibia 8.60 -->
 <monster name="Ripper Spectre" nameDescription="a ripper spectre" race="undead" experience="3500" speed="250" manacost="0">
-	<health now="3800" max="3800"/>
+	<health now="7600" max="7600"/><!-- jv-vida-2x -->
 	<look type="235" head="20" corpse="6348"/>
 	<targetchange interval="4000" chance="10"/>
 	<flags>
