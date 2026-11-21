@@ -23,8 +23,8 @@
 JV_MAGIAS = JV_MAGIAS or {proximo = {}, bloqueada = {}}
 local M = JV_MAGIAS
 local STORAGE = 79003      -- magias de ataque
-local STORAGE_CURA = 79004 -- cura automatica (magias de cura)
-local STORAGE_POCAO = 79005 -- pocoes automaticas
+local STORAGE_CURA = 79010 -- cura automatica (magias de cura); 79004-79006 sao do jv_hunt
+local STORAGE_POCAO = 79011 -- pocoes automaticas
 local OPCODE = 79
 local INTERVALO = 500
 local CURA_ABAIXO = 0.70

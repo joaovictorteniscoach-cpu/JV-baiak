@@ -384,7 +384,9 @@ def testar(host, conta, senha, gm=False, clonar=True):
         txt = conversa("evoluir")
         etapa("Mestre das Classes oferece a Evolucao I", b"Evolucao I (ataque e defesa 2x)" in txt)
         txt = conversa("sim")
-        if b"precisa de 100.000 gold" in txt:  # sem dinheiro: cria 10 crystal coins e tenta de novo
+        if b"precisa de 100.000 gold" in txt:  # sem dinheiro: mochila + 10 crystal coins e tenta de novo
+            jg.falar("/i 1988")  # backpack (as moedas caem no chao se nao houver espaco)
+            jg.receber(2)
             jg.falar("/i 2160, 10")
             jg.receber(2)
             conversa("evoluir")

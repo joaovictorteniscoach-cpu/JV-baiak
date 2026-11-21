@@ -12,7 +12,7 @@ function onCreatureDisappear(cid)           npcHandler:onCreatureDisappear(cid) 
 function onCreatureSay(cid, type, msg)      npcHandler:onCreatureSay(cid, type, msg)    end
 function onThink()                          npcHandler:onThink()                        end
 
-local STORAGE = 79300
+local STORAGE = 79500 -- 79300-79399 e a lista de ignorados do jv_loot
 local PRECO = 100000
 local MULT = {2, 4, 7, 10}
 local NOMES = {"Evolucao I", "Evolucao II", "Evolucao III", "Evolucao IV"}

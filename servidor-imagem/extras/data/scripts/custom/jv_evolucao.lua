@@ -12,7 +12,7 @@
 -- ============================================================================
 JV_EVOLUCAO = JV_EVOLUCAO or {}
 local E = JV_EVOLUCAO
-local STORAGE = 79300
+local STORAGE = 79500 -- 79300-79399 e a lista de ignorados do jv_loot
 local MULT = {2, 4, 7, 10}
 local NOMES = {"Evolucao I", "Evolucao II", "Evolucao III", "Evolucao IV"}
 
