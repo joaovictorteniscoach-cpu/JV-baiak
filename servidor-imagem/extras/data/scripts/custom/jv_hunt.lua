@@ -181,7 +181,9 @@ local function venderDe(container, total, so)
 		local item = container:getItem(i)
 		if item then
 			local preco = JV_PRECOS and JV_PRECOS[item:getId()]
-			if preco and preco > 0 and (not so or so[item:getId()]) and (not item:isContainer() or item:getSize() == 0) then
+			if item:getCustomAttribute('jvAscensaoTier') then
+				-- Equipamento raro reforcado nao deve virar dinheiro em uma venda em lote.
+			elseif preco and preco > 0 and (not so or so[item:getId()]) and (not item:isContainer() or item:getSize() == 0) then
 				total.ouro = total.ouro + preco * math.max(1, item:getCount())
 				total.itens = total.itens + 1
 				item:remove()

@@ -1,0 +1,48 @@
+--- a/src/player.h
++++ b/src/player.h
+@@ -1160,6 +1160,8 @@
+ 
+ 		uint32_t inventoryWeight = 0;
+ 		uint32_t attackSpeed = 0;
++		uint32_t evolutionAttackEvent = 0;
++		void scheduleEvolutionAttack();
+ 		uint32_t capacity = 40000;
+ 		uint32_t damageImmunities = 0;
+ 		uint32_t conditionImmunities = 0;
+--- a/src/player.cpp
++++ b/src/player.cpp
+@@ -55,6 +55,9 @@
+ 
+ Player::~Player()
+ {
++	if (evolutionAttackEvent) {
++		g_scheduler.stopEvent(evolutionAttackEvent);
++	}
+ 	for (Item* item : inventory) {
+ 		if (item) {
+ 			item->setParent(nullptr);
+@@ -3180,8 +3183,24 @@
+ 	fpp.fullPathSearch = true;
+ }
+ 
++void Player::scheduleEvolutionAttack()
++{
++	// Apenas intervalos explicitamente configurados; a base conserva o comportamento.
++	if (attackSpeed == 0 || evolutionAttackEvent != 0 || !getAttackedCreature()) {
++		return;
++	}
++	const uint32_t playerId = getID();
++	evolutionAttackEvent = g_scheduler.addEvent(createSchedulerTask(std::max<uint32_t>(200, getAttackSpeed()), [playerId]() {
++		Player* player = g_game.getPlayerByID(playerId);
++		if (!player) { return; }
++		player->evolutionAttackEvent = 0;
++		g_game.checkCreatureAttack(playerId);
++	}));
++}
++
+ void Player::doAttacking(uint32_t)
+ {
++	scheduleEvolutionAttack();
+ 	if (lastAttack == 0) {
+ 		lastAttack = OTSYS_TIME() - getAttackSpeed() - 1;
+ 	}
