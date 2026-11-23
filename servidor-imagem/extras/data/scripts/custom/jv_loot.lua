@@ -118,6 +118,15 @@ local function raros(nomeMonstro)
 	return r
 end
 
+local function ehChefe(nomeMonstro)
+	local hunt = JV_ASCENSAO and JV_ASCENSAO.monstros and JV_ASCENSAO.monstros[nomeMonstro]
+	if hunt and hunt.boss then return true end
+	local mt = MonsterType(nomeMonstro)
+	if not mt then return false end
+	local ok, chefe = pcall(function() return mt:isBoss() or mt:isRewardBoss() end)
+	return ok and chefe or false
+end
+
 local function naLista(player, id)
 	if not AUTOLOOT_STORAGE_START then return false end
 	for s = AUTOLOOT_STORAGE_START, AUTOLOOT_STORAGE_END do
@@ -149,7 +158,7 @@ local function coletar(player, container, c)
 					-- compara atributos por valor para empilhar loot equivalente.
 					item:setCustomAttribute('jvLootColetado',1)
 					item:setCustomAttribute('jvLootDono',player:getGuid())
-					if c.raros[id] then item:setCustomAttribute('jvLootRaro',1) end
+					if c.chefe and c.raros[id] then item:setCustomAttribute('jvLootRaro',1) end
 					local depot = (raro and c.depotRaros) or (caro and c.depotCaros)
 					if depot and c.caixa and item:moveTo(c.caixa) then
 						c.noDepot = c.noDepot + 1
@@ -171,6 +180,7 @@ local function abrirCorpo(cid, posicao, nomeMonstro)
 	local corpo = tile and tile:getTopDownItem()
 	if not corpo or not corpo:getType():isCorpse() or corpo:getAttribute(ITEM_ATTRIBUTE_CORPSEOWNER) ~= cid then return end
 	local c = {ouro = 0, itens = 0, ficou = 0, noDepot = 0, raros = raros(nomeMonstro),
+		chefe = ehChefe(nomeMonstro),
 		dinheiro = opcao(player, "dinheiro"), pegaCaros = opcao(player, "caros"), pegaRaros = opcao(player, "raros"),
 		lista = opcao(player, "lista"), depotRaros = opcao(player, "depotRaros"), depotCaros = opcao(player, "depotCaros"),
 		ignorados = ignorados(player)}

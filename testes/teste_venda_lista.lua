@@ -53,4 +53,9 @@ p.dados[79005]=0
 local outroDono=T.item(2183);outroDono:setCustomAttribute('jvLootColetado',1);outroDono:setCustomAttribute('jvLootDono',999)
 p.inventario[10]=container({outroDono});cmd.onSay(p,'!venderloot','tudo mochila')
 assert(not outroDono.removido and p.banco==235000,'loot de outro jogador vendido automaticamente')
+p.dados[79005]=0
+local evoluido=T.item(2183);evoluido:setCustomAttribute('jvAscensaoTier',2);evoluido:setCustomAttribute('jvLootColetado',1);evoluido:setCustomAttribute('jvLootDono',p:getGuid())
+local chefe=T.item(2183);chefe:setCustomAttribute('jvAscensaoTier',4);chefe:setCustomAttribute('jvLootColetado',1);chefe:setCustomAttribute('jvLootDono',p:getGuid())
+p.inventario[10]=container({evoluido,chefe});cmd.onSay(p,'!venderloot','tudo mochila')
+assert(evoluido.removido and not chefe.removido and p.banco==238000,'raridade de chefe ou loot evoluido comum')
 print('OK: venda geral e por lista, mochila/depot, raro opcional e sem credito em falha')

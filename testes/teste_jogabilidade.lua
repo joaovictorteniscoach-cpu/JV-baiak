@@ -106,7 +106,8 @@ function ItemType(v)
     local id = type(v)=='number' and v or nomes[v] or 0
     return {getId=function() return id end, getName=function() return id==2498 and 'royal helmet' or 'gold coin' end}
 end
-function MonsterType() return {getLoot=function() return {{itemId=2498,chance=10}} end} end
+local ehChefeTeste=true
+function MonsterType() return {getLoot=function() return {{itemId=2498,chance=10}} end,isBoss=function()return ehChefeTeste end,isRewardBoss=function()return false end} end
 JV_PRECOS={[2498]=5000}
 local dados, mensagens, movimentos, removidos = {[2000]=2498}, {}, 0,0
 local player = {getStorageValue=function(self,s) return dados[s] or -1 end,
@@ -141,6 +142,8 @@ check(movimentos==0, 'Perdeu exclusao persistente')
 comando.onSay(player,'!loot','permitir, 2498'); matar()
 check(movimentos==1 and dados[79300]==0, 'Permitir nao restaurou a coleta')
 check(marcas.jvLootColetado==1 and marcas.jvLootDono==42 and marcas.jvLootRaro==1, 'Loot recolhido nao recebeu marcas de origem, dono e raridade')
+marcas={};ehChefeTeste=false;matar()
+check(marcas.jvLootColetado==1 and not marcas.jvLootRaro, 'Loot raro comum foi protegido como item de chefe')
 comando.onSay(player,'!loot','ignorar, gold coin')
 item.getId=function()return 2148 end;item.getWorth=function()return 10 end
 item.remove=function()removidos=removidos+1 end

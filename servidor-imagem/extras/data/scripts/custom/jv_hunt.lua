@@ -182,7 +182,8 @@ local function venderDe(container, total, so, incluirRaros, dono)
     for i = container:getSize() - 1, 0, -1 do
         local item = container:getItem(i)
         if item then
-            local protegido = item:getCustomAttribute('jvAscensaoTier') or item:getCustomAttribute('jvLootRaro')
+            local tier = tonumber(item:getCustomAttribute('jvAscensaoTier') or 0) or 0
+            local protegido = tier >= 4 or item:getCustomAttribute('jvLootRaro')
             local identificado = item:getCustomAttribute('jvLootColetado') and item:getCustomAttribute('jvLootDono') == dono
             if protegido and not incluirRaros then
                 total.protegidos=total.protegidos+1
