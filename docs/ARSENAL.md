@@ -52,8 +52,8 @@ Uma segunda rolagem, independente dos treze raros reforçados existentes, pode c
 | Cripta Ancestral | 0,75% | II |
 | Covil dos Titãs | 1% | III |
 | Soberano Infernal | 12% | IV |
-| Demon comum | 0,20% | I |
-| Juggernaut comum | 0,50% | II |
+| Demon comum | 2% | I |
+| Juggernaut comum | 5% | II |
 
 A rolagem escolhe uma das sete famílias com igual chance e não é multiplicada pelo loot global de 100×. Pode cair arma de outra classe para troca. O drop no corpo respeita as regras existentes de dono e coleta.
 
