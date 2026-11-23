@@ -147,6 +147,10 @@ function defesaMana.onManaChange(creature, attacker, primaryDamage, primaryType,
 	if not creature:isPlayer() then
 		return primaryDamage, primaryType, secondaryDamage, secondaryType
 	end
+	local dono=jogadorDe(attacker)
+	if primaryType~=COMBAT_HEALING and dono and JV_ARSENAL and not JV_ARSENAL.equipamentoValido(dono) then
+		return 0,primaryType,0,secondaryType
+	end
 	local m = E.multiplicador(creature)
 	return dividir(primaryDamage, m), primaryType, dividir(secondaryDamage, m), secondaryType
 end

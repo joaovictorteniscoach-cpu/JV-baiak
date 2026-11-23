@@ -37,6 +37,10 @@ assert(math.abs(JV_EVOLUCAO.ataque(p,ORIGIN_SPELL)-16.5)<0.0001,'somou duas arma
 p.nivel=999;assert(JV_EVOLUCAO.ataque(p,ORIGIN_SPELL)==0,'level perdido continuou com bonus')
 local monstro={isMonster=function()return true end}
 assert(T.eventos.JVEvolucaoDano.onHealthChange(monstro,p,1000,1,0,2,ORIGIN_SPELL)==0)
+local alvo=T.player(4)
+assert(T.eventos.JVEvolucaoDefesa.onHealthChange(alvo,p,1000,1,0,2,ORIGIN_SPELL)==0)
+assert(T.eventos.JVEvolucaoMana.onManaChange(alvo,p,1000,1,0,2,ORIGIN_SPELL)==0,'arma sem requisitos drenou mana pelo escudo')
+assert(T.eventos.JVEvolucaoDefesa.onHealthChange(alvo,p,1000,COMBAT_HEALING,0,2,ORIGIN_SPELL)==1000,'bloqueou cura')
 p.nivel=1000;p.inventario[6]=nil;p.classe=2;p.inventario[5]=A.criar('arco',4)
 assert(math.abs(JV_EVOLUCAO.ataque(p,ORIGIN_RANGED)-16.5)<0.0001)
 p.classe=1;p.inventario[5]=A.criar('espada',4)
