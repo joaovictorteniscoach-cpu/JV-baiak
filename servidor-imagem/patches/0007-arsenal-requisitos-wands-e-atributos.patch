@@ -1,0 +1,133 @@
+--- a/src/item.h
++++ b/src/item.h
+@@ -486,6 +486,11 @@
+ 				if (it != customAttrMap->end()) {
+ 					return &(it->second);
+ 				}
++				// Compatibilidade com chaves mistas ja salvas em itens antigos.
++				const auto normal = asLowerCaseString(key);
++				for (const auto& old : *customAttrMap) {
++					if (asLowerCaseString(old.first) == normal) { return &old.second; }
++				}
+ 			}
+ 			return nullptr;
+ 		}
+@@ -496,14 +501,15 @@
+ 		}
+ 
+ 		bool removeCustomAttribute(const std::string& key) {
+-			if (CustomAttributeMap* customAttrMap = getCustomAttributeMap()) {
+-				auto it = customAttrMap->find(asLowerCaseString(key));
+-				if (it != customAttrMap->end()) {
+-					customAttrMap->erase(it);
+-					return true;
+-				}
+-			}
+-			return false;
++			bool removed = false;
++			if (CustomAttributeMap* attrs = getCustomAttributeMap()) {
++				const auto normal = asLowerCaseString(key);
++				for (auto it = attrs->begin(); it != attrs->end();) {
++					if (asLowerCaseString(it->first) == normal) { it = attrs->erase(it); removed = true; }
++					else { ++it; }
++				}
++			}
++			return removed;
+ 		}
+ 
+ 		const static uint32_t intAttributeTypes = ITEM_ATTRIBUTE_ACTIONID | ITEM_ATTRIBUTE_UNIQUEID | ITEM_ATTRIBUTE_DATE
+--- a/src/luascript.cpp
++++ b/src/luascript.cpp
+@@ -6330,6 +6330,8 @@
+ 		return 1;
+ 	}
+ 
++	key = asLowerCaseString(key);
++	item->removeCustomAttribute(key);
+ 	item->setCustomAttribute(key, val);
+ 	pushBoolean(L, true);
+ 	return 1;
+--- a/src/player.h
++++ b/src/player.h
+@@ -1049,6 +1049,7 @@
+ 			return openContainers;
+ 		}
+ 		ReturnValue containerQueryAdd(const Item* item, slots_t slot) const;
++		ReturnValue checkArsenalItem(const Item* item) const;
+ 
+ 	private:
+ 		std::vector<Condition*> getMuteConditions() const;
+--- a/src/player.cpp
++++ b/src/player.cpp
+@@ -2456,6 +2456,11 @@
+ 		return RETURNVALUE_NOTENOUGHCAPACITY;
+ 	}
+ 
++	// A mochila continua podendo guardar/negociar armas de qualquer classe.
++	if (index >= CONST_SLOT_HEAD && index <= CONST_SLOT_AMMO && index != CONST_SLOT_BACKPACK) {
++		ret = checkArsenalItem(item);
++		if (ret != RETURNVALUE_NOERROR) { return ret; }
++	}
+ 	ret = g_moveEvents->onPlayerEquip(const_cast<Player*>(this), const_cast<Item*>(item), static_cast<slots_t>(index), true);
+ 	if (ret != RETURNVALUE_NOERROR) {
+ 		return ret;
+@@ -2472,6 +2477,29 @@
+ 		return RETURNVALUE_NOTENOUGHROOM;
+ 	}
+ 	return ret;
++}
++
++ReturnValue Player::checkArsenalItem(const Item* item) const
++{
++	if (!item || !item->hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) { return RETURNVALUE_NOERROR; }
++	// getCustomAttribute somente consulta atributos ja existentes (API antiga nao const).
++	Item* tagged = const_cast<Item*>(item);
++	if (!tagged->getCustomAttribute("jvarmaid")) { return RETURNVALUE_NOERROR; }
++	auto numero = [tagged](const char* key) -> int64_t {
++		const auto* attr = tagged->getCustomAttribute(key);
++		const auto* value = attr ? boost::get<int64_t>(&attr->value) : nullptr;
++		return value ? *value : -1;
++	};
++	const int64_t classe = numero("jvarmaclasse"), minimo = numero("jvarmalevel");
++	const int64_t evolucao = numero("jvarmaevolucao"), storage = numero("jvarmaevostorage");
++	if (classe < 1 || classe > 4 || minimo < 1 || evolucao < 1 || evolucao > 4 || storage < 1 || storage > 0xFFFFFFFFLL) {
++		return RETURNVALUE_CANNOTBEDRESSED;
++	}
++	if (vocation->getClientId() != classe) { return RETURNVALUE_YOUDONTHAVEREQUIREDPROFESSION; }
++	if (getLevel() < minimo) { return RETURNVALUE_NOTENOUGHLEVEL; }
++	int32_t atual = 0;
++	getStorageValue(static_cast<uint32_t>(storage), atual);
++	return atual >= evolucao ? RETURNVALUE_NOERROR : RETURNVALUE_CANNOTBEDRESSED;
+ }
+ 
+ ReturnValue Player::containerQueryAdd(const Item* item, slots_t slot) const
+--- a/src/weapons.cpp
++++ b/src/weapons.cpp
+@@ -283,6 +283,11 @@
+ 
+ int32_t Weapon::playerWeaponCheck(Player* player, Creature* target, uint8_t shootRange) const
+ {
++	// Tambem verificar a cada ataque: morte/perda de level nao pode liberar a arma.
++	for (auto slot : {CONST_SLOT_LEFT, CONST_SLOT_RIGHT}) {
++		if (player->checkArsenalItem(player->getInventoryItem(slot)) != RETURNVALUE_NOERROR) { return 0; }
++	}
++
+ 	const Position& playerPos = player->getPosition();
+ 	const Position& targetPos = target->getPosition();
+ 	if (playerPos.z != targetPos.z) {
+@@ -939,8 +944,13 @@
+ 	Weapon::configureWeapon(it);
+ }
+ 
+-int32_t WeaponWand::getWeaponDamage(const Player*, const Creature*, const Item*, bool maxDamage /*= false*/) const
+-{
++int32_t WeaponWand::getWeaponDamage(const Player*, const Creature*, const Item* item, bool maxDamage /*= false*/) const
++{
++	if (item && item->hasAttribute(ITEM_ATTRIBUTE_CUSTOM) && const_cast<Item*>(item)->getCustomAttribute("jvarmaid")) {
++		const int32_t maximo = std::max<int32_t>(0, std::min<int32_t>(10000, item->getAttack()));
++		return maxDamage ? -maximo : -normal_random(maximo * 7 / 10, maximo);
++	}
++
+ 	if (maxDamage) {
+ 		return -maxChange;
+ 	}

@@ -28,8 +28,8 @@ local function item(id)
  local b=itensBase[id] or {atk=0,def=0,arm=0,weapon=0}
  local tipo={getAttack=function()return b.atk end,getDefense=function()return b.def end,getArmor=function()return b.arm end,getWeaponType=function()return b.weapon end}
  return{id=id,attrs={},custom={},getType=function()return tipo end,getId=function()return id end,
-  setAttribute=function(s,k,v)s.attrs[k]=v end,setCustomAttribute=function(s,k,v)s.custom[k]=v end,
-  getCustomAttribute=function(s,k)return s.custom[k]end,setActionId=function(s,k)s.aid=k end,
+  setAttribute=function(s,k,v)s.attrs[k]=v end,setCustomAttribute=function(s,k,v)s.custom[k:lower()]=v end,
+  getCustomAttribute=function(s,k)return s.custom[k:lower()]end,setActionId=function(s,k)s.aid=k end,
   getActionId=function(s)return s.aid end,isContainer=function()return false end,
   getCount=function()return 1 end,remove=function(s)s.removido=true end}
 end
@@ -197,3 +197,4 @@ p.nivel=399;p.banco=300000
 callback(1,1,'evoluir');callback(1,1,'sim');assert(p.banco==300000 and p.dados[P.storage]==1)
 p.dados[P.storage]=4;p.nivel=8;E.aplicar(p);assert(E.nivel(p)==4,'perdeu evolucao comprada antes')
 print('OK: compra, level, pagamento misto, limite e evolucoes antigas preservadas')
+JV_TEST_PROGRESSAO={P=P,player=player,item=item,eventos=eventos,globais=globais,comandos=comandos}

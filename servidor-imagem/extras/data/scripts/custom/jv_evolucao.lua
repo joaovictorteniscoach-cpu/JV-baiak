@@ -36,7 +36,8 @@ function E.nome(player)
     return c and n > 0 and c.nomes[n] or 'Sem evolucao'
 end
 
-function E.ataque(player)
+function E.ataque(player,origin)
+    if JV_ARSENAL and not JV_ARSENAL.equipamentoValido(player) then return 0 end
     local fator = 1 + E.maestria(player) * P.bonusMaestria
     -- Arcos/crossbows e wands/rods usam formulas proprias: o reforco tambem
     -- chega a essas classes; nao somar duas armas nem duplicar bonus melee.
@@ -44,9 +45,12 @@ function E.ataque(player)
         local poder = 1
         for _, slot in ipairs({CONST_SLOT_LEFT, CONST_SLOT_RIGHT}) do
             local item = player:getSlotItem(slot)
-            if item then poder = math.max(poder, tonumber(item:getCustomAttribute('jvAscensaoPoder')) or 1) end
+            if item then
+                local novo=JV_ARSENAL and JV_ARSENAL.bonus(player,item,origin)
+                poder=math.max(poder,novo or math.min(P.reforco[#P.reforco],tonumber(item:getCustomAttribute('jvAscensaoPoder')) or 1))
+            end
         end
-        fator = fator * math.min(P.reforco[#P.reforco], poder)
+        fator = fator * poder
     end
     return E.multiplicador(player) * fator
 end
@@ -116,7 +120,8 @@ function dano.onHealthChange(creature, attacker, primaryDamage, primaryType, sec
 		return primaryDamage, primaryType, secondaryDamage, secondaryType
 	end
 	local player = jogadorDe(attacker)
-	local m = player and E.ataque(player) or 1
+	local m = player and E.ataque(player,origin) or 1
+	if m==0 then return 0,primaryType,0,secondaryType end
 	if m > 1 then
 		return math.floor(primaryDamage * m), primaryType, math.floor(secondaryDamage * m), secondaryType
 	end
@@ -131,6 +136,8 @@ function defesa.onHealthChange(creature, attacker, primaryDamage, primaryType, s
 		return primaryDamage, primaryType, secondaryDamage, secondaryType
 	end
 	local m = E.multiplicador(creature)
+	local dono=jogadorDe(attacker)
+	if dono and JV_ARSENAL and not JV_ARSENAL.equipamentoValido(dono) then return 0,primaryType,0,secondaryType end
 	return dividir(primaryDamage, m), primaryType, dividir(secondaryDamage, m), secondaryType
 end
 defesa:register()
@@ -172,7 +179,7 @@ function comando.onSay(player, words, param)
 			texto = texto .. string.format(" Proxima: %s (%dx) no Mestre das Classes (diga niveis).", NOMES[n + 1], MULT[n + 1])
 		end
 	end
-	texto = texto .. string.format(' Maestria %d/%d. !ascensao lista as novas hunts.', E.maestria(player), P.maxMaestria)
+	texto = texto .. string.format(' Maestria %d/%d. !ascensao lista as novas hunts; !arsenal mostra suas proximas armas.', E.maestria(player), P.maxMaestria)
 	player:sendTextMessage(MESSAGE_STATUS_CONSOLE_BLUE, texto)
 	return false
 end

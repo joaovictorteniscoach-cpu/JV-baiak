@@ -43,6 +43,15 @@ class DadosAscensao(unittest.TestCase):
             b=int(i.get('id') or i.get('toid'))
             for j in range(a,b+1):ids[j]=i
         for i in p['itens'].values():self.assertIn(i,ids)
+        arsenal=lua.execute((ROOT/'servidor-imagem/extras/data/lib/jv_arsenal.lua').read_text())
+        tipos=['sword','axe','club','distance','distance','wand','wand']
+        for f,tipo in zip(arsenal['familias'].values(),tipos):
+            self.assertIn(f['item'],ids)
+            attrs={a.get('key'):a.get('value') for a in ids[f['item']].findall('attribute')}
+            self.assertEqual(attrs['weaponType'],tipo)
+            self.assertGreater(f['ataque'][4],f['ataque'][1])
+        self.assertEqual(len(arsenal['familias']),7)
+        self.assertTrue(set(range(arsenal['fragmentosStorage'],arsenal['fragmentosStorage']+4)).isdisjoint({p['storage'],p['storageAbates']}))
         for i in [407,1050,1387,5995]:self.assertIn(i,ids)
         outfits={int(i.get('looktype')) for i in ET.parse(FONTE/'data/XML/outfits.xml').getroot()}
         for c in p['classes'].values():

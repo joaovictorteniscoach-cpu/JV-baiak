@@ -58,7 +58,11 @@ local function creatureSayCallback(cid, type, msg)
 	local texto = msg:lower()
 	local n = nivel(player)
 	if not P.classes[player:getVocation():getClientId()] then npcHandler:say('Escolha uma vocacao primeiro.', cid); return true end
-	if texto == "niveis" or texto == "nivel" or texto == "evolucao" then
+	if texto == "arsenal" then
+		if JV_ARSENAL then JV_ARSENAL.catalogo(player) end
+		npcHandler:say('As hunts de Ascensao guardam armas da sua classe. Use !arsenal para consultar e resgatar com fragmentos.', cid)
+		topico[cid] = nil
+	elseif texto == "niveis" or texto == "nivel" or texto == "evolucao" then
 		npcHandler:say(niveis(player) .. " Quer {evoluir}?", cid)
 		topico[cid] = nil
 	elseif texto == "evoluir" then
@@ -97,7 +101,7 @@ local function creatureSayCallback(cid, type, msg)
 	return true
 end
 
-npcHandler:setMessage(MESSAGE_GREET, "Ola |PLAYERNAME|! Eu evoluo sua classe em 4 niveis: com level, outfit, velocidade e hits mais fortes (ate 10x); quem ja comprou mantem sua evolucao. Diga {evoluir} ou {niveis}.")
+npcHandler:setMessage(MESSAGE_GREET, "Ola |PLAYERNAME|! Eu evoluo sua classe em 4 niveis: com level, outfit, velocidade e hits mais fortes (ate 10x); quem ja comprou mantem sua evolucao. Diga {evoluir}, {niveis} ou {arsenal} para conhecer suas novas armas.")
 npcHandler:setMessage(MESSAGE_FAREWELL, "Ate mais!")
 npcHandler:setMessage(MESSAGE_WALKAWAY, "Ate mais!")
 npcHandler:setCallback(CALLBACK_MESSAGE_DEFAULT, creatureSayCallback)

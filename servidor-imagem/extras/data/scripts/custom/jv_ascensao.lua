@@ -52,6 +52,7 @@ function morte.onDeath(creature, corpse, killer, mostDamageKiller)
             local l = p:getPosition()
             if p:getHealth() > 0 and l.z == onde.z and math.max(math.abs(l.x-onde.x),math.abs(l.y-onde.y)) <= 20 then
                 JV_EVOLUCAO.abate(p)
+                if JV_ARSENAL then JV_ARSENAL.creditar(p,hunt) end
             end
         end
     end
@@ -61,6 +62,7 @@ function morte.onDeath(creature, corpse, killer, mostDamageKiller)
         local item = corpse:addItem(P.itens[math.random(#P.itens)],1)
         if item then H.reforcar(item,hunt.tier) end
     end
+    if JV_ARSENAL then JV_ARSENAL.sortear(corpse,hunt,hunt.arsenalIndice) end
     return true
 end
 morte:register()
@@ -185,6 +187,7 @@ function inicio.onStartup()
     H.areas,H.slots,H.monstros={},{},{}
     H.hub=H.criarSala(P.hub,8)
     for i,h in ipairs(P.hunts) do
+        h.arsenalIndice=i
         H.monstros[h.monstro]=h
         if H.hub and H.criarSala(h,h.raio) and portal(pos(h,-h.raio+2,0),AID_VOLTA) then
             H.areas[i]=true

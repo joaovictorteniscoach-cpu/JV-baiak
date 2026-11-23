@@ -54,6 +54,8 @@ As salas são criadas no startup em coordenadas reservadas 30000–30516, com ch
 
 ## Itens raros proporcionais
 
+Além dos reforços abaixo, o [Arsenal de Ascensão](ARSENAL.md) adiciona 28 armas nomeadas por classe, com quatro patamares, dano real crescente, drops e conquista garantida por fragmentos. Use `!arsenal` para consultar a coleção e escolher a próxima arma.
+
 Os drops especiais usam itens existentes: Magic Sword, Magic Longsword, Thunder Hammer, Solar Axe, Royal Crossbow, Warsinger Bow, Wand of Voodoo, Hailstorm Rod, Magic Plate Armor, Golden Helmet, Demon Legs, Great Shield e Golden Boots.
 
 | Reforço | Atributos base | Chance de um item especial por abate |
