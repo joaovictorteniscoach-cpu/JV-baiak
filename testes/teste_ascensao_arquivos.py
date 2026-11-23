@@ -23,7 +23,7 @@ class DadosAscensao(unittest.TestCase):
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),5)
+            self.assertEqual(mod.registrar(data),13)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)
@@ -36,6 +36,15 @@ class DadosAscensao(unittest.TestCase):
     def test_itens_outfits_e_hunts(self):
         lua = LuaRuntime()
         p = lua.execute((ROOT/'servidor-imagem/extras/data/lib/jv_progressao.lua').read_text())
+        elites=list((ROOT/'servidor-imagem/extras/data/monster/Ascensao').glob('elite_*.xml'))
+        self.assertEqual(len(elites),8)
+        nomes={ET.parse(f).getroot().get('name') for f in elites}
+        for f in elites:
+            r=ET.parse(f).getroot()
+            self.assertGreater(int(r.find('health').get('max')),0)
+            self.assertIn('<!-- jv-vida-2x -->',f.read_text())
+        self.assertEqual(len(p['entradasReforcadas']),10)
+        for entrada in p['entradasReforcadas'].values():self.assertIn(entrada['monstro'],nomes)
         raiz=ET.fromstring((FONTE/'data/items/items.xml').read_bytes().decode('latin-1'))
         ids={}
         for i in raiz:

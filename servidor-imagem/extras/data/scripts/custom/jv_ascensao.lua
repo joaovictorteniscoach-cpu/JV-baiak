@@ -183,9 +183,72 @@ function H.repor()
             if s.id then s.id=nil; s.proximo=agora+s.hunt.respawn end
             if agora>=(s.proximo or 0) then
                 local m=Game.createMonster(s.hunt.monstro,s.pos,false,false)
-                if m then s.id=m:getId() end
+                if m then
+                    s.id=m:getId();s.aviso=nil
+                elseif not s.aviso or agora-s.aviso>=60 then
+                    print('[Ascensao] Falha ao criar '..s.hunt.monstro..' em '..chave(s.pos)..'; nova tentativa em 5s.')
+                    s.aviso=agora
+                end
                 s.proximo=agora+5 -- tenta depois, nunca forca spawn sobre jogadores
             end
+        end
+    end
+end
+
+-- A busca usa somente pisos existentes e livres, incluindo a saida da PZ;
+-- nao considera outro portal como passagem para uma sala diferente.
+local function alcancaveis(centro, raio)
+    local lista={centro};local vistos={[chave(centro)]=true};local i=1
+    while i<=#lista do
+        local atual=lista[i];i=i+1
+        for dx=-1,1 do for dy=-1,1 do if dx~=0 or dy~=0 then
+            local p=Position(atual.x+dx,atual.y+dy,centro.z);local k=chave(p)
+            if not vistos[k] and math.max(math.abs(p.x-centro.x),math.abs(p.y-centro.y))<=raio then
+                vistos[k]=true
+                local t=Tile(p)
+                if t and t:getGround() and not t:getHouse() and not t:hasFlag(TILESTATE_BLOCKSOLID)
+                    and not t:hasFlag(TILESTATE_BLOCKPATH) and not t:getItemById(1387) then
+                    lista[#lista+1]=p
+                end
+            end
+        end end end
+    end
+    local acessiveis={}
+    for _,p in ipairs(lista)do acessiveis[chave(p)]=true end
+    return acessiveis
+end
+
+-- Reforcos apenas em entradas de hunt identificadas no mapa original. Nao
+-- alteramos OTBM/spawn.xml e conferimos o destino, PZ, casas e bloqueios.
+function H.reforcarEntradas()
+    H.entradasAtivas=H.entradasAtivas or {}
+    local reservados={}
+    for _,e in ipairs(P.entradasReforcadas or {}) do
+        local o,d=e.origem,e.destino
+        local entrada=o[1]..':'..o[2]..':'..o[3]
+        local portalTile=Tile(Position(o[1],o[2],o[3]))
+        local item=portalTile and portalTile:getItemById(1387)
+        local destino=item and item:getDestination()
+        if H.entradasAtivas[entrada] then
+            -- Ja criada nesta inicializacao: nao duplicar slots.
+        elseif destino and destino.x==d[1] and destino.y==d[2] and destino.z==d[3] then
+            local feitos=0
+            local acessiveis=alcancaveis(destino,7)
+            for raio=3,7 do for dx=-raio,raio do for dy=-raio,raio do
+                if feitos<2 and math.max(math.abs(dx),math.abs(dy))==raio then
+                    local p=Position(d[1]+dx,d[2]+dy,d[3]);local t=Tile(p);local k=chave(p)
+                    if t and acessiveis[k] and t:getGround() and not reservados[k] and not t:getHouse()
+                        and not t:hasFlag(TILESTATE_PROTECTIONZONE) and not t:hasFlag(TILESTATE_BLOCKSOLID)
+                        and not t:hasFlag(TILESTATE_BLOCKPATH) and not t:getItemById(1387) then
+                        reservados[k]=true;feitos=feitos+1
+                        H.slots[#H.slots+1]={hunt={monstro=e.monstro,respawn=60},pos=p}
+                    end
+                end
+            end end end
+            if feitos>0 then H.entradasAtivas[entrada]=true end
+            if feitos<2 then print('[Ascensao] Entrada '..chave(destino)..': apenas '..feitos..' posicoes seguras para reforco.') end
+        else
+            print('[Ascensao] Entrada antiga alterada ou indisponivel: '..o[1]..':'..o[2]..':'..o[3]..'; sem reforco.')
         end
     end
 end
@@ -194,6 +257,7 @@ local inicio=GlobalEvent('JVAscensaoInicio')
 inicio:type('startup')
 function inicio.onStartup()
     H.areas,H.slots,H.monstros={},{},{}
+    H.entradasAtivas={}
     H.hub=H.criarSala(P.hub,8)
     for i,h in ipairs(P.hunts) do
         h.arsenalIndice=i
@@ -203,8 +267,12 @@ function inicio.onStartup()
             if not portal(pos(P.hub,-6+(i-1)*3,0),AID_HUNT+i-1) then H.areas[i]=nil end
             if H.areas[i] then
                 for n=1,h.quantidade do
-                    local dx=h.boss and 4 or 1+((n-1)%3)*3
-                    local dy=h.boss and 0 or -6+math.floor((n-1)/3)*4
+                    -- Os primeiros monstros ficam visiveis a partir da chegada,
+                    -- sem ocupar o quadrado de entrada nem o portal de volta.
+                    local col=(n-1)%5
+                    local linha=math.floor((n-1)/5)
+                    local dx=h.boss and (-h.raio+8) or (-h.raio+7+col*4)
+                    local dy=h.boss and 0 or (-8+linha*3)
                     H.slots[#H.slots+1]={hunt=h,pos=pos(h,dx,dy)}
                 end
             end
@@ -227,6 +295,7 @@ function inicio.onStartup()
         end end
         if not colocou then print('[Ascensao] Sem tile livre para portal do templo; usar !ascensao no templo.') end
     end
+    H.reforcarEntradas()
     H.repor()
     return true
 end
