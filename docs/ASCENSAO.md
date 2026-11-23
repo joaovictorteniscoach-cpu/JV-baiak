@@ -40,15 +40,15 @@ Exemplo: um hit que causaria 1.000 contra o mesmo monstro passa a 2.000, 4.000, 
 
 | Hunt | Entrada | Monstro | HP final | Modalidade sugerida |
 |---|---|---|---:|---|
-| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido / Arauto das Brasas | 50.000 | Solo |
-| Forja Abissal | Lv 600, Evo II | Colosso Abissal | 120.000 | Solo |
-| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral | 220.000 | Dupla; solo no topo |
-| Covil dos Titãs | Lv 800, Evo III | Titã Profanado | 500.000 | Dupla; solo no topo |
+| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido / Arauto das Brasas / Master Snoop | 50.000 | Solo |
+| Forja Abissal | Lv 600, Evo II | Colosso Abissal / Cavaleiro do Abismo / Dr Dre | 120.000 | Solo |
+| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral / Vigia da Cripta / Mr 420 | 220.000 | Dupla; solo no topo |
+| Covil dos Titãs | Lv 800, Evo III | Titã Profanado / Dragão das Ruínas / O.G Chef | 500.000 | Dupla; solo no topo |
 | Trono Infernal | Lv 1.000, Evo IV | Soberano Infernal | 3.000.000 | Chefe solo no topo |
 
 O Demon base tem 8.200 HP, ou 16.400 após a migração 2×. Todas as novas criaturas têm mais HP e ataques maiores. A vida da tabela já é final: não é dobrada novamente. As duas hunts de dupla não obrigam party nem duas pessoas para entrar; todo conteúdo permite tentativa solo com evolução máxima, level e equipamentos adequados. Estes são valores iniciais para balancear em jogo, não uma garantia de sobrevivência com qualquer personagem.
 
-Além das criaturas originais da Ascensão, as quatro primeiras hunts recebem Arauto das Brasas, Cavaleiro do Abismo, Vigia da Cripta e Dragão das Ruínas, com sprites clássicos, atributos e drops do respectivo patamar.
+Além das criaturas originais da Ascensão, as quatro primeiras hunts recebem Arauto das Brasas, Cavaleiro do Abismo, Vigia da Cripta e Dragão das Ruínas, com sprites clássicos, atributos e drops do respectivo patamar. Master Snoop, Dr Dre, Mr 420 e O.G Chef também aparecem nas quatro hunts, respectivamente; mantêm os sprites clássicos e os atributos do patamar correspondente.
 
 O portal de Ascensão é colocado em um tile vazio perto do templo de Thunder City e leva a um salão com cinco portais identificados. Cada hunt tem volta ao templo na entrada. `!ascensao` lista as hunts e `!ascensao 1` até `!ascensao 5` permitem viajar a partir do templo/salão. Não são atalhos para fugir de qualquer local do mapa.
 
