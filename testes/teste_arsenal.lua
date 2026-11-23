@@ -73,7 +73,7 @@ print('OK: resgate exato, sem duplicacao, mochila cheia, falha de criacao e cata
 local hunt=T.P.hunts[5];local antes=p.dados[k]
 A.creditar(p,hunt);assert(p.dados[k]==antes+1)
 A.creditar(p,T.P.hunts[1]);assert(p.dados[C.fragmentosStorage]==1 and p.dados[k]==antes+1,'fragmento baixo virou IV')
-p.nivel=399;A.creditar(p,T.P.hunts[1]);assert(p.dados[C.fragmentosStorage]==1);p.nivel=1000
+p.nivel=299;A.creditar(p,T.P.hunts[1]);assert(p.dados[C.fragmentosStorage]==1);p.nivel=1000
 local q=T.player(4);q.guid=2;q.dados[C.evoStorage]=4;q.localidade=p.localidade
 p.party={getMembers=function()return{p,q}end,getLeader=function()return p end}
 local morto={getName=function()return hunt.monstro end,getMaster=function()end,getPosition=function()return p.localidade end}
@@ -98,9 +98,28 @@ math.random=random
 print('OK: fragmentos por patamar, dupla, distancia, invocacoes e drop independente do rate global')
 
 JV_PRECOS={[2183]=3000}
-p=T.player(4);p.dados[C.evoStorage]=4;p.inventario[10]=mochila()
+p=T.player(4);p.dados[C.evoStorage]=4;p.dados[79100]=2183;p.inventario[10]=mochila()
 local raro=A.criar('bastao',4);local normal=T.item(2183)
 p.inventario[10].itens={raro,normal}
 T.comandos['!venderloot'].onSay(p,'!venderloot','')
 assert(not raro.removido and normal.removido,'venda em lote vendeu nova arma')
 print('OK: novas armas protegidas da venda em lote; loot normal preservado')
+
+-- Demon e Juggernaut deixam as armas no corpo antes da coleta automatica.
+local sorte=math.random;local quantidade=0;local ultimo
+local corpo={addItem=function(_,id)quantidade=quantidade+1;ultimo=T.item(id);return ultimo end}
+local atacante=T.player(1)
+local criatura={getName=function()return 'Demon' end,getMaster=function()end}
+math.random=function(a,b)return 1 end
+T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
+assert(quantidade==1 and ultimo:getCustomAttribute('jvarmaid')=='espada:1')
+criatura.getName=function()return 'Juggernaut' end
+T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
+assert(quantidade==2 and ultimo:getCustomAttribute('jvarmaid')=='espada:2')
+criatura.getMaster=function()return atacante end
+T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
+criatura.getMaster=function()end;math.random=function(a,b)return b or a end
+T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
+assert(quantidade==2,'invocacao ou sorteio perdido gerou drop')
+math.random=sorte
+print('OK: Demon e Juggernaut derrubam patamares corretos, sem farm de invocacao')

@@ -145,6 +145,8 @@ local function coletar(player, container, c)
 				local caro = (JV_PRECOS and (JV_PRECOS[id] or 0) or 0) * math.max(1, item:getCount()) >= CARO
 				local pegar = (raro and c.pegaRaros) or (caro and c.pegaCaros) or (c.lista and naLista(player, id))
 				if pegar then
+					-- Conserva a escolha de proteger o raro apos sair do corpo.
+					if c.raros[id] and not item:getType():isStackable() then item:setCustomAttribute('jvLootRaro',1) end
 					local depot = (raro and c.depotRaros) or (caro and c.depotCaros)
 					if depot and c.caixa and item:moveTo(c.caixa) then
 						c.noDepot = c.noDepot + 1

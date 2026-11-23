@@ -31,7 +31,7 @@ local function item(id)
   setAttribute=function(s,k,v)s.attrs[k]=v end,setCustomAttribute=function(s,k,v)s.custom[k:lower()]=v end,
   getCustomAttribute=function(s,k)return s.custom[k:lower()]end,setActionId=function(s,k)s.aid=k end,
   getActionId=function(s)return s.aid end,isContainer=function()return false end,
-  getCount=function()return 1 end,remove=function(s)s.removido=true end}
+  getCount=function()return 1 end,remove=function(s)s.removido=true;return true end}
 end
 function ItemType(id)return item(id):getType()end
 local function player(classe,sexo)
@@ -120,6 +120,7 @@ Game.createMonster=function(nome,v,extended,force)
  spawnCount=spawnCount+1;local id=spawnCount
  local m={getId=function()return id end};monstros[id]=m;return m
 end
+Game.createNpc=function()return {} end
 Game.getSpectators=function()return{}end
 function Monster(id)return monstros[id]end
 dofile('data/scripts/custom/jv_ascensao.lua')
@@ -130,7 +131,7 @@ local total=0
 for i,h in ipairs(P.hunts)do
  assert(H.areas[i]);total=total+h.quantidade
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
- assert(Tile(Position(P.hub.x-6+(i-1)*3,P.hub.y,7)):getItemById(1387).aid==47800+i)
+ assert(Tile(Position(P.hub.x-12+(i-1)*6,P.hub.y,7)):getItemById(1387).aid==47800+i)
 end
 for i,h in ipairs(P.hunts)do
  local chegada=Position(h.x-h.raio+3,h.y,7);local visiveis=0
@@ -159,6 +160,8 @@ local antes=#H.slots;H.reforcarEntradas();assert(#H.slots==antes+2,'faltou refor
 for i=antes+1,#H.slots do assert(not Tile(H.slots[i].pos).bloqueado and H.slots[i].hunt.monstro==conf.monstro)end
 H.reforcarEntradas();assert(#H.slots==antes+2,'duplicou reforco de portal')
 local p=player();p.dados[P.storage]=0;assert(not H.podeEntrar(p,1))
+p.dados[P.storage]=1;p.nivel=299;assert(not H.podeEntrar(p,1))
+p.nivel=300;assert(H.podeEntrar(p,1),'primeira hunt deve aceitar level 300 e Evolucao I')
 p.dados[P.storage]=4;p.nivel=1000
 for i=1,#P.hunts do assert(H.entrar(p,i),'conteudo maximo exige dupla') end
 p.locked=true;assert(not H.entrar(p,1));p.locked=false
@@ -194,7 +197,7 @@ JV_PRECOS={[2183]=3000}
 local raro,normal=item(2183),item(2183);H.reforcar(raro,4)
 local mochila={isContainer=function()return true end,getSize=function()return 2 end,
  getItem=function(self,i)return i==0 and raro or normal end}
-p.inventario[10]=mochila;p.banco=0
+p.inventario[10]=mochila;p.banco=0;p.dados[79100]=2183
 dofile('data/scripts/custom/jv_hunt.lua')
 comandos['!venderloot'].onSay(p,'!venderloot','')
 assert(not raro.removido and normal.removido and p.banco==3000,'venda em lote destruiu equipamento reforcado')

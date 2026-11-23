@@ -16,13 +16,17 @@ local pl = {getPosition = function() return {x=10,y=10,z=7} end, hasState = func
 local alvo = {isMonster = function() return true end, getHealthPercent = function() return 100 end,
     getPosition = function() return {x=11,y=10,z=7} end, getId = function() return 123 end}
 g_map = {getSpectators = function() return {alvo} end}
-local atacando, ataques, seguiu, falas = false, 0, true, {}
+local atacando, ataques, seguiu, falas, modos = false, 0, true, {}, {}
 g_game = {isOnline = function() return true end, getLocalPlayer = function() return pl end,
-    isAttacking = function() return atacando end, setChaseMode = function() end,
+    isAttacking = function() return atacando end, setChaseMode = function(v) modos[#modos+1]=v end,
     attack = function() ataques = ataques + 1; atacando = true end,
     talk = function(t) falas[#falas+1] = t end,
     cancelAttack = function() atacando = false end, cancelFollow = function() seguiu = false end}
 carregar('web/jv_autoataque.lua')
+JVAutoAtaque.iniciar(); JVAutoAtaque.definir(true)
+JVAutoAtaque.andarManual({x=15,y=10,z=7});check(modos[#modos]==0,'nao liberou caminhada manual')
+tick();check(atacando and modos[#modos]==0,'auto ataque interrompeu caminhada para perseguir')
+atacando=false;ataques=0;JVAutoAtaque.definir(false)
 JVAutoAtaque.iniciar(); JVAutoAtaque.definir(true); tick(); tick()
 JVAutoAtaque.pararCombate()
 for i=1,10 do tick() end
@@ -115,6 +119,7 @@ local player = {getStorageValue=function(self,s) return dados[s] or -1 end,
     getDepotChest=function() return {} end}
 function Player() return player end
 local item={getId=function()return 2498 end,isContainer=function()return false end,getCustomAttribute=function()return nil end,
+    setCustomAttribute=function()end,getType=function()return {isStackable=function()return false end}end,
     getWorth=function()return 0 end,getCount=function()return 1 end,
     moveTo=function()movimentos=movimentos+1;return true end}
 local corpo={getSize=function()return 1 end,getItem=function()return item end,

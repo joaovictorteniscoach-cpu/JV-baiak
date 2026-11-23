@@ -4,7 +4,7 @@
 -- Sempre tem "Negociar" (abre a janela de compra/venda) e "Tchau".
 -- A conversa comeca quando voce TOCA (ou clica) no NPC: perto, o personagem diz "hi";
 -- longe, ele anda ate o NPC e cumprimenta ao chegar. Ninguem fala sozinho ao passar perto.
--- No celular: monstro com 1 toque = ataca, 2 toques = menu de opcoes, segurar = segue.
+-- No celular: dois toques atacam, abrem ou usam; segurar mostra a acao secundaria.
 -- Mesmo arquivo em web/ e em clientes/visual/mods/jv_npc/ (o teste confere).
 JVNpc = JVNpc or {}
 local N = JVNpc
@@ -206,10 +206,17 @@ local function tocou(botao, npc)
 end
 
 -- ------------------------------------------------------------- gestos no celular
--- Em monstros: 1 toque ataca, 2 toques abrem o menu de opcoes, segurar o dedo segue.
+-- Em monstros e NPCs: dois toques para atacar/conversar; segurar segue.
 -- Em jogadores: 2 toques abrem o menu, segurar segue (1 toque nao ataca ninguem sem querer).
--- Em NPC: 1 toque conversa (acima), 2 toques abrem o menu.
-local DOIS_TOQUES = 450 -- ms
+-- Em objetos de mapa: dois toques abrem ou usam o item.
+local DOIS_TOQUES = 800 -- ms
+local function confirmou(chave)
+    local agora=g_clock.millis();local anterior=N.ultimoToque
+    if anterior and anterior.id==chave and agora-anterior.t<=DOIS_TOQUES then
+        N.ultimoToque=nil;return true
+    end
+    N.ultimoToque={id=chave,t=agora};return false
+end
 
 local function celular()
     local ok, r = pcall(function()
@@ -242,20 +249,15 @@ local function gesto(menuPosition, mouseButton, lookThing, useThing, criatura)
         end
         return false
     end
-    if mouseButton ~= MouseLeftButton and mouseButton ~= MouseTouch then return false end
-    local agora = g_clock.millis()
-    local ultimo = N.ultimoToque
-    if ultimo and ultimo.id == criatura:getId() and agora - ultimo.t <= DOIS_TOQUES then
-        N.ultimoToque = nil
-        abrirMenu(menuPosition, lookThing, useThing, criatura)
-        g_logger.info('JV_GESTO menu ' .. criatura:getName())
-        return true
-    end
-    N.ultimoToque = {id = criatura:getId(), t = agora}
+    if mouseButton ~= MouseLeftButton and mouseButton ~= MouseTouch and mouseButton ~= MouseTouch2 and mouseButton ~= MouseTouch3 then return false end
+    if not confirmou('criatura:'..criatura:getId()) then return true end
     if monstro then
         local atual = g_game.getAttackingCreature()
         if not atual or atual:getId() ~= criatura:getId() then pcall(g_game.attack, criatura) end
         g_logger.info('JV_GESTO atacar ' .. criatura:getName())
+        return true
+    elseif jogador then
+        abrirMenu(menuPosition, lookThing, useThing, criatura)
         return true
     end
     return false
@@ -268,22 +270,40 @@ local function ligarToque()
     local original = gi.processMouseAction
     gi.processMouseAction = function(menuPosition, mouseButton, autoWalkPos, lookThing, useThing, creatureThing, attackCreature, ...)
         local criatura = creatureThing or attackCreature
-        -- NPC: 2 toques = menu; 1 toque = conversa
-        if ehNpc(criatura) and (mouseButton == MouseLeftButton or mouseButton == MouseTouch) and celular() then
-            local agora = g_clock.millis()
-            local u = N.ultimoToque
-            if u and u.id == criatura:getId() and agora - u.t <= DOIS_TOQUES then
-                N.ultimoToque = nil
-                abrirMenu(menuPosition, lookThing, useThing, criatura)
-                return true
-            end
-            N.ultimoToque = {id = criatura:getId(), t = agora}
-        end
-        local ok, tratou = pcall(tocou, mouseButton, ehNpc(creatureThing) and creatureThing or attackCreature)
-        if ok and tratou then return true end
-        if not ehNpc(criatura) then
+        local toque = mouseButton == MouseLeftButton or mouseButton == MouseTouch or mouseButton == MouseTouch2 or mouseButton == MouseTouch3
+        if celular() and toque and ehNpc(criatura) and atalhoLivre() then
+            if not confirmou('npc:'..criatura:getId()) then return true end
+            local ok, tratou=pcall(tocou,MouseLeftButton,criatura)
+            if ok and tratou then return true end
+        elseif not ehNpc(criatura) then
             local ok2, feito = pcall(gesto, menuPosition, mouseButton, lookThing, useThing, criatura)
             if ok2 and feito then return true end
+        end
+        if celular() and toque and not criatura and useThing and atalhoLivre() then
+            local ok, ehItem, posicao = pcall(function()
+                local p=useThing:getPosition()
+                local function flag(nome)
+                    local sucesso,valor=pcall(function()return useThing[nome] and useThing[nome](useThing)end)
+                    return sucesso and valor
+                end
+                local pode=(flag('isContainer') or flag('isLyingCorpse') or flag('isUsable'))
+                return pode,p
+            end)
+            if ok and ehItem and posicao and posicao.x~=65535 then
+                local chave='item:'..posicao.x..':'..posicao.y..':'..posicao.z..':'..useThing:getId()
+                if not confirmou(chave) then return true end
+                local abriu=pcall(function()
+                    local c=useThing.isContainer and useThing:isContainer()
+                    local corpse=useThing.isLyingCorpse and useThing:isLyingCorpse()
+                    if c or corpse then g_game.open(useThing)
+                    else g_game.use(useThing) end
+                end)
+                if abriu then return true end
+            end
+        end
+        if autoWalkPos and toque and not criatura then
+            local a=JVAutoAtaque or (modules.jv_autoataque and modules.jv_autoataque.JVAutoAtaque)
+            if a and a.andarManual then pcall(a.andarManual,autoWalkPos) end
         end
         return original(menuPosition, mouseButton, autoWalkPos, lookThing, useThing, creatureThing, attackCreature, ...)
     end

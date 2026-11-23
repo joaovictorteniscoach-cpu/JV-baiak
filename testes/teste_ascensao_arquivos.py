@@ -15,6 +15,23 @@ spec.loader.exec_module(mod)
 
 
 class DadosAscensao(unittest.TestCase):
+    def test_registro_drops_classicos_sem_substituir_loot(self):
+        caminho=ROOT/'servidor-imagem/ferramentas/registrar_drops_classicos.py'
+        spec2=importlib.util.spec_from_file_location('classicos',caminho)
+        reg=importlib.util.module_from_spec(spec2);spec2.loader.exec_module(reg)
+        with tempfile.TemporaryDirectory() as tmp:
+            destino=Path(tmp)/'monster/Demons';destino.mkdir(parents=True)
+            # Inclui um XML com evento preexistente para proteger outros sistemas.
+            (destino/'demon.xml').write_text('<monster name="Demon"><script><event name="Outro"/></script><loot><item id="1"/></loot></monster>')
+            (destino/'juggernaut.xml').write_text('<monster name="Juggernaut"><loot><item id="2"/></loot></monster>')
+            self.assertEqual(reg.registrar(tmp),2)
+            antes=[p.read_bytes() for p in sorted(destino.glob('*.xml'))]
+            self.assertEqual(reg.registrar(tmp),0)
+            self.assertEqual(antes,[p.read_bytes() for p in sorted(destino.glob('*.xml'))])
+            demon=ET.parse(destino/'demon.xml').getroot()
+            self.assertEqual({e.get('name') for e in demon.findall('./script/event')},{'Outro','JVArsenalClassico'})
+            self.assertEqual(demon.find('./loot/item').get('id'),'1')
+
     def test_registro_idempotente_e_conflito(self):
         import shutil
         with tempfile.TemporaryDirectory() as tmp:
@@ -23,7 +40,7 @@ class DadosAscensao(unittest.TestCase):
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),13)
+            self.assertEqual(mod.registrar(data),17)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)

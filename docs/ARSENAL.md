@@ -52,14 +52,24 @@ Uma segunda rolagem, independente dos treze raros reforçados existentes, pode c
 | Cripta Ancestral | 0,75% | II |
 | Covil dos Titãs | 1% | III |
 | Soberano Infernal | 12% | IV |
+| Demon comum | 0,20% | I |
+| Juggernaut comum | 0,50% | II |
 
 A rolagem escolhe uma das sete famílias com igual chance e não é multiplicada pelo loot global de 100×. Pode cair arma de outra classe para troca. O drop no corpo respeita as regras existentes de dono e coleta.
+
+As armas de Demon e Juggernaut seguem os requisitos da tabela: por exemplo, uma arma I pode cair antes do level 400, mas só pode ser equipada a partir do level 400 e Evolução I. Essas mortes não dão fragmentos de hunt. Invocações de jogadores não dão o drop especial.
 
 Cada abate qualificado também dá um fragmento individual do patamar da hunt. Participantes vivos da party a até 20 tiles e no mesmo andar recebem progresso; líder duplicado e personagens distantes não recebem duas vezes. Não é necessário shared experience. Monstros invocados por jogadores não concedem progresso. O patamar IV é conquistado exclusivamente no Soberano. Fragmentos ficam salvos em storages separadas (79610–79613), não ocupam mochila e não são convertidos entre patamares.
 
 `!arsenal` abre o catálogo nativo da própria classe, com saldo, requisitos, origem, poder e comando de cada arma. Exemplo: `!arsenal resgatar, cetro, 4`. Famílias: `espada`, `machado`, `martelo`, `arco`, `besta`, `cetro`, `bastao`. O resgate exige os fragmentos, requisitos e mochila equipada com espaço/capacidade; cobra somente após entregar a arma, sem jogá-la no chão. Assim há uma meta de conquista mesmo quando o drop não vem.
 
 O autoloot reconhece as armas como raras e `!venderloot` preserva essas variantes. A lista de ignorados prevalece. Como os sprites/IDs são compartilhados, filtros por ID e hotkeys identificam a família clássica, não distinguem cada nome/patamar. Para trocar a variante equipada, use a mochila normalmente.
+
+## Venda por lista
+
+Adicione itens com `!venderloot add, nome` ou pelo menu do item; `!venderloot lista` mostra a seleção e `!venderloot remover, nome` a altera. `!venderloot mochila` e `!venderloot depot` vendem apenas os itens selecionados e com preço do Mercador Ze, inclusive dentro de bolsas aninhadas; depot usa o da cidade do personagem. A lista vazia não vende nada. O dinheiro vai para o banco, com intervalo de 60 segundos entre vendas bem-sucedidas.
+
+Armas nomeadas/reforçadas e raros não empilháveis reconhecidos pelo autoloot ficam protegidos mesmo se o ID estiver na lista. Para incluí-los apenas na venda atual, o jogador pode escrever `!venderloot mochila raros` ou `!venderloot depot raros`. Esses itens recebem o preço base do Mercador, não um valor especial pelos bônus. Itens antigos ou empilháveis não necessariamente têm marca de raridade: mantenha-os fora da lista se não quiser vendê-los. A lista identifica o ID base compartilhado, não cada variante individual.
 
 ## Validação e atualização
 

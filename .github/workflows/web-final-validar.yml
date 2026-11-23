@@ -1,10 +1,10 @@
 name: Validar compilacao final do cliente web
 on:
   pull_request:
-    paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
+    paths: ['web/patches-final/**', 'web/jv_*.lua', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
   push:
     branches: [main]
-    paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
+    paths: ['web/patches-final/**', 'web/jv_*.lua', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
   workflow_dispatch:
 permissions:
   contents: read

@@ -309,6 +309,9 @@ main() {
 	cp -a "$BASE/servidor-imagem/extras/." "$SRV/"
 	python3 "$BASE/servidor-imagem/ferramentas/registrar_ascensao.py" "$SRV/data" \
 		|| falha "nao consegui registrar as hunts de Ascensao"
+	DROPS_CLASSICOS="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_drops_classicos.py" "$SRV/data")" \
+		|| falha "nao consegui registrar drops de Demon e Juggernaut"
+	if [ "$DROPS_CLASSICOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 
 	lua_define() { # chave valor_lua
 		LC_ALL=C awk -v k="$1" -v v="$2" '

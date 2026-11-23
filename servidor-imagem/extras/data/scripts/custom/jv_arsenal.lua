@@ -70,6 +70,22 @@ function A.sortear(corpse,hunt,indice)
     local f=C.familias[math.random(#C.familias)]
     return A.criar(f.chave,hunt.tier,corpse)
 end
+local classico=CreatureEvent('JVArsenalClassico')
+function classico.onDeath(creature,corpo,killer,mostDamage)
+    if not creature or creature:getMaster() or not corpo then return true end
+    local function jogador(atacante)
+        if atacante and not atacante:isPlayer() then atacante=atacante:getMaster() end
+        return atacante and atacante:isPlayer() and atacante or nil
+    end
+    local atacante=jogador(mostDamage) or jogador(killer)
+    if not atacante or not atacante:isPlayer() then return true end
+    local config=C.classicos[creature:getName():lower()]
+    if not config or math.random(1,1000000)>math.floor(config.chance*1000000) then return true end
+    local f=C.familias[math.random(#C.familias)]
+    A.criar(f.chave,config.tier,corpo)
+    return true
+end
+classico:register()
 function A.creditar(player,hunt)
     if player:getLevel()<hunt.level or player:getStorageValue(C.evoStorage)<hunt.evo then return end
     local key=C.fragmentosStorage+hunt.tier-1
