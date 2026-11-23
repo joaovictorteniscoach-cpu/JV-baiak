@@ -135,12 +135,15 @@ for i,h in ipairs(P.hunts)do
 end
 for i,h in ipairs(P.hunts)do
  local chegada=Position(h.x-h.raio+3,h.y,7);local visiveis=0
+ local convidados=0
  for _,slot in ipairs(H.slots)do if slot.hunt.monstro==h.monstro then
+  if h.convidado and slot.nome==h.convidado then convidados=convidados+1 end
   local p=slot.pos;assert(math.abs(p.x-h.x)<h.raio and math.abs(p.y-h.y)<h.raio,'spawn fora da sala')
   assert(not (p.x==chegada.x and p.y==chegada.y),'spawn na chegada')
   if math.abs(p.x-chegada.x)<=7 and math.abs(p.y-chegada.y)<=5 then visiveis=visiveis+1 end
  end end
  assert(visiveis>=1,'nenhum monstro visivel na chegada da hunt '..i)
+ if h.convidado then assert(convidados>0 and H.monstros[h.convidado] and H.monstros[h.convidado].nome==h.nome,'monstro convidado ausente da hunt '..i) end
 end
 assert(spawnCount==total);H.repor();assert(spawnCount==total,'duplicou monstros vivos')
 assert(not H.criarSala(P.hub,8),'sobrescreveu tiles ocupados')

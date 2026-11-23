@@ -40,7 +40,7 @@ class DadosAscensao(unittest.TestCase):
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),17)
+            self.assertEqual(mod.registrar(data),21)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)
@@ -89,6 +89,10 @@ class DadosAscensao(unittest.TestCase):
             self.assertIn('jv-vida-2x',f.read_text())
             self.assertLessEqual(h['chance'],0.15)
             self.assertEqual(r.find('script/event').get('name'),'JVAscensaoMorte')
+            if h['convidado']:
+                convidado=ET.parse(arquivos[h['convidado']]).getroot()
+                self.assertEqual(convidado.find('health').get('max'),r.find('health').get('max'))
+                self.assertEqual(convidado.find('script/event').get('name'),'JVAscensaoMorte')
         hunts=list(p['hunts'].values())
         self.assertEqual(sum(bool(h['dupla']) for h in hunts),2)
         for i,a in enumerate(hunts):

@@ -267,6 +267,7 @@ function inicio.onStartup()
         h.arsenalIndice=i
         H.monstros[h.monstro]=h
         if h.variante then H.monstros[h.variante]=h end
+        if h.convidado then H.monstros[h.convidado]=h end
         if H.hub and H.criarSala(h,h.raio) and portal(pos(h,-h.raio+2,0),AID_VOLTA) then
             H.areas[i]=true
             if not portal(posPortal(i),AID_HUNT+i-1) then H.areas[i]=nil end
@@ -282,7 +283,7 @@ function inicio.onStartup()
                     local linha=math.floor((n-1)/5)
                     local dx=h.boss and (-h.raio+8) or (-h.raio+7+col*4)
                     local dy=h.boss and 0 or (-8+linha*3)
-                    H.slots[#H.slots+1]={hunt=h,nome=(h.variante and n%3==0) and h.variante or h.monstro,pos=pos(h,dx,dy)}
+                    H.slots[#H.slots+1]={hunt=h,nome=(h.convidado and n%3==1) and h.convidado or ((h.variante and n%3==0) and h.variante or h.monstro),pos=pos(h,dx,dy)}
                 end
             end
         end
