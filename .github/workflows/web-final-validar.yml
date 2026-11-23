@@ -1,5 +1,7 @@
 name: Validar compilacao final do cliente web
 on:
+  pull_request:
+    paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
   push:
     branches: [main]
     paths: ['web/patches-final/**', 'web/shell.html', 'web/otclientrc-extra.lua', '.github/workflows/web-final-validar.yml']
@@ -48,7 +50,7 @@ jobs:
           printf '#pragma once\n#define JV_WS_BASE "wss://teste.example.org/ws/"\n' > "$ctx/jv_web_config.h"
           docker run --rm --entrypoint cat "$BASE_IMG" /workspace/init.lua > "$ctx/init.lua"
           cp web/patches-final/*.patch "$ctx/jv/patches/"
-          cp web/shell.html web/otclientrc-extra.lua web/jv_autoataque.lua "$ctx/jv/"
+          cp web/shell.html web/otclientrc-extra.lua web/jv_{autoataque,npc,janelas,status,volta,listas,layout,barra,autoloot,rapido}.lua "$ctx/jv/"
           DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg BASE_IMG="$BASE_IMG" -t teste-final "$ctx" 2>&1 | tee "$RUNNER_TEMP/cliente-build.log"
           docker create --name cliente-teste teste-final
           docker cp cliente-teste:/otclient-web "$RUNNER_TEMP/saida"

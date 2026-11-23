@@ -27,7 +27,7 @@ jobs:
           fonte="$RUNNER_TEMP/otclient-toque"
           mkdir -p "$fonte"
           git -C "$fonte" init -q
-          for arquivo in src/client/mapview.cpp src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua modules/game_interface/gameinterface.lua modules/game_interface/gameinterface.otui modules/game_console/console.lua modules/game_shortcuts/shortcuts.otui modules/client_entergame/entergame.otui modules/client_options/data_options.lua; do
+          for arquivo in src/client/map.cpp src/client/localplayer.cpp src/client/mapview.cpp src/framework/platform/browserwindow.cpp src/framework/ui/uitextedit.cpp src/client/protocolgame.cpp modules/client_locales/locales.lua modules/game_interface/gameinterface.lua modules/game_interface/gameinterface.otui modules/game_console/console.lua modules/game_shortcuts/shortcuts.otui modules/client_entergame/entergame.otui modules/client_options/data_options.lua; do
             mkdir -p "$fonte/$(dirname "$arquivo")"
             curl --fail --silent --show-error --retry 2 "https://raw.githubusercontent.com/opentibiabr/otclient/1fcea26f23ef1d1857103ef446c0190955523ca8/$arquivo" -o "$fonte/$arquivo"
           done
@@ -37,6 +37,7 @@ jobs:
           done
           python testes/teste_toque_web.py "$fonte"
           python testes/teste_realce_mapa.py "$fonte"
+          python testes/teste_caminho_campos.py "$fonte"
           node testes/teste_coordenadas_canvas.cjs "$fonte"
           python -m pip install lupa==2.6
           python testes/verificar_layout_mobile.py "$fonte"
