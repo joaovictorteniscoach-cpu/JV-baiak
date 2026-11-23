@@ -5,7 +5,7 @@ return {
     fragmentosStorage=79610, custos={200,250,300,12},
     chances={0.0035,0.005,0.0075,0.01,0.12},
     -- Chances por morte, independentes do rate de loot global.
-    classicos={demon={tier=1,chance=0.002},juggernaut={tier=2,chance=0.005}},
+    classicos={demon={tier=1,chance=0.02},juggernaut={tier=2,chance=0.05}},
     magia={1.15,1.30,1.45,1.65}, distancia={1.15,1.30,1.45,1.65},
     origem={'Demon / Caverna Infernal','Juggernaut / Forja Abissal / Cripta Ancestral','Covil dos Titas','Soberano Infernal'},
     familias={
