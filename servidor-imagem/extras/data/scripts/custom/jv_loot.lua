@@ -137,8 +137,8 @@ local function coletar(player, container, c)
 				coletar(player, item, c)
 			elseif item:getWorth() > 0 then
 				if c.dinheiro then
-					c.ouro = c.ouro + item:getWorth()
-					item:remove()
+					local valor = item:getWorth()
+					if item:remove() then c.ouro = c.ouro + valor end
 				end
 			else
 				local raro = (c.raros[id] or item:getCustomAttribute('jvAscensaoTier')) and true or false

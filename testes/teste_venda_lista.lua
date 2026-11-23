@@ -28,4 +28,18 @@ p.dados[79005]=0
 local falha=T.item(2183);falha.remove=function()return false end;p.inventario[10]=container({falha})
 cmd.onSay(p,'!venderloot','mochila')
 assert(p.banco==9000 and not falha.removido,'creditou item que nao foi removido')
-print('OK: venda somente da lista, mochila/depot, raro opcional e sem credito em falha')
+p.dados[79005]=0
+local item1=T.item(2183);local item2=T.item(2400);local semPreco=T.item(9999);local protegido=T.item(2183)
+protegido:setCustomAttribute('jvLootRaro',1)
+p.inventario[10]=container({item1,container({item2,semPreco,protegido})})
+cmd.onSay(p,'!venderloot','tudo mochila')
+assert(item1.removido and item2.removido and not semPreco.removido and not protegido.removido and p.banco==22000,'venda geral, preco, raridade ou bolsas aninhadas')
+p.dados[79005]=0
+local depositoItem=T.item(2400);depot=container({container({depositoItem})})
+cmd.onSay(p,'!venderloot','tudo depot')
+assert(depositoItem.removido and p.banco==32000,'venda geral do depot')
+p.dados[79005]=0
+p.inventario[10]=container({protegido});p.dados[79100]=2183
+cmd.onSay(p,'!venderloot','mochila raros')
+assert(protegido.removido and p.banco==35000,'venda explicita de raro selecionado')
+print('OK: venda geral e por lista, mochila/depot, raro opcional e sem credito em falha')

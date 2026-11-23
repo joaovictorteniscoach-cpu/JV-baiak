@@ -67,6 +67,8 @@ O autoloot reconhece as armas como raras e `!venderloot` preserva essas variante
 
 ## Venda por lista
 
+`!venderloot tudo mochila` ou `!venderloot tudo depot` vende em lote os itens com preço cadastrado, sem exigir lista. **Pode vender itens pessoais guardados no recipiente**, pois o servidor não consegue distinguir com segurança loot antigo de suprimentos ou equipamentos; itens equipados e recipientes não são vendidos. Itens sem preço ficam guardados. Raros marcados continuam protegidos; não é possível incluir raros na venda geral.
+
 Adicione itens com `!venderloot add, nome` ou pelo menu do item; `!venderloot lista` mostra a seleção e `!venderloot remover, nome` a altera. `!venderloot mochila` e `!venderloot depot` vendem apenas os itens selecionados e com preço do Mercador Ze, inclusive dentro de bolsas aninhadas; depot usa o da cidade do personagem. A lista vazia não vende nada. O dinheiro vai para o banco, com intervalo de 60 segundos entre vendas bem-sucedidas.
 
 Armas nomeadas/reforçadas e raros não empilháveis reconhecidos pelo autoloot ficam protegidos mesmo se o ID estiver na lista. Para incluí-los apenas na venda atual, o jogador pode escrever `!venderloot mochila raros` ou `!venderloot depot raros`. Esses itens recebem o preço base do Mercador, não um valor especial pelos bônus. Itens antigos ou empilháveis não necessariamente têm marca de raridade: mantenha-os fora da lista se não quiser vendê-los. A lista identifica o ID base compartilhado, não cada variante individual.

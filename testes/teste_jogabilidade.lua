@@ -143,6 +143,13 @@ comando.onSay(player,'!loot','ignorar, gold coin')
 item.getId=function()return 2148 end;item.getWorth=function()return 10 end
 item.remove=function()removidos=removidos+1 end
 matar(); check(removidos==0, 'Moeda ignorada foi recolhida')
+comando.onSay(player,'!loot','permitir, gold coin')
+player.banco=0
+item.remove=function()removidos=removidos+1;return false end
+matar();check(player.banco==0,'Creditou moeda que nao conseguiu remover')
+item.remove=function()removidos=removidos+1;return true end
+matar();check(player.banco==10,'Nao creditou moeda removida')
+comando.onSay(player,'!loot','ignorar, gold coin')
 comando.onSay(player,'!loot','ignorar, item inexistente')
 check(mensagens[#mensagens]:find('desconhecido'), 'Aceitou item invalido')
 comando.onSay(player,'!loot','ignorados'); check(player.dialogo:find('2148'), 'Lista nao mostra ignorados')
