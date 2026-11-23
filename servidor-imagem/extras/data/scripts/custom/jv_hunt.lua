@@ -3,11 +3,11 @@
 --
 --   !hunt          XP/h, gold/h, monstros mortos e tempo desde que voce entrou
 --   !hunt reset    zera a contagem (ex.: ao chegar numa hunt nova)
---   !venderloot    vende de onde estiver os itens da mochila que o Mercador Ze compra;
+--   !venderloot    vende da mochila somente itens da lista que o Mercador Ze compra;
 --                  o dinheiro vai para o banco (espera 1 minuto entre uma venda e outra)
 --   !depot         manda itens da mochila para o seu depot (1 vez por hora)
 --
---   ESCOLHER OS ITENS (sem lista = vende/manda tudo que puder):
+--   ESCOLHER OS ITENS (venda exige lista; depot sem lista manda tudo):
 --   !venderloot add, nome   (ou so "!venderloot add" com o item na mao)
 --   !venderloot remove, nome | !venderloot lista | !venderloot limpar
 --   !depot add, nome | !depot remove, nome | !depot lista | !depot limpar
@@ -59,7 +59,7 @@ function entrar.onLogin(player)
 		player:setStorageValue(MARCA_OURO, 1)
 		player:setStorageValue(AUTOLOOT_STORAGE_GOLD, 1)
 		player:sendTextMessage(MSG, "[JV Baiak] O dinheiro do loot agora vai direto para o seu banco. " ..
-			"Comandos: !hunt (XP/h e lucro), !venderloot (vende o loot de onde estiver), !depot (manda a mochila para o depot).")
+			"Comandos: !hunt, !venderloot (somente sua lista) e !depot (manda itens para o depot).")
 	end
 	return true
 end
@@ -129,7 +129,7 @@ local function comandoDeLista(player, qual, param, comando)
 	if acao == "lista" or acao == "list" then
 		local set, n = itensDaLista(player, qual)
 		if n == 0 then
-			player:sendTextMessage(MSG, "[" .. comando .. "] Lista vazia: " .. (qual == "venda" and "vende tudo que o Mercador Ze compra." or "manda tudo da mochila."))
+			player:sendTextMessage(MSG, "[" .. comando .. "] Lista vazia: " .. (qual == "venda" and "nenhum item sera vendido; adicione itens com !venderloot add, nome." or "manda tudo da mochila."))
 		else
 			local nomes = {}
 			for id in pairs(set) do nomes[#nomes + 1] = ItemType(id):getName() end
@@ -141,7 +141,7 @@ local function comandoDeLista(player, qual, param, comando)
 		for s = l.inicio, l.inicio + l.tamanho - 1 do player:setStorageValue(s, -1) end
 		player:sendTextMessage(MSG, "[" .. comando .. "] Lista limpa.")
 		return true
-	elseif acao == "add" or acao == "remove" or acao == "tirar" then
+	elseif acao == "add" or acao == "remove" or acao == "remover" or acao == "tirar" then
 		local tipo = acharTipo(player, resto)
 		if not tipo then
 			player:sendTextMessage(MSG, "[" .. comando .. "] Item nao encontrado. Use o nome do item ou segure ele na mao.")
@@ -176,50 +176,72 @@ local function comandoDeLista(player, qual, param, comando)
 end
 
 -- ---------------------------------------------------------------- !venderloot
-local function venderDe(container, total, so)
-	for i = container:getSize() - 1, 0, -1 do
-		local item = container:getItem(i)
-		if item then
-			local preco = JV_PRECOS and JV_PRECOS[item:getId()]
-			if item:getCustomAttribute('jvAscensaoTier') then
-				-- Equipamento raro reforcado nao deve virar dinheiro em uma venda em lote.
-			elseif preco and preco > 0 and (not so or so[item:getId()]) and (not item:isContainer() or item:getSize() == 0) then
-				total.ouro = total.ouro + preco * math.max(1, item:getCount())
-				total.itens = total.itens + 1
-				item:remove()
-			elseif item:isContainer() then
-				venderDe(item, total, so)
-			end
-		end
-	end
+-- Venda exige lista explicita; itens nomeados/reforcados so sao vendidos com
+-- o parametro "raros" nessa venda. A lista identifica o ID base do item.
+local function venderDe(container, total, so, incluirRaros)
+    for i = container:getSize() - 1, 0, -1 do
+        local item = container:getItem(i)
+        if item then
+            local preco = JV_PRECOS and JV_PRECOS[item:getId()]
+            local protegido = item:getCustomAttribute('jvAscensaoTier') or item:getCustomAttribute('jvLootRaro')
+            if protegido and not incluirRaros then
+                total.protegidos=total.protegidos+1
+            elseif item:isContainer() and item:getSize()>0 then
+                venderDe(item,total,so,incluirRaros)
+            elseif preco and preco>0 and so[item:getId()] then
+                local quantidade=math.max(1,item:getCount())
+                if item:remove() then
+                    total.ouro=total.ouro+preco*quantidade
+                    total.itens=total.itens+quantidade
+                end
+            end
+        end
+    end
 end
 
 local vender = TalkAction("!venderloot")
 function vender.onSay(player, words, param)
-	if comandoDeLista(player, "venda", param, "Venda") then return false end
-	if player:getStorageValue(ESPERA_VENDA) > agora() then
-		player:sendTextMessage(MSG, "[Venda] Espere um pouco para vender de novo.")
-		return false
-	end
-	local mochila = player:getSlotItem(CONST_SLOT_BACKPACK)
-	if not mochila or not mochila:isContainer() then
-		player:sendTextMessage(MSG, "[Venda] Voce precisa de uma mochila.")
-		return false
-	end
-	local total = {ouro = 0, itens = 0}
-	local set, n = itensDaLista(player, "venda")
-	venderDe(mochila, total, n > 0 and set or nil)
-	player:setStorageValue(ESPERA_VENDA, agora() + 60)
-	if total.itens == 0 then
-		player:sendTextMessage(MSG, "[Venda] Nada para vender na mochila (o Mercador Ze compra armas, escudos, armaduras, capacetes, calcas, botas, aneis e amuletos).")
-		return false
-	end
-	player:setBankBalance(player:getBankBalance() + total.ouro)
-	sessao(player).venda = sessao(player).venda + total.ouro
-	player:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
-	player:sendTextMessage(MSG, string.format("[Venda] %d item(ns) vendidos por %s gold. O dinheiro foi para o banco (saldo: %s).",
-		total.itens, formatar(total.ouro), formatar(player:getBankBalance())))
-	return false
+    if comandoDeLista(player, "venda", param, "Venda") then return false end
+    local escolha=(param or ''):lower():gsub('^%s+',''):gsub('%s+$','')
+    local origem,incluirRaros
+    if escolha=='' or escolha=='mochila' or escolha=='bag' then origem='mochila'
+    elseif escolha=='depot' then origem='depot'
+    elseif escolha=='mochila raros' or escolha=='bag raros' then origem='mochila';incluirRaros=true
+    elseif escolha=='depot raros' then origem='depot';incluirRaros=true
+    else
+        player:sendTextMessage(MSG,'[Venda] Use !venderloot mochila ou depot. Lista: add, nome | lista | remover, nome. Para incluir raros uma vez: mochila raros ou depot raros. Raros sao vendidos pelo preco base.')
+        return false
+    end
+    local set,n=itensDaLista(player,'venda')
+    if n==0 then
+        player:sendTextMessage(MSG,'[Venda] Lista vazia: nenhum item vendido. Adicione com !venderloot add, nome.')
+        return false
+    end
+    if player:getStorageValue(ESPERA_VENDA)>agora() then
+        player:sendTextMessage(MSG,'[Venda] Espere um pouco para vender de novo.')
+        return false
+    end
+    local recipiente
+    if origem=='depot' then
+        local town=player:getTown()
+        recipiente=town and player:getDepotChest(town:getId(),false)
+    else recipiente=player:getSlotItem(CONST_SLOT_BACKPACK) end
+    if not recipiente or not recipiente:isContainer() then
+        player:sendTextMessage(MSG,'[Venda] '..(origem=='depot' and 'Depot da cidade vazio ou indisponivel.' or 'Equipe uma mochila.') )
+        return false
+    end
+    local total={ouro=0,itens=0,protegidos=0}
+    venderDe(recipiente,total,set,incluirRaros)
+    if total.itens==0 then
+        player:sendTextMessage(MSG,'[Venda] Nenhum item da lista foi vendido de '..origem..'. Raros protegidos: '..total.protegidos..'.')
+        return false
+    end
+    player:setStorageValue(ESPERA_VENDA,agora()+60)
+    player:setBankBalance(player:getBankBalance()+total.ouro)
+    sessao(player).venda=sessao(player).venda+total.ouro
+    player:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
+    player:sendTextMessage(MSG,string.format('[Venda] %d item(ns) da lista vendidos do(a) %s por %s gold para o banco. Raros protegidos: %d.',total.itens,origem,formatar(total.ouro),total.protegidos))
+    return false
 end
 vender:separator(" ")
 vender:register()

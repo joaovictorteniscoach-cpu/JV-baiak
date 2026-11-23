@@ -4,8 +4,10 @@ return {
     levels={400,600,800,1000}, evoStorage=79500,
     fragmentosStorage=79610, custos={200,250,300,12},
     chances={0.0035,0.005,0.0075,0.01,0.12},
+    -- Chances por morte, independentes do rate de loot global.
+    classicos={demon={tier=1,chance=0.002},juggernaut={tier=2,chance=0.005}},
     magia={1.15,1.30,1.45,1.65}, distancia={1.15,1.30,1.45,1.65},
-    origem={'Caverna Infernal','Forja Abissal / Cripta Ancestral','Covil dos Titas','Soberano Infernal'},
+    origem={'Demon / Caverna Infernal','Juggernaut / Forja Abissal / Cripta Ancestral','Covil dos Titas','Soberano Infernal'},
     familias={
         {chave='espada',classe=1,item=2400,artigo='uma',
          nomes={'Lamina do Despertar','Espada do Guardiao de Ferro','Lamina do Cavaleiro Abissal','Espada do Tita da Guerra'},

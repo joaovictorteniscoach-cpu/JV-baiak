@@ -4,8 +4,11 @@ local H = JV_ASCENSAO
 local P = dofile('data/lib/jv_progressao.lua')
 local MSG = MESSAGE_STATUS_CONSOLE_BLUE
 local AID_HUB, AID_VOLTA, AID_HUNT = 47800, 47820, 47801
+local HUB_RAIO=17
+local placas={'Portal Infernal','Portal Abissal','Portal Ancestral','Portal Titas','Portal Soberano'}
 H.areas, H.slots, H.monstros = H.areas or {}, H.slots or {}, H.monstros or {}
 local function pos(t, dx, dy) return Position(t.x+(dx or 0), t.y+(dy or 0), t.z) end
+local function posPortal(i) return pos(P.hub,-12+(i-1)*6,0) end
 local function chave(p) return p.x .. ':' .. p.y .. ':' .. p.z end
 local function mensagem(p, s) p:sendTextMessage(MSG, '[Ascensao] ' .. s) end
 
@@ -162,10 +165,11 @@ function comando.onSay(player,words,param)
         local p=player:getPosition()
         local town=player:getTown(); local templo=town and town:getTemplePosition()
         local perto=templo and p.z==templo.z and math.max(math.abs(p.x-templo.x),math.abs(p.y-templo.y))<=12
-        local noHub=p.z==P.hub.z and math.max(math.abs(p.x-P.hub.x),math.abs(p.y-P.hub.y))<8
+        local noHub=p.z==P.hub.z and math.max(math.abs(p.x-P.hub.x),math.abs(p.y-P.hub.y))<HUB_RAIO
         if perto or noHub then H.entrar(player,i) else mensagem(player,'Use o portal do templo ou volte ao templo para viajar.') end
     else
-        local linhas={'Hunts de Ascensao (!ascensao numero, no templo):'}
+        local linhas={'HUNTS NOVAS: procure o portal azul HUNTS NOVAS junto ao templo.', 'Primeira hunt: level 300 e Evolucao I. !ascensao numero funciona no templo ou sala.'}
+        if H.entrada then linhas[#linhas+1]='Portal no templo: x '..H.entrada.x..', y '..H.entrada.y..', andar '..H.entrada.z..'.' end
         for n,h in ipairs(P.hunts) do
             linhas[#linhas+1]=n .. '. ' .. h.nome .. ' - lv ' .. h.level .. ', Evo ' .. h.evo .. (h.dupla and ' (dupla recomendada)' or '')
         end
@@ -182,11 +186,11 @@ function H.repor()
         if not vivo then
             if s.id then s.id=nil; s.proximo=agora+s.hunt.respawn end
             if agora>=(s.proximo or 0) then
-                local m=Game.createMonster(s.hunt.monstro,s.pos,false,false)
+                local m=Game.createMonster(s.nome or s.hunt.monstro,s.pos,false,false)
                 if m then
                     s.id=m:getId();s.aviso=nil
                 elseif not s.aviso or agora-s.aviso>=60 then
-                    print('[Ascensao] Falha ao criar '..s.hunt.monstro..' em '..chave(s.pos)..'; nova tentativa em 5s.')
+                    print('[Ascensao] Falha ao criar '..(s.nome or s.hunt.monstro)..' em '..chave(s.pos)..'; nova tentativa em 5s.')
                     s.aviso=agora
                 end
                 s.proximo=agora+5 -- tenta depois, nunca forca spawn sobre jogadores
@@ -258,14 +262,19 @@ inicio:type('startup')
 function inicio.onStartup()
     H.areas,H.slots,H.monstros={},{},{}
     H.entradasAtivas={}
-    H.hub=H.criarSala(P.hub,8)
+    H.hub=H.criarSala(P.hub,HUB_RAIO)
     for i,h in ipairs(P.hunts) do
         h.arsenalIndice=i
         H.monstros[h.monstro]=h
+        if h.variante then H.monstros[h.variante]=h end
         if H.hub and H.criarSala(h,h.raio) and portal(pos(h,-h.raio+2,0),AID_VOLTA) then
             H.areas[i]=true
-            if not portal(pos(P.hub,-6+(i-1)*3,0),AID_HUNT+i-1) then H.areas[i]=nil end
+            if not portal(posPortal(i),AID_HUNT+i-1) then H.areas[i]=nil end
             if H.areas[i] then
+                local modelo=pos(P.hub,-12+(i-1)*6,-2)
+                if not Game.createNpc(placas[i],modelo,false,false) then
+                    print('[Ascensao] Nao foi possivel criar identificacao: '..placas[i])
+                end
                 for n=1,h.quantidade do
                     -- Os primeiros monstros ficam visiveis a partir da chegada,
                     -- sem ocupar o quadrado de entrada nem o portal de volta.
@@ -273,7 +282,7 @@ function inicio.onStartup()
                     local linha=math.floor((n-1)/5)
                     local dx=h.boss and (-h.raio+8) or (-h.raio+7+col*4)
                     local dy=h.boss and 0 or (-8+linha*3)
-                    H.slots[#H.slots+1]={hunt=h,pos=pos(h,dx,dy)}
+                    H.slots[#H.slots+1]={hunt=h,nome=(h.variante and n%3==0) and h.variante or h.monstro,pos=pos(h,dx,dy)}
                 end
             end
         end
@@ -307,10 +316,13 @@ repor:interval(5000); repor:register()
 local nomes=GlobalEvent('JVAscensaoNomes')
 function nomes.onThink()
     local lista={}
-    if H.entrada then lista[#lista+1]={p=H.entrada,n='Ascensao'} end
+    if H.entrada then
+        lista[#lista+1]={p=H.entrada,n='HUNTS NOVAS'}
+        H.entrada:sendMagicEffect(CONST_ME_MAGIC_BLUE)
+    end
     if H.hub then
         for i,h in ipairs(P.hunts) do
-            if H.areas[i] then lista[#lista+1]={p=pos(P.hub,-6+(i-1)*3,0),n=h.nome} end
+            if H.areas[i] then lista[#lista+1]={p=posPortal(i),n='Lv '..h.level..' Evo '..h.evo} end
         end
     end
     for _,v in ipairs(lista) do

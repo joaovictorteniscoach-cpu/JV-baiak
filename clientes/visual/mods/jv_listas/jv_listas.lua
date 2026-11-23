@@ -1,7 +1,7 @@
 -- JV Baiak: ESCOLHER O QUE VENDER E O QUE MANDAR AO DEPOT, SEM DIGITAR
 -- Segure o dedo (ou clique com o botao direito) num item e escolha:
 --   "Vender no !venderloot"  /  "Mandar no !depot"  /  "Tirar das listas"
--- O servidor guarda as listas do personagem. Lista vazia = vende/manda tudo.
+-- O servidor guarda as listas do personagem. Venda com lista vazia nao vende.
 -- Mesmo arquivo em web/ e em clientes/visual/mods/jv_listas/ (o teste confere).
 JVListas = JVListas or {}
 local L = JVListas
@@ -21,6 +21,9 @@ local OPCOES = {
     {'Vender no !venderloot', function(id) falar('!venderloot add, ' .. id) end},
     {'Mandar no !depot', function(id) falar('!depot add, ' .. id) end},
     {'Tirar das listas', function(id) falar('!venderloot remove, ' .. id); falar('!depot remove, ' .. id) end},
+    {'Vender lista da mochila', function() falar('!venderloot mochila') end},
+    {'Vender lista do depot', function() falar('!venderloot depot') end},
+    {'Como vender raros', function() falar('!venderloot ajuda') end},
 }
 
 function L.iniciar()

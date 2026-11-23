@@ -48,6 +48,14 @@ end
 
 A.ignorar = {}
 A.tentativa = nil
+-- Um destino escolhido pelo jogador tem prioridade sobre a perseguicao.
+function A.andarManual(destino)
+    if not A.ligado or not g_game.isOnline() then return end
+    local p=g_game.getLocalPlayer();local pos=p and p:getPosition()
+    local distancia=pos and destino and math.max(math.abs(pos.x-destino.x),math.abs(pos.y-destino.y)) or 1
+    A.andandoAte=g_clock.millis()+math.min(30000,math.max(3000,distancia*1000+2000))
+    pcall(function() g_game.setChaseMode(0) end)
+end
 local function maisPerto(player)
     local pos = player:getPosition()
     if not pos then return nil end
@@ -87,7 +95,9 @@ local function ciclo()
         return
     end
     A.tentativa = id
-    pcall(function() g_game.setChaseMode(1) end) -- vai atras do monstro
+    if g_clock.millis() >= (A.andandoAte or 0) then
+        pcall(function() g_game.setChaseMode(1) end) -- vai atras quando nao ha caminho manual
+    end
     g_game.attack(alvo)
 end
 
@@ -98,7 +108,7 @@ end
 
 function A.definir(ligado)
     A.ligado = ligado
-    A.tentativa, A.ignorar = nil, {}
+    A.tentativa, A.ignorar, A.andandoAte = nil, {}, nil
     g_settings.set('jvAutoAtaque', ligado and 'true' or 'false')
     avisarServidor()
     marcar(A.botao, ligado)
