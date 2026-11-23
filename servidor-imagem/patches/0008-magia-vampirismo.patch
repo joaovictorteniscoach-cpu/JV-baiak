@@ -1,0 +1,19 @@
+--- a/src/game.cpp
++++ b/src/game.cpp
+@@ -4122,6 +4122,16 @@
+ 		}
+ 
+ 		target->drainHealth(attacker, realDamage);
++		// Vampirismo: apenas dano efetivo de jogador em monstro nao invocado.
++		// O limite por acerto evita curas desproporcionais em dano de area.
++		Monster* vampTarget = target->getMonster();
++		if (attackerPlayer && attackerPlayer->getHealth() > 0 && vampTarget && !vampTarget->getMaster() &&
++		    attackerPlayer->getCondition(CONDITION_ATTRIBUTES, CONDITIONID_COMBAT, 8420)) {
++			const int32_t cura = std::min<int32_t>(realDamage / 10, attackerPlayer->getMaxHealth() / 10);
++			if (cura > 0) {
++				attackerPlayer->gainHealth(attackerPlayer, cura);
++			}
++		}
+ 		addCreatureHealth(spectators, target);
+ 	}
+ 

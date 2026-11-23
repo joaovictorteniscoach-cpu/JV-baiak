@@ -1,8 +1,9 @@
 -- Gestos reais no modulo Lua com objetos do cliente simulados.
-local agora,ataques,aberturas,usos,falas,originais,pausas=1000,0,0,0,0,0,0
+local agora,ataques,aberturas,usos,falas,originais,pausas,caminhadas=1000,0,0,0,0,0,0,0
 MouseLeftButton,MouseRightButton,MouseTouch,MouseTouch2,MouseTouch3=1,2,3,4,5
 KeyboardNoModifier=0
-local p={getId=function()return 99 end,getPosition=function()return{x=10,y=10,z=7}end}
+local p={getId=function()return 99 end,getPosition=function()return{x=10,y=10,z=7}end,
+ autoWalk=function(_,destino)caminhadas=caminhadas+1;return true end}
 g_clock={millis=function()return agora end};g_platform={isMobile=function()return true end}
 g_keyboard={getModifiers=function()return 0 end};g_logger={info=function()end}
 g_map={getSpectators=function()return{}end}
@@ -32,7 +33,9 @@ agora=3000;assert(tocar({},1,nil,nil,corpo,nil,nil));assert(aberturas==0,'primei
 agora=3300;assert(tocar({},1,nil,nil,corpo,nil,nil));assert(aberturas==1,'segundo toque nao abriu')
 agora=4000;assert(tocar({},1,nil,nil,alavanca,nil,nil));assert(usos==0)
 agora=4300;assert(tocar({},1,nil,nil,alavanca,nil,nil));assert(usos==1,'segundo toque nao usou')
-agora=5000;tocar({},1,{x=15,y=10,z=7},nil,nil,nil,nil);assert(pausas==1 and originais==1,'andar foi bloqueado')
+agora=5000;tocar({},1,{x=15,y=10,z=7},nil,nil,nil,nil);assert(pausas==1 and caminhadas==1 and originais==0,'andar foi bloqueado')
+agora=5500;tocar({},1,{x=12,y=10,z=7},nil,corpo,nil,nil);assert(caminhadas==2 and aberturas==1,'primeiro toque no corpo nao caminhou')
+agora=5700;tocar({},1,{x=12,y=10,z=7},nil,corpo,nil,nil);assert(aberturas==2 and caminhadas==2,'segundo toque nao abriu corpo')
 g_platform.isMobile=function()return false end
-agora=6000;tocar({},1,nil,nil,nil,monstro,nil);assert(originais==2 and ataques==1,'mudou clique PC')
+agora=6000;tocar({},1,nil,nil,nil,monstro,nil);assert(originais==1 and ataques==1,'mudou clique PC')
 print('OK: dois toques para atacar, falar, abrir e usar; caminhada e PC preservados')
