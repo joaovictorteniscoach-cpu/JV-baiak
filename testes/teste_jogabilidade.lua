@@ -114,7 +114,7 @@ local player = {getStorageValue=function(self,s) return dados[s] or -1 end,
     getTown=function() return {getId=function()return 1 end} end,
     getDepotChest=function() return {} end}
 function Player() return player end
-local item={getId=function()return 2498 end,isContainer=function()return false end,
+local item={getId=function()return 2498 end,isContainer=function()return false end,getCustomAttribute=function()return nil end,
     getWorth=function()return 0 end,getCount=function()return 1 end,
     moveTo=function()movimentos=movimentos+1;return true end}
 local corpo={getSize=function()return 1 end,getItem=function()return item end,

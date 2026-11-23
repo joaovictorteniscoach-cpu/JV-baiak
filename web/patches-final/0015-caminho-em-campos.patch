@@ -1,0 +1,70 @@
+--- a/src/client/map.cpp
++++ b/src/client/map.cpp
+@@ -46,6 +46,28 @@
+ 
+ namespace
+ {
++    // IDs do cliente 8.60: somente efeitos de fogo/veneno conhecidos do items.otb.
++    bool jvCampoTransponivel(uint32_t id)
++    {
++        switch (id) {
++            case 105: case 2118: case 2119: case 2120: case 2121:
++            case 2123: case 2124: case 2125: case 2131: case 2132:
++            case 2133: case 10069: case 10070: case 10071: return true;
++            default: return false;
++        }
++    }
++
++    bool jvCaminhoComCampo(const TilePtr& tile)
++    {
++        bool campo = false;
++        for (const auto& thing : tile->getThings()) {
++            const bool ehCampo = thing->isItem() && jvCampoTransponivel(thing->getId());
++            if (thing->isNotPathable() && !ehCampo) return false;
++            if (ehCampo) campo = true;
++        }
++        return campo;
++    }
++
+     void cleanNewSpectators(std::vector<CreaturePtr>& creatures, std::unordered_set<uint32_t>& seenIds, const std::size_t startIndex)
+     {
+         auto it = creatures.begin() + startIndex;
+@@ -1183,8 +1205,10 @@
+         if (tile->getPosition() == start)
+             continue;
+         const bool isNotWalkable = !tile->isWalkable(false);
+-        const bool isNotPathable = !tile->isPathable();
+-        const float speed = tile->getGroundSpeed();
++        const bool campo = !isNotWalkable && jvCaminhoComCampo(tile);
++        const bool isNotPathable = !tile->isPathable() && !campo;
++        // Custo alto prefere caminho seguro, mas permite sair/atravessar se necessario.
++        const float speed = tile->getGroundSpeed() + (campo ? 10000.0f : 0.0f);
+         if ((isNotWalkable || isNotPathable) && tile->getPosition() != goal) {
+             visibleNodes->push_back(new Node{ .cost = speed, .totalCost = 0, .pos = tile->getPosition(), .prev = nullptr, .distance =
+                 0,
+--- a/src/client/localplayer.cpp
++++ b/src/client/localplayer.cpp
+@@ -196,7 +196,8 @@
+             return;
+         }
+ 
+-        if (result->path.size() > 127)
++        const bool caminhoParcial = result->path.size() > 127;
++        if (caminhoParcial)
+             result->path.resize(127);
+ 
+         if (result->path.empty()) {
+@@ -205,8 +206,11 @@
+             return;
+         }
+ 
+-        if (self->m_autoWalkDestination != result->destination) {
+-            self->m_lastAutoWalkPosition = result->destination;
++        if (caminhoParcial) {
++            auto fim = result->start;
++            for (const auto direction : result->path)
++                fim = fim.translatedToDirection(direction);
++            self->m_lastAutoWalkPosition = fim;
+         }
+ 
+         g_game.autoWalk(result->path, result->start);

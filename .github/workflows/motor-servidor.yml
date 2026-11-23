@@ -1,0 +1,32 @@
+name: Compilar motor do servidor
+on:
+  pull_request:
+    paths: ['servidor-imagem/patches/**', 'servidor-imagem/Dockerfile', 'testes/preparar_docker_ci.py', '.github/workflows/motor-servidor.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar a versao fixada e conferir patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          contexto="$RUNNER_TEMP/motor-jv"
+          mkdir -p "$contexto/fonte"
+          python testes/preparar_docker_ci.py "$contexto"
+          commit="$(sed -n 's/^BAIAK_COMMIT="\([a-f0-9]*\)"/\1/p' instalar.sh)"
+          test "${#commit}" = 40
+          git -C "$contexto/fonte" init -q
+          git -C "$contexto/fonte" remote add origin https://github.com/moviebr/baiakthunder.git
+          git -C "$contexto/fonte" fetch -q --depth 1 origin "$commit"
+          git -C "$contexto/fonte" checkout -q FETCH_HEAD
+          for patch in "$GITHUB_WORKSPACE"/servidor-imagem/patches/*.patch; do
+            git -C "$contexto/fonte" apply --check "$patch"
+            git -C "$contexto/fonte" apply "$patch"
+          done
+      - name: Compilar o codigo C++ completo com LuaJIT
+        run: docker build --secret id=ci_ca,src=/etc/ssl/certs/ca-certificates.crt --target build "$RUNNER_TEMP/motor-jv"

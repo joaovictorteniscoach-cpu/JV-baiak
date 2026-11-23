@@ -141,7 +141,7 @@ local function coletar(player, container, c)
 					item:remove()
 				end
 			else
-				local raro = c.raros[id] and true or false
+				local raro = (c.raros[id] or item:getCustomAttribute('jvAscensaoTier')) and true or false
 				local caro = (JV_PRECOS and (JV_PRECOS[id] or 0) or 0) * math.max(1, item:getCount()) >= CARO
 				local pegar = (raro and c.pegaRaros) or (caro and c.pegaCaros) or (c.lista and naLista(player, id))
 				if pegar then

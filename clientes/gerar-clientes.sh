@@ -105,6 +105,12 @@ if [ -f /opt/jv/fundo.png ]; then
 fi
 # Mods do JV Baiak (auto ataque)
 if [ -d /opt/jv/mods ]; then mkdir -p "$CLI/mods" && cp -a /opt/jv/mods/. "$CLI/mods/"; fi
+[ -s "$CLI/mods/jv_caminho/jv_caminho.lua" ] && [ -s "$CLI/mods/jv_caminho/jv_caminho.otmod" ] || falha "modulo de caminhada JV ausente"
+# O modulo trata caminhadas visiveis e devolve ao cliente os destinos distantes.
+INTERFACE="$CLI/modules/game_interface/gameinterface.lua"
+[ "$(grep -c '^    player:autoWalk(autoWalkPos)$' "$INTERFACE")" = 1 ] || falha "caminhada OTCv8 diferente da versao esperada"
+sed -i 's/^    player:autoWalk(autoWalkPos)$/    if not modules.jv_caminho or not modules.jv_caminho.caminhar(player, autoWalkPos) then player:autoWalk(autoWalkPos) end/' "$INTERFACE"
+grep -q 'modules.jv_caminho.caminhar' "$INTERFACE" || falha "nao consegui instalar a caminhada por campos"
 sed -i "s/^local defaultLocaleName = 'en'/local defaultLocaleName = 'pt'/" "$CLI/modules/client_locales/locales.lua"
 # Visual classico do Tibia tambem no Android: mesmo layout "retro" do PC (em vez do
 # layout de celular) e o joystick comeca escondido (anda tocando no mapa, como no

@@ -1,5 +1,5 @@
 -- JV Baiak: MESTRE DAS CLASSES (templo de Thunder City)
--- Evolucao de classe em 4 niveis, 100.000 gold cada (dinheiro da mochila e/ou do banco).
+-- Evolucao em 4 niveis, com level, outfit e velocidades; valores em jv_progressao.lua.
 -- Cada nivel aumenta o ataque contra monstros e divide o dano que voce recebe:
 --   nivel 1 = 2x | nivel 2 = 4x | nivel 3 = 7x | nivel 4 = 10x
 -- O efeito no combate fica em data/scripts/custom/jv_evolucao.lua (mesma storage).
@@ -12,9 +12,8 @@ function onCreatureDisappear(cid)           npcHandler:onCreatureDisappear(cid) 
 function onCreatureSay(cid, type, msg)      npcHandler:onCreatureSay(cid, type, msg)    end
 function onThink()                          npcHandler:onThink()                        end
 
-local STORAGE = 79500 -- 79300-79399 e a lista de ignorados do jv_loot
-local PRECO = 100000
-local MULT = {2, 4, 7, 10}
+local P = dofile('data/lib/jv_progressao.lua')
+local STORAGE, MULT = P.storage, P.multiplicadores
 local NOMES = {"Evolucao I", "Evolucao II", "Evolucao III", "Evolucao IV"}
 local topico = {}
 
@@ -42,11 +41,11 @@ end
 local function niveis(player)
 	local partes = {}
 	for i, m in ipairs(MULT) do
-		partes[#partes + 1] = string.format("nivel %d = %dx", i, m)
+		partes[#partes + 1] = string.format('nivel %d = %dx, lv %d, %d gold, ataque %d ms, velocidade +%d', i, m, P.levels[i], P.precos[i], P.intervalo[i], P.movimento[i])
 	end
 	local n = nivel(player)
 	return "Ataque contra monstros e defesa (dano recebido dividido): " .. table.concat(partes, ", ") ..
-		". Cada nivel custa 100.000 gold. Voce esta no " ..
+		". Voce esta no " ..
 		(n == 0 and "nivel 0 (sem evolucao)." or string.format("%s (%dx).", NOMES[n], MULT[n]))
 end
 
@@ -58,7 +57,12 @@ local function creatureSayCallback(cid, type, msg)
 	if not player then return false end
 	local texto = msg:lower()
 	local n = nivel(player)
-	if texto == "niveis" or texto == "nivel" or texto == "evolucao" then
+	if not P.classes[player:getVocation():getClientId()] then npcHandler:say('Escolha uma vocacao primeiro.', cid); return true end
+	if texto == "arsenal" then
+		if JV_ARSENAL then JV_ARSENAL.catalogo(player) end
+		npcHandler:say('As hunts de Ascensao guardam armas da sua classe. Use !arsenal para consultar e resgatar com fragmentos.', cid)
+		topico[cid] = nil
+	elseif texto == "niveis" or texto == "nivel" or texto == "evolucao" then
 		npcHandler:say(niveis(player) .. " Quer {evoluir}?", cid)
 		topico[cid] = nil
 	elseif texto == "evoluir" then
@@ -66,8 +70,8 @@ local function creatureSayCallback(cid, type, msg)
 			npcHandler:say(string.format("Voce ja tem a %s, a ultima: ataque e defesa %dx.", NOMES[n], MULT[n]), cid)
 			topico[cid] = nil
 		else
-			npcHandler:say(string.format("Evoluir para a %s (ataque e defesa %dx) por 100.000 gold? {sim} ou {nao}",
-				NOMES[n + 1], MULT[n + 1]), cid)
+			npcHandler:say(string.format("Evoluir para a %s (ataque e defesa %dx) por %d gold, level %d? {sim} ou {nao}",
+				NOMES[n + 1], MULT[n + 1], P.precos[n + 1], P.levels[n + 1]), cid)
 			topico[cid] = n + 1
 		end
 	elseif texto == "sim" and topico[cid] then
@@ -75,10 +79,13 @@ local function creatureSayCallback(cid, type, msg)
 		topico[cid] = nil
 		if alvo ~= n + 1 then
 			npcHandler:say("Vamos de novo: diga {evoluir}.", cid)
-		elseif not pagar(player, PRECO) then
-			npcHandler:say("Voce precisa de 100.000 gold (na mochila ou no banco).", cid)
+		elseif player:getLevel() < P.levels[alvo] then
+			npcHandler:say('Volte no level ' .. P.levels[alvo] .. '.', cid)
+		elseif not pagar(player, P.precos[alvo]) then
+			npcHandler:say('Voce precisa de ' .. P.precos[alvo] .. ' gold (mochila ou banco).', cid)
 		else
 			player:setStorageValue(STORAGE, alvo)
+			if JV_EVOLUCAO and JV_EVOLUCAO.aplicar then JV_EVOLUCAO.aplicar(player) end
 			player:getPosition():sendMagicEffect(CONST_ME_MAGIC_RED)
 			player:getPosition():sendMagicEffect(CONST_ME_FIREWORK_YELLOW)
 			npcHandler:say(string.format("Pronto! Agora voce tem a %s: ataque contra monstros e defesa %dx.%s",
@@ -94,7 +101,7 @@ local function creatureSayCallback(cid, type, msg)
 	return true
 end
 
-npcHandler:setMessage(MESSAGE_GREET, "Ola |PLAYERNAME|! Eu evoluo sua classe em 4 niveis: cada um custa 100.000 gold e aumenta seu ataque e sua defesa (ate 10x). Diga {evoluir} ou {niveis}.")
+npcHandler:setMessage(MESSAGE_GREET, "Ola |PLAYERNAME|! Eu evoluo sua classe em 4 niveis: com level, outfit, velocidade e hits mais fortes (ate 10x); quem ja comprou mantem sua evolucao. Diga {evoluir}, {niveis} ou {arsenal} para conhecer suas novas armas.")
 npcHandler:setMessage(MESSAGE_FAREWELL, "Ate mais!")
 npcHandler:setMessage(MESSAGE_WALKAWAY, "Ate mais!")
 npcHandler:setCallback(CALLBACK_MESSAGE_DEFAULT, creatureSayCallback)

@@ -307,6 +307,8 @@ main() {
 	cp "$FONTE/schema.sql" "$SRV/schema.sql"
 	# Arquivos proprios do JV Baiak (sempre atualizados)
 	cp -a "$BASE/servidor-imagem/extras/." "$SRV/"
+	python3 "$BASE/servidor-imagem/ferramentas/registrar_ascensao.py" "$SRV/data" \
+		|| falha "nao consegui registrar as hunts de Ascensao"
 
 	lua_define() { # chave valor_lua
 		LC_ALL=C awk -v k="$1" -v v="$2" '
