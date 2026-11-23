@@ -144,6 +144,10 @@ local p=player();p.dados[P.storage]=0;assert(not H.podeEntrar(p,1))
 p.dados[P.storage]=4;p.nivel=1000
 for i=1,#P.hunts do assert(H.entrar(p,i),'conteudo maximo exige dupla') end
 p.locked=true;assert(not H.entrar(p,1));p.locked=false
+p.locked=true;move.onStepIn(p,{getActionId=function()return 47820 end},p.localidade,p.localidade)
+assert(p.msg:find('bloqueio de combate'));p.locked=false
+p.teleportFalha=true;move.onStepIn(p,{getActionId=function()return 47820 end},p.localidade,p.localidade)
+assert(p.msg:find('Nao foi possivel voltar'));p.teleportFalha=false
 p.teleportFalha=true;assert(not H.entrar(p,1));p.teleportFalha=false
 move.onStepIn(p,{getActionId=function()return 47820 end},p.localidade,p.localidade)
 assert(p.localidade.x==991 and p.localidade.y==1210,'volta nao leva ao templo')

@@ -130,14 +130,23 @@ function passo.onStepIn(creature,item,position,fromPosition)
     local player=creature:getPlayer()
     if not player then return true end
     local aid=item:getActionId()
-    if player:isPzLocked() then player:teleportTo(fromPosition,true); return true end
+    if player:isPzLocked() then
+        mensagem(player,'Aguarde o fim do bloqueio de combate para usar o portal.')
+        player:teleportTo(fromPosition,true); return true
+    end
     if aid==AID_VOLTA then
         local town=player:getTown()
-        if not town or not player:teleportTo(town:getTemplePosition()) then player:teleportTo(fromPosition,true) end
+        if not town or not player:teleportTo(town:getTemplePosition()) then
+            mensagem(player,'Nao foi possivel voltar ao templo. Tente novamente.')
+            player:teleportTo(fromPosition,true)
+        end
     elseif aid==AID_HUB then
-        if not H.hub then player:teleportTo(fromPosition,true); return true end
+        if not H.hub then mensagem(player,'Sala de Ascensao indisponivel.'); player:teleportTo(fromPosition,true); return true end
         local livre=H.livre(player,pos(P.hub,0,3),2)
-        if not livre or livre.x==0 or not player:teleportTo(livre) then player:teleportTo(fromPosition,true) end
+        if not livre or livre.x==0 or not player:teleportTo(livre) then
+            mensagem(player,'Entrada ocupada ou indisponivel; tente novamente.')
+            player:teleportTo(fromPosition,true)
+        end
     elseif not H.entrar(player,aid-AID_HUNT+1) then
         player:teleportTo(fromPosition,true)
     end
