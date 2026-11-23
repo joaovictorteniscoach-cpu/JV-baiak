@@ -132,6 +132,15 @@ for i,h in ipairs(P.hunts)do
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
  assert(Tile(Position(P.hub.x-6+(i-1)*3,P.hub.y,7)):getItemById(1387).aid==47800+i)
 end
+for i,h in ipairs(P.hunts)do
+ local chegada=Position(h.x-h.raio+3,h.y,7);local visiveis=0
+ for _,slot in ipairs(H.slots)do if slot.hunt.monstro==h.monstro then
+  local p=slot.pos;assert(math.abs(p.x-h.x)<h.raio and math.abs(p.y-h.y)<h.raio,'spawn fora da sala')
+  assert(not (p.x==chegada.x and p.y==chegada.y),'spawn na chegada')
+  if math.abs(p.x-chegada.x)<=7 and math.abs(p.y-chegada.y)<=5 then visiveis=visiveis+1 end
+ end end
+ assert(visiveis>=1,'nenhum monstro visivel na chegada da hunt '..i)
+end
 assert(spawnCount==total);H.repor();assert(spawnCount==total,'duplicou monstros vivos')
 assert(not H.criarSala(P.hub,8),'sobrescreveu tiles ocupados')
 local chegada=Position(P.hunts[1].x-P.hunts[1].raio+3,P.hunts[1].y,7)
@@ -140,6 +149,15 @@ local alternativa=H.livre(player(),chegada,2)
 assert(alternativa and not Tile(alternativa):getItemById(1387),'segunda pessoa desembarca no portal de volta')
 local h0=H.slots[1];monstros[h0.id]=nil;H.repor();assert(spawnCount==total,'respawn sem espera')
 local tempo=os.time;os.time=function()return tempo()+1000 end;H.repor();assert(spawnCount==total+1);os.time=tempo
+-- Reforco de portal antigo: exige destino identico e nunca cria em PZ/bloqueio.
+local conf=P.entradasReforcadas[1];local o,d=conf.origem,conf.destino
+local old=tile(Position(o[1],o[2],o[3]));old.chao=true
+old.itens={{id=1387,getDestination=function()return Position(d[1],d[2],d[3])end}}
+for dx=-7,7 do for dy=-7,7 do local t=tile(Position(d[1]+dx,d[2]+dy,d[3]));t.chao=true end end
+local bloqueio=Tile(Position(d[1]-3,d[2]-3,d[3]));bloqueio.bloqueado=true
+local antes=#H.slots;H.reforcarEntradas();assert(#H.slots==antes+2,'faltou reforco na entrada auditada')
+for i=antes+1,#H.slots do assert(not Tile(H.slots[i].pos).bloqueado and H.slots[i].hunt.monstro==conf.monstro)end
+H.reforcarEntradas();assert(#H.slots==antes+2,'duplicou reforco de portal')
 local p=player();p.dados[P.storage]=0;assert(not H.podeEntrar(p,1))
 p.dados[P.storage]=4;p.nivel=1000
 for i=1,#P.hunts do assert(H.entrar(p,i),'conteudo maximo exige dupla') end
