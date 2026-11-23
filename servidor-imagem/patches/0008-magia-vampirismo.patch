@@ -8,7 +8,7 @@
 +		// O limite por acerto evita curas desproporcionais em dano de area.
 +		Monster* vampTarget = target->getMonster();
 +		if (attackerPlayer && attackerPlayer->getHealth() > 0 && vampTarget && !vampTarget->getMaster() &&
-+		    attackerPlayer->getCondition(CONDITION_ATTRIBUTES, CONDITIONID_COMBAT, 8420)) {
++		    attackerPlayer->getCondition(CONDITION_REGENERATION, CONDITIONID_COMBAT, 8420)) {
 +			const int32_t cura = std::min<int32_t>(realDamage / 10, attackerPlayer->getMaxHealth() / 10);
 +			if (cura > 0) {
 +				attackerPlayer->gainHealth(attackerPlayer, cura);

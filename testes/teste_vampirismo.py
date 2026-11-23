@@ -23,7 +23,7 @@ class Vampirismo(unittest.TestCase):
 
     def test_magia_ativa_a_condicao_correta(self):
         lua=LuaRuntime();lua.execute('''
-          CONDITION_ATTRIBUTES=1; CONDITION_PARAM_SUBID=2; CONDITION_PARAM_TICKS=3
+          CONDITION_REGENERATION=1; CONDITION_PARAM_SUBID=2; CONDITION_PARAM_TICKS=3
           CONDITION_PARAM_BUFF_SPELL=4; CONST_ME_MAGIC_RED=5
           function Condition() return {params={},setParameter=function(s,k,v)s.params[k]=v end} end
           p={addCondition=function(s,c)s.condition=c end,getPosition=function()return {sendMagicEffect=function()end} end}
@@ -39,7 +39,7 @@ class Vampirismo(unittest.TestCase):
         source='\n'.join(lines)
         source=source[source.index('Monster* vampTarget'):]
         source=source[:source.rindex('\n\t\t}')+4]
-        cpp='''#include <algorithm>\n#include <cstdint>\n#include <cassert>\nconstexpr int CONDITION_ATTRIBUTES=1,CONDITIONID_COMBAT=0;\nstruct Monster {bool summon=false; void* getMaster(){return summon ? this : nullptr;}};\nstruct Target {Monster* m; Monster* getMonster(){return m;}};\nstruct Player {int hp=500,maxhp=1000; bool active=true; int getHealth(){return hp;} int getMaxHealth(){return maxhp;} bool getCondition(int,int,int id){return active && id==8420;} void gainHealth(Player*,int n){hp=std::min(maxhp,hp+n);}};\nvoid aplicar(Player* attackerPlayer,Target* target,int32_t realDamage){\n'''+source+'''\n}\nint main(){Player p;Monster m;Target t{&m};aplicar(&p,&t,300);assert(p.hp==530);aplicar(&p,&t,5000);assert(p.hp==630);p.active=false;aplicar(&p,&t,500);assert(p.hp==630);p.active=true;m.summon=true;aplicar(&p,&t,500);assert(p.hp==630);m.summon=false;t.m=nullptr;aplicar(&p,&t,500);assert(p.hp==630);}\n'''
+        cpp='''#include <algorithm>\n#include <cstdint>\n#include <cassert>\nconstexpr int CONDITION_REGENERATION=1,CONDITIONID_COMBAT=0;\nstruct Monster {bool summon=false; void* getMaster(){return summon ? this : nullptr;}};\nstruct Target {Monster* m; Monster* getMonster(){return m;}};\nstruct Player {int hp=500,maxhp=1000; bool active=true; int getHealth(){return hp;} int getMaxHealth(){return maxhp;} bool getCondition(int,int,int id){return active && id==8420;} void gainHealth(Player*,int n){hp=std::min(maxhp,hp+n);}};\nvoid aplicar(Player* attackerPlayer,Target* target,int32_t realDamage){\n'''+source+'''\n}\nint main(){Player p;Monster m;Target t{&m};aplicar(&p,&t,300);assert(p.hp==530);aplicar(&p,&t,5000);assert(p.hp==630);p.active=false;aplicar(&p,&t,500);assert(p.hp==630);p.active=true;m.summon=true;aplicar(&p,&t,500);assert(p.hp==630);m.summon=false;t.m=nullptr;aplicar(&p,&t,500);assert(p.hp==630);}\n'''
         with tempfile.TemporaryDirectory() as temp:
             f=Path(temp)/'teste.cpp';f.write_text(cpp)
             subprocess.run(['g++','-std=c++17',str(f),'-o',str(Path(temp)/'teste')],check=True)
