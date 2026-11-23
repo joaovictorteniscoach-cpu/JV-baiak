@@ -113,13 +113,14 @@ local player = {getStorageValue=function(self,s) return dados[s] or -1 end,
     setStorageValue=function(self,s,v) dados[s]=v end,
     sendTextMessage=function(self,t,m) mensagens[#mensagens+1]=m end,
     isUsingOtClient=function() return true end, sendExtendedOpcode=function() end,
-    getId=function() return 1 end, getBankBalance=function() return 0 end,
+    getId=function() return 1 end, getGuid=function() return 42 end, getBankBalance=function() return 0 end,
     setBankBalance=function(self,v) self.banco=v end, showTextDialog=function(self,id,t) self.dialogo=t end,
     getTown=function() return {getId=function()return 1 end} end,
     getDepotChest=function() return {} end}
 function Player() return player end
-local item={getId=function()return 2498 end,isContainer=function()return false end,getCustomAttribute=function()return nil end,
-    setCustomAttribute=function()end,getType=function()return {isStackable=function()return false end}end,
+local marcas={}
+local item={getId=function()return 2498 end,isContainer=function()return false end,getCustomAttribute=function(_,k)return marcas[k] end,
+    setCustomAttribute=function(_,k,v)marcas[k]=v end,getType=function()return {isStackable=function()return false end}end,
     getWorth=function()return 0 end,getCount=function()return 1 end,
     moveTo=function()movimentos=movimentos+1;return true end}
 local corpo={getSize=function()return 1 end,getItem=function()return item end,
@@ -139,6 +140,7 @@ carregar('servidor-imagem/extras/data/scripts/custom/jv_loot.lua'); matar()
 check(movimentos==0, 'Perdeu exclusao persistente')
 comando.onSay(player,'!loot','permitir, 2498'); matar()
 check(movimentos==1 and dados[79300]==0, 'Permitir nao restaurou a coleta')
+check(marcas.jvLootColetado==1 and marcas.jvLootDono==42 and marcas.jvLootRaro==1, 'Loot recolhido nao recebeu marcas de origem, dono e raridade')
 comando.onSay(player,'!loot','ignorar, gold coin')
 item.getId=function()return 2148 end;item.getWorth=function()return 10 end
 item.remove=function()removidos=removidos+1 end
