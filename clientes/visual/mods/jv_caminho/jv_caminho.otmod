@@ -1,0 +1,8 @@
+Module
+  name: jv_caminho
+  description: Caminhada segura por campos de fogo e veneno
+  author: JV Baiak
+  scripts: [ jv_caminho ]
+  autoload: true
+  autoload-priority: 1000
+  sandboxed: true
