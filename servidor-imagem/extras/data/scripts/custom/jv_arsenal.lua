@@ -60,7 +60,7 @@ function A.criar(chave,n,container)
     item:setCustomAttribute('jvarmalevel',C.levels[n])
     item:setCustomAttribute('jvarmaevolucao',n)
     item:setCustomAttribute('jvarmaevostorage',C.evoStorage)
-    item:setCustomAttribute('jvascensaotier',n) -- autoloot raro e protecao do !venderloot
+    item:setCustomAttribute('jvascensaotier',n) -- autoloot raro; patamar IV protegido na venda
     return item
 end
 function A.sortear(corpse,hunt,indice)

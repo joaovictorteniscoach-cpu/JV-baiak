@@ -1,0 +1,35 @@
+--- a/src/item.cpp
++++ b/src/item.cpp
+@@ -194,8 +194,8 @@
+ 		return false;
+ 	}
+ 
+-	if (!attributes) {
+-		return !otherItem->attributes;
++	if (!attributes || attributes->attributeBits == 0) {
++		return !otherItem->attributes || otherItem->attributes->attributeBits == 0;
+ 	}
+ 
+ 	const auto& otherAttributes = otherItem->attributes;
+@@ -206,6 +206,21 @@
+ 	const auto& attributeList = attributes->attributes;
+ 	const auto& otherAttributeList = otherAttributes->attributes;
+ 	for (const auto& attribute : attributeList) {
++		// Compare os valores, nao os ponteiros dos mapas de atributos.
++		// Assim pilhas de loot igual unem entre si, mas nunca com suprimentos sem marca.
++		if (attribute.type == ITEM_ATTRIBUTE_CUSTOM) {
++			for (const auto& otherAttribute : otherAttributeList) {
++				if (otherAttribute.type != ITEM_ATTRIBUTE_CUSTOM) continue;
++				const auto& left = *attribute.value.custom;
++				const auto& right = *otherAttribute.value.custom;
++				if (left.size() != right.size()) return false;
++				for (const auto& entry : left) {
++					auto found = right.find(entry.first);
++					if (found == right.end() || entry.second.value != found->second.value) return false;
++				}
++			}
++			continue;
++		}
+ 		if (ItemAttributes::isStrAttrType(attribute.type)) {
+ 			for (const auto& otherAttribute : otherAttributeList) {
+ 				if (attribute.type == otherAttribute.type && *attribute.value.string != *otherAttribute.value.string) {

@@ -69,6 +69,7 @@ jobs:
           python testes/teste_intervalo_evolucao.py "$RUNNER_TEMP/servidor-progressao"
           python testes/teste_ascensao_arquivos.py "$RUNNER_TEMP/servidor-progressao"
           python testes/teste_arsenal_motor.py "$RUNNER_TEMP/servidor-progressao"
+          python testes/teste_empilhamento_loot.py "$RUNNER_TEMP/servidor-progressao"
           python - <<'PYTEST'
           from pathlib import Path
           from lupa.lua51 import LuaRuntime

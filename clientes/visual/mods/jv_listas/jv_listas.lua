@@ -23,6 +23,8 @@ local OPCOES = {
     {'Tirar das listas', function(id) falar('!venderloot remove, ' .. id); falar('!depot remove, ' .. id) end},
     {'Vender lista da mochila', function() falar('!venderloot mochila') end},
     {'Vender lista do depot', function() falar('!venderloot depot') end},
+    {'Vender loot da mochila', function() falar('!venderloot tudo mochila') end},
+    {'Vender loot do depot', function() falar('!venderloot tudo depot') end},
     {'Como vender raros', function() falar('!venderloot ajuda') end},
 }
 

@@ -106,20 +106,22 @@ function ItemType(v)
     local id = type(v)=='number' and v or nomes[v] or 0
     return {getId=function() return id end, getName=function() return id==2498 and 'royal helmet' or 'gold coin' end}
 end
-function MonsterType() return {getLoot=function() return {{itemId=2498,chance=10}} end} end
+local ehChefeTeste=true
+function MonsterType() return {getLoot=function() return {{itemId=2498,chance=10}} end,isBoss=function()return ehChefeTeste end,isRewardBoss=function()return false end} end
 JV_PRECOS={[2498]=5000}
 local dados, mensagens, movimentos, removidos = {[2000]=2498}, {}, 0,0
 local player = {getStorageValue=function(self,s) return dados[s] or -1 end,
     setStorageValue=function(self,s,v) dados[s]=v end,
     sendTextMessage=function(self,t,m) mensagens[#mensagens+1]=m end,
     isUsingOtClient=function() return true end, sendExtendedOpcode=function() end,
-    getId=function() return 1 end, getBankBalance=function() return 0 end,
+    getId=function() return 1 end, getGuid=function() return 42 end, getBankBalance=function() return 0 end,
     setBankBalance=function(self,v) self.banco=v end, showTextDialog=function(self,id,t) self.dialogo=t end,
     getTown=function() return {getId=function()return 1 end} end,
     getDepotChest=function() return {} end}
 function Player() return player end
-local item={getId=function()return 2498 end,isContainer=function()return false end,getCustomAttribute=function()return nil end,
-    setCustomAttribute=function()end,getType=function()return {isStackable=function()return false end}end,
+local marcas={}
+local item={getId=function()return 2498 end,isContainer=function()return false end,getCustomAttribute=function(_,k)return marcas[k] end,
+    setCustomAttribute=function(_,k,v)marcas[k]=v end,getType=function()return {isStackable=function()return false end}end,
     getWorth=function()return 0 end,getCount=function()return 1 end,
     moveTo=function()movimentos=movimentos+1;return true end}
 local corpo={getSize=function()return 1 end,getItem=function()return item end,
@@ -139,10 +141,20 @@ carregar('servidor-imagem/extras/data/scripts/custom/jv_loot.lua'); matar()
 check(movimentos==0, 'Perdeu exclusao persistente')
 comando.onSay(player,'!loot','permitir, 2498'); matar()
 check(movimentos==1 and dados[79300]==0, 'Permitir nao restaurou a coleta')
+check(marcas.jvLootColetado==1 and marcas.jvLootDono==42 and marcas.jvLootRaro==1, 'Loot recolhido nao recebeu marcas de origem, dono e raridade')
+marcas={};ehChefeTeste=false;matar()
+check(marcas.jvLootColetado==1 and not marcas.jvLootRaro, 'Loot raro comum foi protegido como item de chefe')
 comando.onSay(player,'!loot','ignorar, gold coin')
 item.getId=function()return 2148 end;item.getWorth=function()return 10 end
 item.remove=function()removidos=removidos+1 end
 matar(); check(removidos==0, 'Moeda ignorada foi recolhida')
+comando.onSay(player,'!loot','permitir, gold coin')
+player.banco=0
+item.remove=function()removidos=removidos+1;return false end
+matar();check(player.banco==0,'Creditou moeda que nao conseguiu remover')
+item.remove=function()removidos=removidos+1;return true end
+matar();check(player.banco==10,'Nao creditou moeda removida')
+comando.onSay(player,'!loot','ignorar, gold coin')
 comando.onSay(player,'!loot','ignorar, item inexistente')
 check(mensagens[#mensagens]:find('desconhecido'), 'Aceitou item invalido')
 comando.onSay(player,'!loot','ignorados'); check(player.dialogo:find('2148'), 'Lista nao mostra ignorados')

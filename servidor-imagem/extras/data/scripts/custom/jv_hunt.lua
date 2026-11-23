@@ -3,7 +3,7 @@
 --
 --   !hunt          XP/h, gold/h, monstros mortos e tempo desde que voce entrou
 --   !hunt reset    zera a contagem (ex.: ao chegar numa hunt nova)
---   !venderloot    vende da mochila somente itens da lista que o Mercador Ze compra;
+--   !venderloot tudo mochila|depot: vende loot identificado, exceto raros protegidos;
 --                  o dinheiro vai para o banco (espera 1 minuto entre uma venda e outra)
 --   !depot         manda itens da mochila para o seu depot (1 vez por hora)
 --
@@ -176,21 +176,30 @@ local function comandoDeLista(player, qual, param, comando)
 end
 
 -- ---------------------------------------------------------------- !venderloot
--- Venda exige lista explicita; itens nomeados/reforcados so sao vendidos com
--- o parametro "raros" nessa venda. A lista identifica o ID base do item.
-local function venderDe(container, total, so, incluirRaros)
+-- A lista continua disponivel. A venda geral exige a marca do autoloot;
+-- so a venda pela lista permite escolher raros. O ID identifica a familia base.
+local function venderDe(container, total, so, incluirRaros, dono)
     for i = container:getSize() - 1, 0, -1 do
         local item = container:getItem(i)
         if item then
-            local preco = JV_PRECOS and JV_PRECOS[item:getId()]
-            local protegido = item:getCustomAttribute('jvAscensaoTier') or item:getCustomAttribute('jvLootRaro')
+            local tier = tonumber(item:getCustomAttribute('jvAscensaoTier') or 0) or 0
+            local protegido = tier >= 4 or item:getCustomAttribute('jvLootRaro')
+            local identificado = item:getCustomAttribute('jvLootColetado') and item:getCustomAttribute('jvLootDono') == dono
             if protegido and not incluirRaros then
                 total.protegidos=total.protegidos+1
-            elseif item:isContainer() and item:getSize()>0 then
-                venderDe(item,total,so,incluirRaros)
-            elseif preco and preco>0 and so[item:getId()] then
+            elseif item:isContainer() then
+                if item:getSize()>0 then venderDe(item,total,so,incluirRaros,dono) end
+            elseif not so and not identificado then
+                total.semIdentificacao=total.semIdentificacao+math.max(1,item:getCount())
+            elseif (not so or so[item:getId()]) and not (item.getWorth and item:getWorth()>0) then
+                local preco = JV_PRECOS and JV_PRECOS[item:getId()]
+                -- Sem preco, nunca converte suprimento comprado ou item antigo
+                -- sem marca em dinheiro: so loot marcado ou raro escolhido.
+                if (not preco or preco<=0) and (identificado or (protegido and incluirRaros)) then preco=100000 end
                 local quantidade=math.max(1,item:getCount())
-                if item:remove() then
+                if not preco or preco<=0 then
+                    total.semPreco=total.semPreco+quantidade
+                elseif item:remove() then
                     total.ouro=total.ouro+preco*quantidade
                     total.itens=total.itens+quantidade
                 end
@@ -203,17 +212,19 @@ local vender = TalkAction("!venderloot")
 function vender.onSay(player, words, param)
     if comandoDeLista(player, "venda", param, "Venda") then return false end
     local escolha=(param or ''):lower():gsub('^%s+',''):gsub('%s+$','')
-    local origem,incluirRaros
+    local origem,incluirRaros,todos
     if escolha=='' or escolha=='mochila' or escolha=='bag' then origem='mochila'
     elseif escolha=='depot' then origem='depot'
+    elseif escolha=='tudo mochila' or escolha=='tudo bag' then origem='mochila';todos=true
+    elseif escolha=='tudo depot' then origem='depot';todos=true
     elseif escolha=='mochila raros' or escolha=='bag raros' then origem='mochila';incluirRaros=true
     elseif escolha=='depot raros' then origem='depot';incluirRaros=true
     else
-        player:sendTextMessage(MSG,'[Venda] Use !venderloot mochila ou depot. Lista: add, nome | lista | remover, nome. Para incluir raros uma vez: mochila raros ou depot raros. Raros sao vendidos pelo preco base.')
+        player:sendTextMessage(MSG,'[Venda] Loot identificado: !venderloot tudo mochila ou tudo depot. Sem preco cadastrado: 100000 cada. Raros ficam protegidos. Para vender raros escolhidos: add, nome e mochila raros ou depot raros.')
         return false
     end
     local set,n=itensDaLista(player,'venda')
-    if n==0 then
+    if n==0 and not todos then
         player:sendTextMessage(MSG,'[Venda] Lista vazia: nenhum item vendido. Adicione com !venderloot add, nome.')
         return false
     end
@@ -230,17 +241,19 @@ function vender.onSay(player, words, param)
         player:sendTextMessage(MSG,'[Venda] '..(origem=='depot' and 'Depot da cidade vazio ou indisponivel.' or 'Equipe uma mochila.') )
         return false
     end
-    local total={ouro=0,itens=0,protegidos=0}
-    venderDe(recipiente,total,set,incluirRaros)
+    local total={ouro=0,itens=0,protegidos=0,semPreco=0,semIdentificacao=0}
+    local filtro
+    if not todos then filtro=set end
+    venderDe(recipiente,total,filtro,incluirRaros,player:getGuid())
     if total.itens==0 then
-        player:sendTextMessage(MSG,'[Venda] Nenhum item da lista foi vendido de '..origem..'. Raros protegidos: '..total.protegidos..'.')
+        player:sendTextMessage(MSG,'[Venda] Nenhum item '..(todos and 'identificado ' or 'da lista ')..'foi vendido de '..origem..'. Raros protegidos: '..total.protegidos..'; sem identificacao: '..total.semIdentificacao..'; sem preco: '..total.semPreco..'.')
         return false
     end
     player:setStorageValue(ESPERA_VENDA,agora()+60)
     player:setBankBalance(player:getBankBalance()+total.ouro)
     sessao(player).venda=sessao(player).venda+total.ouro
     player:getPosition():sendMagicEffect(CONST_ME_MAGIC_GREEN)
-    player:sendTextMessage(MSG,string.format('[Venda] %d item(ns) da lista vendidos do(a) %s por %s gold para o banco. Raros protegidos: %d.',total.itens,origem,formatar(total.ouro),total.protegidos))
+    player:sendTextMessage(MSG,string.format('[Venda] %d item(ns) %svendidos do(a) %s por %s gold para o banco. Raros protegidos: %d; sem identificacao: %d; sem preco: %d.',total.itens,todos and '' or 'da lista ',origem,formatar(total.ouro),total.protegidos,total.semIdentificacao,total.semPreco))
     return false
 end
 vender:separator(" ")
