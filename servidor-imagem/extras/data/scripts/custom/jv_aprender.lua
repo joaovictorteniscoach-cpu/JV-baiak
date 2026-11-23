@@ -33,6 +33,7 @@ local function carregar()
 end
 
 local function daVocacao(player, m)
+	if not next(m.vocacoes) then return true end
 	local voc = player:getVocation()
 	if not voc then return false end
 	local nome = voc:getName():lower()

@@ -55,6 +55,7 @@ function morte.onDeath(creature, corpse, killer, mostDamageKiller)
             local l = p:getPosition()
             if p:getHealth() > 0 and l.z == onde.z and math.max(math.abs(l.x-onde.x),math.abs(l.y-onde.y)) <= 20 then
                 JV_EVOLUCAO.abate(p)
+                if JV_MISSOES then JV_MISSOES.abate(p) end
                 if JV_ARSENAL then JV_ARSENAL.creditar(p,hunt) end
             end
         end

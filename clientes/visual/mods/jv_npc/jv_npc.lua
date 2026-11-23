@@ -232,6 +232,15 @@ local function abrirMenu(menuPosition, lookThing, useThing, criatura)
     if gi and gi.createThingMenu then pcall(gi.createThingMenu, menuPosition, lookThing, useThing, criatura) end
 end
 
+local function caminhar(destino)
+    local eu=g_game.getLocalPlayer()
+    if not eu or not destino then return false end
+    local a=JVAutoAtaque or (modules.jv_autoataque and modules.jv_autoataque.JVAutoAtaque)
+    if a and a.andarManual then pcall(a.andarManual,destino) end
+    local ok, resultado=pcall(function() return eu:autoWalk(destino) end)
+    return ok and resultado ~= false
+end
+
 local function gesto(menuPosition, mouseButton, lookThing, useThing, criatura)
     if not celular() or not criatura or not atalhoLivre() then return false end
     local eu = g_game.getLocalPlayer()
@@ -291,7 +300,10 @@ local function ligarToque()
             end)
             if ok and ehItem and posicao and posicao.x~=65535 then
                 local chave='item:'..posicao.x..':'..posicao.y..':'..posicao.z..':'..useThing:getId()
-                if not confirmou(chave) then return true end
+                if not confirmou(chave) then
+                    if autoWalkPos then caminhar(autoWalkPos) end
+                    return true
+                end
                 local abriu=pcall(function()
                     local c=useThing.isContainer and useThing:isContainer()
                     local corpse=useThing.isLyingCorpse and useThing:isLyingCorpse()
@@ -301,7 +313,9 @@ local function ligarToque()
                 if abriu then return true end
             end
         end
-        if autoWalkPos and toque and not criatura then
+        if celular() and autoWalkPos and toque and not criatura and atalhoLivre() and g_keyboard.getModifiers()==KeyboardNoModifier then
+            if caminhar(autoWalkPos) then return true end
+        elseif autoWalkPos and toque and not criatura then
             local a=JVAutoAtaque or (modules.jv_autoataque and modules.jv_autoataque.JVAutoAtaque)
             if a and a.andarManual then pcall(a.andarManual,autoWalkPos) end
         end

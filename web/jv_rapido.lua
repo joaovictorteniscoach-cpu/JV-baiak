@@ -65,6 +65,8 @@ local COMANDOS = {
     {'Vender lista depot', function() falar('!venderloot depot') end},
     {'Mandar pro depot', function() falar('!depot') end},
     {'Lucro da hunt', function() falar('!hunt') end},
+    {'Missao diaria', function() falar('!missao') end},
+    {'Resgatar missao', function() falar('!missao resgatar') end},
     {'Autoloot...', function() if JVAutoLoot and JVAutoLoot.alternar then pcall(JVAutoLoot.alternar) end end},
     {'Quem esta online', function() falar('!online') end},
 }

@@ -342,6 +342,9 @@ main() {
 	AJUSTES="$SRV/.jvbaiak-ajustes"
 	REINICIAR_SERVIDOR=0
 	touch "$AJUSTES"
+	VAMPIRISMO="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_vampirismo.py" "$SRV/data")" \
+		|| falha "nao consegui registrar a magia Vampirismo"
+	if [ "$VAMPIRISMO" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	if ! grep -qx 'pocoes-infinitas-v1' "$AJUSTES"; then
 		lua_define removeChargesFromPotions false
 		echo 'pocoes-infinitas-v1' >> "$AJUSTES"
