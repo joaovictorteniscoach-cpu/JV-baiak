@@ -34,6 +34,7 @@ int main(){
  add(2121,true,true);assert(jvCaminhoComCampo(t));add(9999,true,false);assert(jvCaminhoComCampo(t));
  add(9999,true,true);assert(!jvCaminhoComCampo(t));t->things.pop_back();
  add(2118,false,true);assert(!jvCaminhoComCampo(t));
+ t->things.clear();add(2118,true,false);assert(jvCaminhoComCampo(t));
  assert(jvCampoTransponivel(105)&&jvCampoTransponivel(10071));
  assert(!jvCampoTransponivel(2122)&&!jvCampoTransponivel(2129));
 }
