@@ -4,6 +4,13 @@ local H = JV_ASCENSAO
 local P = dofile('data/lib/jv_progressao.lua')
 local MSG = MESSAGE_STATUS_CONSOLE_BLUE
 local AID_HUB, AID_VOLTA, AID_HUNT, AID_ANDAR = 47800, 47820, 47801, 47830
+local AID_BOSS = 47900
+local bosses = {
+    {nome="Orshabaal", modelo="Portal Orshabaal", x=36000},
+    {nome="Ferumbras", modelo="Portal Ferumbras", x=36100},
+    {nome="Morgaroth", modelo="Portal Morgaroth", x=36200},
+    {nome="Ghazbaran", modelo="Portal Ghazbaran", x=36300},
+}
 local HUB_RAIO=17
 local QUANTIDADE_ANDAR={6,8,10,12,14}
 local placas={'Portal Infernal','Portal Abissal','Portal Ancestral','Portal Titas','Portal Soberano'}
@@ -157,6 +164,20 @@ function passo.onStepIn(creature,item,position,fromPosition)
             mensagem(player,'Entrada ocupada ou indisponivel; tente novamente.')
             player:teleportTo(fromPosition,true)
         end
+    elseif aid>AID_BOSS and aid<=AID_BOSS+#bosses then
+        local indice=aid-AID_BOSS
+        local sala=H.salasBoss and H.salasBoss[indice]
+        if not sala or player:getLevel()<300 then
+            mensagem(player, sala and "Bosses: necessario level 300." or "Sala de boss indisponivel.")
+            player:teleportTo(fromPosition,true); return true
+        end
+        local livre=H.livre(player,pos(sala,-7,0),2)
+        if not livre or not player:teleportTo(livre) then
+            mensagem(player,"Entrada ocupada; tente novamente."); player:teleportTo(fromPosition,true)
+        else
+            livre:sendMagicEffect(CONST_ME_TELEPORT)
+            mensagem(player,bosses[indice].nome..": portal de retorno a esquerda.")
+        end
     elseif aid==AID_ANDAR then
         local transicao=H.transicoes[chave(position)]
         local h=transicao and P.hunts[transicao.hunt]
@@ -181,7 +202,7 @@ function passo.onStepIn(creature,item,position,fromPosition)
     end
     return true
 end
-passo:aid(AID_HUB,AID_VOLTA,AID_ANDAR,47801,47802,47803,47804,47805); passo:register()
+passo:aid(AID_HUB,AID_VOLTA,AID_ANDAR,47801,47802,47803,47804,47805,47901,47902,47903,47904); passo:register()
 
 local comando=TalkAction('!ascensao')
 function comando.onSay(player,words,param)
@@ -363,6 +384,31 @@ function inicio.onStartup()
         if not H.areas[i] then print('[Ascensao] Area indisponivel: ' .. h.nome) end
     end
     if H.hub then
+        H.salasBoss={}
+        for i,b in ipairs(bosses) do
+            local sala={x=b.x,y=30000,z=7}
+            local entrada=pos(P.hub,-9+(i-1)*6,10)
+            if MonsterType(b.nome) and H.criarSala(sala,10) and portal(pos(sala,-8,0),AID_VOLTA)
+                and portal(entrada,AID_BOSS+i) then
+                H.salasBoss[i]=sala
+                H.slots[#H.slots+1]={hunt={monstro=b.nome,respawn=300},pos=pos(sala,0,0)}
+                if not Game.createNpc(b.modelo,pos(entrada,0,-2),false,false) then
+                    print('[Bosses] Nao foi possivel criar a identificacao de '..b.nome)
+                end
+            else
+                print('[Bosses] Sala indisponivel: '..b.nome)
+            end
+        end
+        -- No mapa original, Bosses foi ligado por engano a sala da Capita Cristina.
+        -- So corrigimos esse destino conhecido ou o portal originalmente vazio.
+        local antigo=Tile(Position(478,1379,6))
+        local tp=antigo and antigo:getItemById(1387)
+        local destino=tp and tp:getDestination()
+        if tp and tp:getActionId()==0 and (not destino or (destino.x==0 and destino.y==0)
+            or (destino.x==583 and destino.y==1242 and destino.z==7)) then
+            tp:setDestination(pos(P.hub,0,3))
+            print('[Bosses] Portal antigo ligado ao salao de bosses e hunts.')
+        end
         portal(pos(P.hub,0,6),AID_VOLTA)
         -- Entrada fisica perto do templo de Thunder City. Somente tile livre, sem
         -- item, casa ou criatura; nunca substituir um portal existente.
@@ -397,6 +443,9 @@ function nomes.onThink()
     if H.hub then
         for i,h in ipairs(P.hunts) do
             if H.areas[i] then lista[#lista+1]={p=posPortal(i),n='Lv '..h.level..' Evo '..h.evo} end
+        end
+        for i,b in ipairs(bosses) do
+            if H.salasBoss and H.salasBoss[i] then lista[#lista+1]={p=pos(P.hub,-9+(i-1)*6,10),n='Boss '..b.nome} end
         end
     end
     for _,v in ipairs(lista) do

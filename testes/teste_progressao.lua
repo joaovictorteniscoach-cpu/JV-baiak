@@ -30,7 +30,7 @@ local function item(id)
  return{id=id,attrs={},custom={},getType=function()return tipo end,getId=function()return id end,
   setAttribute=function(s,k,v)s.attrs[k]=v end,setCustomAttribute=function(s,k,v)s.custom[k:lower()]=v end,
   getCustomAttribute=function(s,k)return s.custom[k:lower()]end,setActionId=function(s,k)s.aid=k end,
-  getActionId=function(s)return s.aid end,isContainer=function()return false end,
+  getActionId=function(s)return s.aid or 0 end,getDestination=function(s)return s.destino end,setDestination=function(s,d)s.destino=d end,isContainer=function()return false end,
   getCount=function()return 1 end,remove=function(s)s.removido=true;return true end}
 end
 function ItemType(id)return item(id):getType()end
@@ -108,6 +108,9 @@ local function tile(v)
  tiles[key(v)]=t;return t
 end
 local velho=tile(Position(994,1206,7));velho.chao=true
+local portalBoss=tile(Position(478,1379,6));portalBoss.chao=true
+local tpBoss=item(1387);tpBoss.destino=Position(583,1242,7);portalBoss.itens={tpBoss}
+function MonsterType()return {} end
 Game.createTile=function(v)return Tile(v) or tile(v)end
 Game.createItem=function(id,q,v)
  local i=item(id)
@@ -127,7 +130,16 @@ dofile('data/scripts/custom/jv_ascensao.lua')
 local H=JV_ASCENSAO
 globais.JVAscensaoInicio.onStartup()
 assert(H.hub and H.entrada and Tile(H.entrada)==velho)
-local total=0
+assert(tpBoss.destino.x==P.hub.x and tpBoss.destino.y==P.hub.y+3, "portal Bosses aponta para NPCs")
+for i=1,4 do
+ local sala=assert(H.salasBoss[i],"sala de boss ausente")
+ assert(Tile(Position(P.hub.x-9+(i-1)*6,P.hub.y+10,7)):getItemById(1387).aid==47900+i)
+ assert(Tile(Position(sala.x-8,sala.y,sala.z)):getItemById(1387).aid==47820)
+ local visitante=player();visitante.nivel=300
+ move.onStepIn(visitante,{getActionId=function()return 47900+i end},Position(0,0,0),visitante.localidade)
+ assert(visitante.localidade.x==sala.x-7,"entrada do boss falhou")
+end
+local total=4
 for i,h in ipairs(P.hunts)do
  assert(H.areas[i]);total=total+(h.boss and 37 or 50)
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
