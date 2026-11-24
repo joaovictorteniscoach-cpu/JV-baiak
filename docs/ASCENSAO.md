@@ -1,6 +1,6 @@
 # Ascensão: classes, hunts e equipamentos
 
-Implementação para revisão antes de atualizar a VPS. Mantém auto pot, auto ataque, autoloot, poções infinitas, mapa existente e interface. As mudanças de outfit solicitadas usam desenhos clássicos 8.60, sem arquivos de sprites novos.
+Guia das evoluções e hunts de Ascensão. Mantém auto pot, auto ataque, autoloot, poções infinitas, mapa existente e interface. As mudanças de outfit usam desenhos clássicos 8.60, sem arquivos de sprites novos.
 
 ## O que foi encontrado na versão atual
 
@@ -54,7 +54,7 @@ O portal de Ascensão é colocado em um tile vazio perto do templo de Thunder Ci
 
 **Vampirismo:** a partir do level 200, todas as vocações podem usar `utito vita sanguis` (250 de mana, duração de 20 segundos e recarga de 60 segundos). Recupera 10% do dano efetivo causado a monstros não invocados, limitado a 10% da vida máxima por acerto. Não funciona em PvP nem com dano de invocações. O valor é aplicado depois de defesas e limitado à vida restante do monstro. O balanceamento inicial deve ser acompanhado em jogo.
 
-As salas são criadas no startup em coordenadas reservadas 30000–30516, com chão de mármore e paredes clássicas. O sistema confere todos os tiles antes de criar a sala; se houver colisão com mapa customizado, a área fica indisponível. Não substitui o mapa OTBM, casas ou hunts existentes. Cada andar tem respectivamente 6, 8, 10, 12 ou 14 monstros; no quinto andar do Trono o Soberano continua único, com respawn de 300 segundos. As demais hunts mantêm seus intervalos de respawn. Parte nasce a poucos quadrados da chegada e os demais ficam espalhados. Não há spawn forçado sobre jogadores. A chegada escolhe tile livre e evita o portal de retorno, inclusive para a segunda pessoa da dupla.
+As salas são criadas no startup em áreas reservadas, com chão de mármore e paredes clássicas. O sistema confere todos os tiles antes de criar a sala; se houver colisão com mapa customizado, a área fica indisponível. Não substitui o mapa OTBM, casas ou hunts existentes. Cada andar tem respectivamente 6, 8, 10, 12 ou 14 monstros; no quinto andar do Trono o Soberano continua único, com respawn de 300 segundos. As demais hunts mantêm seus intervalos de respawn. Parte nasce a poucos quadrados da chegada e os demais ficam espalhados. Não há spawn forçado sobre jogadores. A chegada escolhe tile livre e evita o portal de retorno, inclusive para a segunda pessoa da dupla.
 
 Das 67 entradas antigas identificadas como hunts no mapa fixado, dez tinham zero ou um monstro a até sete quadrados da chegada. Cada uma recebeu até dois monstros evoluídos da família daquela hunt, em posições acessíveis e fora de zonas protegidas, casas e teleportes. Entradas para templos, cidades, eventos e o boss Ashmunrah não recebem reforços. Se o portal da VPS tiver outro destino ou faltar posição segura, o reforço é ignorado e o servidor registra o motivo no log. As oito variantes usam o sprite original, aproximadamente 35% mais vida que a versão base já dobrada, 30% mais dano nos valores configurados e 30% mais experiência; conservam o loot da família e não concedem fragmentos da Ascensão. Os bônus não se aplicam a todos os ataques especiais que não usam valores numéricos no XML.
 
@@ -77,7 +77,7 @@ Ataque, defesa e armadura são atributos reais da instância; itens normais do m
 
 Wands/rods e distância recebem poder proporcional nas suas fórmulas de dano, usando o melhor bônus equipado, sem somar duas armas. No Knight, o aumento já entra pelos atributos da arma, sem duplicar esse bônus.
 
-O item nasce no corpo, preserva o dono do loot e é reconhecido como raro pelo autoloot. A regra de ignorar continua tendo precedência. `!venderloot` vende somente itens da lista e preserva equipamentos reforçados, salvo escolha explícita para incluí-los.
+O item nasce no corpo, preserva o dono do loot e é reconhecido como raro pelo autoloot. A regra de ignorar continua tendo precedência. A venda geral considera apenas loot identificado desse personagem; a venda por lista permite escolher itens. O patamar IV e raros de chefes reconhecidos permanecem protegidos até uma venda explícita. Veja as condições em [Arsenal de Ascensão](ARSENAL.md).
 
 ## Instalação e testes
 

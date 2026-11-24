@@ -183,11 +183,14 @@ for i,h in ipairs(P.hunts) do
   local saida=Position(origem.x+h.raio-2,origem.y,origem.z)
   move.onStepIn(p,{getActionId=function()return 47830 end},saida,p.localidade)
   assert(p.localidade.x==alvo.x-h.raio+3 and p.localidade.z==alvo.z,'portal de avanco falhou na hunt '..i..' andar '..andar)
+  if andar==4 then assert(p.msg:find('andar 5/5') and not p.msg:find('Direita:'),'orientacao incorreta no ultimo andar') end
   local retorno=Position(alvo.x-h.raio+2,alvo.y,alvo.z)
   move.onStepIn(p,{getActionId=function()return 47830 end},retorno,p.localidade)
   assert(p.localidade.x==origem.x+h.raio-3 and p.localidade.z==origem.z,'portal de retorno falhou na hunt '..i..' andar '..andar)
  end
 end
+comandos['!ascensao'].onSay(p,'!ascensao','')
+assert(p.dialogo:find('cinco andares') and p.dialogo:find('!arsenal') and p.dialogo:find('volta ao templo') and p.dialogo:find('A partir do segundo andar'),'guia das hunts incompleto')
 local sala=H.andares[1][1];local avancar=Position(sala.x+P.hunts[1].raio-2,sala.y,sala.z)
 move.onStepIn(p,{getActionId=function()return 47830 end},avancar,p.localidade)
 assert(p.localidade.z==8 and p.localidade.x==H.andares[1][2].x-P.hunts[1].raio+3,'portal nao avancou ao segundo andar')

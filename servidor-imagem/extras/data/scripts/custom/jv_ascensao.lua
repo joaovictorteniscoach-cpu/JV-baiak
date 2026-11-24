@@ -130,7 +130,7 @@ function H.entrar(player, indice)
     if not destino or destino.x==0 or not Tile(destino) then mensagem(player,'Entrada ocupada; tente novamente.'); return false end
     if not player:teleportTo(destino) then mensagem(player,'Nao foi possivel viajar.'); return false end
     destino:sendMagicEffect(CONST_ME_TELEPORT)
-    mensagem(player,h.nome .. ' - andar 1/5. Portal da direita avanca; o da esquerda volta ao templo.')
+    mensagem(player,h.nome .. ' - andar 1/5. Direita: proximo andar. Esquerda: voltar ao templo.')
     return true
 end
 
@@ -172,7 +172,9 @@ function passo.onStepIn(creature,item,position,fromPosition)
             mensagem(player,'Entrada ocupada; tente novamente.');player:teleportTo(fromPosition,true)
         else
             livre:sendMagicEffect(CONST_ME_TELEPORT)
-            mensagem(player,h.nome..' - andar '..transicao.andar..'/5. Direita: proximo; esquerda: anterior.')
+            local orientacao=transicao.andar==5 and 'Esquerda: andar anterior. Portal acima da entrada: templo.'
+                or 'Direita: proximo andar. Esquerda: andar anterior. Portal acima da entrada: templo.'
+            mensagem(player,h.nome..' - andar '..transicao.andar..'/5. '..orientacao)
         end
     elseif not H.entrar(player,aid-AID_HUNT+1) then
         player:teleportTo(fromPosition,true)
@@ -192,7 +194,12 @@ function comando.onSay(player,words,param)
         local noHub=p.z==P.hub.z and math.max(math.abs(p.x-P.hub.x),math.abs(p.y-P.hub.y))<HUB_RAIO
         if perto or noHub then H.entrar(player,i) else mensagem(player,'Use o portal do templo ou volte ao templo para viajar.') end
     else
-        local linhas={'HUNTS NOVAS: procure o portal azul HUNTS NOVAS junto ao templo.', 'Cada hunt tem cinco andares; a dificuldade aumenta ao avancar.', 'Primeira hunt: level 300 e Evolucao I. !ascensao numero funciona no templo ou sala.'}
+        local linhas={'HUNTS NOVAS: procure o portal azul HUNTS NOVAS junto ao templo.',
+            'Cada hunt tem cinco andares; a dificuldade aumenta ao avancar.',
+            'Direita: proximo andar. Esquerda: andar anterior; no primeiro, volta ao templo.',
+            'A partir do segundo andar, o portal acima da entrada tambem volta ao templo.',
+            'Armas raras podem cair no corpo. Use !arsenal para ver a garantia e os requisitos.',
+            'Primeira hunt: level 300 e Evolucao I. !ascensao numero funciona no templo ou sala.'}
         if H.entrada then linhas[#linhas+1]='Portal no templo: x '..H.entrada.x..', y '..H.entrada.y..', andar '..H.entrada.z..'.' end
         for n,h in ipairs(P.hunts) do
             linhas[#linhas+1]=n .. '. ' .. h.nome .. ' - lv ' .. h.level .. ', Evo ' .. h.evo .. (h.dupla and ' (dupla recomendada)' or '')
