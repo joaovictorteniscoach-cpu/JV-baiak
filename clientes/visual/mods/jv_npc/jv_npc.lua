@@ -235,6 +235,13 @@ end
 caminhar = function(destino)
     local eu=g_game.getLocalPlayer()
     if not eu or not destino then return false end
+    -- A rota manual tem prioridade tambem quando a caca automatica esta
+    -- desligada: o ataque manual pode ter deixado a perseguicao ativa.
+    pcall(function()
+        if g_game.isAttacking() and g_game.getChaseMode() == (ChaseOpponent or 1) then
+            g_game.setChaseMode(DontChase or 0)
+        end
+    end)
     local a=JVAutoAtaque or (modules.jv_autoataque and modules.jv_autoataque.JVAutoAtaque)
     if a and a.andarManual then pcall(a.andarManual,destino) end
     -- OTClientV8 precisa do modulo que permite atravessar campos. No cliente
