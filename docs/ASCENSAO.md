@@ -94,3 +94,5 @@ python testes/teste_ascensao_arquivos.py /tmp/servidor-progressao
 ```
 
 Os testes executam o Lua real, compilam as funções C++ reais do ataque e conferem os dados da versão fixada. Ainda é necessário conferir o combate, sprites, teleporte e dificuldade no cliente/servidor em execução antes de declarar o balanceamento final.
+
+O portal antigo `Bosses` de Premia fica na sala de portais ao sair do templo. Ele leva ao salao das hunts novas; os quatro portais de bosses ficam na fileira inferior, identificados por modelos de Orshabaal, Ferumbras, Morgaroth e Ghazbaran. Exigem level 300 e cada sala tem um portal de retorno ao templo. Os monstros usam as estatisticas e drops originais, com reaparecimento de 300 segundos apos a morte. No mapa original, o portal antes tinha sido ligado por engano a sala de NPCs; a correcao preserva destinos personalizados diferentes desse erro conhecido.

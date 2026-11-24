@@ -144,10 +144,9 @@ local VOLTAS = {
 
 -- teleportes do mapa sem destino (ou com destino fora do mapa): levam ao templo mais perto
 local CONSERTOS = {
-	-- com nome no chao e sem destino: Premia "NPCs" e "Bosses" (mesmo lugar dos de Thunder City)
+	-- Premia "NPCs" e "Bhark". O portal Bosses e configurado pela Ascensao.
 	-- e "Bhark" na sala das cidades
 	{destino = Position(633, 1239, 5), lugares = {{473, 1379, 6}}},
-	{destino = Position(583, 1242, 7), lugares = {{478, 1379, 6}}},
 	{destino = Position(1238, 1307, 3), lugares = {{827, 1408, 7}}},
 	{destino = Position(474, 1364, 7), lugares = {
 		{22, 1429, 6}, {31, 1182, 4}, {62, 1410, 7}, {81, 1956, 7}, {192, 1000, 7}, {193, 1865, 7}, {198, 1444, 8},
