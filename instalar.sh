@@ -528,6 +528,14 @@ main() {
 		PY
 		ok "respawn: 30 s (50x mais rapido que o original, nunca menos de 30 s)"
 	fi
+	# A marca em cada spawn torna a reducao idempotente em futuras atualizacoes.
+	if command -v python3 >/dev/null && [ -f "$BASE/servidor-imagem/ferramentas/acelerar_bosses.py" ]; then
+		BOSSES_MUDARAM="$(python3 "$BASE/servidor-imagem/ferramentas/acelerar_bosses.py" "$SRV/data" "$SRV"/data/world/*-spawn.xml)" || falha "Nao foi possivel atualizar os spawns de bosses"
+		if [ "$BOSSES_MUDARAM" -gt 0 ]; then
+			REINICIAR_SERVIDOR=1
+			ok "respawn dos bosses: $BOSSES_MUDARAM posicoes com o dobro de frequencia"
+		fi
+	fi
 	if ! grep -qx 'npcs-barracas-v1' "$AJUSTES" && command -v python3 >/dev/null \
 		&& [ -f "$BASE/servidor-imagem/ferramentas/npcs-barracas.txt" ]; then
 		# NPCs nas barracas dos mercados que estavam vazias (armas, ferramentas, armaduras,

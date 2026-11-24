@@ -1,4 +1,4 @@
--- Catalogo e conquista de armas. Sem sprites novos, venda em dinheiro ou janela nova.
+-- Catalogo, conquista e venda de armas com atributos individuais e sprites 8.60.
 JV_ARSENAL = JV_ARSENAL or {}
 local A=JV_ARSENAL
 local C=dofile('data/lib/jv_arsenal.lua')
@@ -133,6 +133,27 @@ function A.resgatar(player,chave,n)
     player:setStorageValue(key,saldo-custo)
     avisar(player,'Conquistou '..f.nomes[n]..'! '..detalhes(f,n))
     return true
+end
+-- A entrega e feita antes do debito; em qualquer falha o item e removido.
+function A.comprar(player,chave,n)
+    local f=familia(chave)
+    if not f or type(n)~='number' or n~=math.floor(n) or not C.precosLoja[n] then return false,'Item invalido.' end
+    local valor=C.precosLoja[n]
+    local dinheiro,banco=player:getMoney(),player:getBankBalance()
+    if dinheiro+banco<valor then return false,'Precisa de '..valor..' gold na mochila e no banco.' end
+    local mochila=player:getSlotItem(CONST_SLOT_BACKPACK)
+    if not mochila or not mochila:isContainer() then return false,'Equipe uma mochila com espaco.' end
+    local item=A.criar(chave,n)
+    if not item then return false,'Nao foi possivel criar a arma.' end
+    if mochila:addItemEx(item)~=RETURNVALUE_NOERROR then
+        item:remove();return false,'Mochila cheia ou capacidade insuficiente.'
+    end
+    local daMochila=math.min(dinheiro,valor)
+    if daMochila>0 and not player:removeMoney(daMochila) then
+        item:remove();return false,'Nao foi possivel retirar o dinheiro.'
+    end
+    if valor>daMochila then player:setBankBalance(banco-(valor-daMochila)) end
+    return true,f.nomes[n]..' entregue. '..detalhes(f,n)
 end
 function A.catalogo(player)
     local classe=player:getVocation():getClientId()
