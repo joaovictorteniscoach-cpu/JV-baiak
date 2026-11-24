@@ -143,7 +143,8 @@ local total=4
 for i,h in ipairs(P.hunts)do
  assert(H.areas[i]);total=total+(h.boss and 37 or 50)
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
- assert(Tile(Position(P.hub.x-12+(i-1)*6,P.hub.y,7)):getItemById(1387).aid==47800+i)
+ local hubPortal=i<=5 and Position(P.hub.x-12+(i-1)*6,P.hub.y,7) or Position(P.hub.x-9+(i-6)*6,P.hub.y-10,7)
+ assert(Tile(hubPortal):getItemById(1387).aid==47800+i)
  for andar=1,5 do
   local sala=H.andares[i][andar];assert(sala.z==h.z+andar-1)
   local volta=Tile(Position(sala.x-h.raio+2,sala.y,sala.z)):getItemById(1387)
@@ -157,7 +158,7 @@ end
 for i,h in ipairs(P.hunts)do
  local chegada=Position(h.x-h.raio+3,h.y,7);local visiveis=0
  local convidados=0
- for _,slot in ipairs(H.slots)do if slot.hunt.monstro==h.monstro then
+ for _,slot in ipairs(H.slots)do if slot.hunt.spotIndice==i then
   if h.convidado and slot.nome==h.convidado then convidados=convidados+1 end
   local p=slot.pos;local sala=H.andares[i][slot.andar]
   assert(sala and math.abs(p.x-sala.x)<h.raio and math.abs(p.y-sala.y)<h.raio and p.z==sala.z,'spawn fora da sala')
@@ -165,7 +166,7 @@ for i,h in ipairs(P.hunts)do
   if slot.andar==1 and math.abs(p.x-chegada.x)<=7 and math.abs(p.y-chegada.y)<=5 then visiveis=visiveis+1 end
  end end
  assert(visiveis>=1,'nenhum monstro visivel na chegada da hunt '..i)
- if h.convidado then assert(convidados>0 and H.monstros[h.convidado] and H.monstros[h.convidado].nome==h.nome,'monstro convidado ausente da hunt '..i) end
+ if h.convidado then assert(convidados>0 and H.monstros[h.convidado] and H.monstros[h.convidado].tier==h.tier,'monstro convidado ausente da hunt '..i) end
 end
 assert(spawnCount==total);H.repor();assert(spawnCount==total,'duplicou monstros vivos')
 assert(not H.criarSala(P.hub,8),'sobrescreveu tiles ocupados')
@@ -217,7 +218,7 @@ assert(p.msg:find('Nao foi possivel voltar'));p.teleportFalha=false
 p.teleportFalha=true;assert(not H.entrar(p,1));p.teleportFalha=false
 move.onStepIn(p,{getActionId=function()return 47820 end},p.localidade,p.localidade)
 assert(p.localidade.x==991 and p.localidade.y==1210,'volta nao leva ao templo')
-print('OK: 5 hunts, portals de ida/volta, area ocupada, respawn limitado e todo conteudo solo no topo')
+print('OK: 9 hunts, portals de ida/volta, area ocupada, respawn limitado e todo conteudo solo no topo')
 
 local espada=item(2400);H.reforcar(espada,4);assert(espada.attrs[ITEM_ATTRIBUTE_ATTACK]==72 and espada.attrs[ITEM_ATTRIBUTE_DEFENSE]==53)
 H.reforcar(espada,4);assert(espada.attrs[ITEM_ATTRIBUTE_ATTACK]==72,'reforco acumulou')

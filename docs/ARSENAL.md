@@ -88,3 +88,5 @@ python testes/teste_ascensao_arquivos.py /tmp/servidor-progressao
 ```
 
 Os testes cobrem as 28 variantes, requisitos, bônus por origem de dano, perda de level, resgate sem duplicação, falhas de capacidade/criação, fragmentos por patamar, dupla e proteção da venda em lote. O teste C++ compila as funções reais extraídas do código com os patches e confere o dano básico de wand/rod, requisitos e atributos. Também conferimos os IDs/tipos no XML da base fixada. Esses checks não substituem uma hunt real com personagens e equipamentos representativos para ajustar a dificuldade final.
+
+O NPC **Arsenal Ascensão**, junto ao Mestre das Classes no templo de Thunder City, vende as 28 armas por conversa: diga {armas}, escolha a família e o patamar e confirme {sim}. Os patamares I a IV custam, respectivamente, 500.000, 2.000.000, 8.000.000 e 30.000.000 de gold, usando mochila e banco. A compra permite trocar a arma; para equipar continuam valendo classe, level e evolução da peça.

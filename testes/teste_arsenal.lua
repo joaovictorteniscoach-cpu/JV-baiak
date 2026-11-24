@@ -52,6 +52,20 @@ local function mochila()
   addItemEx=function(s,i)if s.ret==0 then s.itens[#s.itens+1]=i end;s.ultimo=i;return s.ret end,
   getSize=function(s)return #s.itens end,getItem=function(s,i)return s.itens[i+1]end}
 end
+-- Loja: dinheiro misto, item correto, falhas e devolucao sem cobranca.
+do
+ local q=T.player(1);q.money=100000;q.banco=500000;q.inventario[10]=mochila()
+ local ok=A.comprar(q,'espada',1)
+ assert(ok and q.money==0 and q.banco==100000 and #q.inventario[10].itens==1)
+ assert(q.inventario[10].itens[1]:getCustomAttribute('jvarmaid')=='espada:1')
+ local saldo=q.banco;assert(not A.comprar(q,'espada',2) and q.banco==saldo)
+ q.banco=1000000;q.inventario[10].ret=1
+ assert(not A.comprar(q,'espada',1) and q.banco==1000000 and q.inventario[10].ultimo.removido)
+ q.inventario[10].ret=0;q.money=100000;q.removeMoney=function()return false end
+ assert(not A.comprar(q,'espada',1) and q.banco==1000000 and q.inventario[10].ultimo.removido)
+ assert(not A.comprar(q,'inexistente',1) and not A.comprar(q,'espada',9))
+end
+print('OK: loja, pagamento misto, arma correta e falhas sem cobranca')
 p=T.player(3);p.dados[C.evoStorage]=4;p.inventario[10]=mochila()
 local k=C.fragmentosStorage+3;p.dados[k]=C.custos[4]
 assert(not A.resgatar(p,'espada',4) and p.dados[k]==C.custos[4],'resgatou de outra classe')
@@ -144,3 +158,36 @@ for i=1,20 do T.eventos.JVArsenalClassico.onDeath(criatura,corpo,dem,dem) end
 assert(quantidade==antes+1 and dem:getStorageValue(79931)==0,'garantia do Demon falhou')
 math.random=azar
 print('OK: garantia por personagem, azar, corpo cheio e Demon')
+
+-- Dialogo da loja usa sessoes individuais, confirmacao e expira ao sair.
+do
+ local callbacks,respostas,compras={},{},{}
+ local handler={}
+ function handler:onCreatureAppear()end
+ function handler:onCreatureDisappear()end
+ function handler:onCreatureSay()end
+ function handler:onThink()end
+ function handler:isFocused()return true end
+ function handler:say(t,cid)respostas[cid]=t end
+ function handler:setMessage()end
+ function handler:setCallback(k,v)callbacks[k]=v end
+ function handler:addModule()end
+ NpcHandler={new=function()return handler end};KeywordHandler={new=function()return{}end}
+ FocusModule={new=function()return{}end};NpcSystem={parseParameters=function()end}
+ MESSAGE_GREET,MESSAGE_FAREWELL,MESSAGE_WALKAWAY=1,2,3
+ CALLBACK_MESSAGE_DEFAULT,CALLBACK_ONRELEASEFOCUS=4,5
+ local jogadores={[101]=T.player(1),[102]=T.player(2)}
+ local anterior=Player;Player=function(cid)return jogadores[cid]end
+ local comprar=A.comprar;A.comprar=function(p,f,n)compras[#compras+1]={p,f,n};return true,'Entregue.' end
+ assert(loadfile('servidor-imagem/extras/data/npc/scripts/jv_loja_arsenal.lua'))()
+ local fala=callbacks[CALLBACK_MESSAGE_DEFAULT];local sair=callbacks[CALLBACK_ONRELEASEFOCUS]
+ fala(101,1,'armas');assert(respostas[101]:find('{espada}',1,true))
+ fala(101,1,'espada');fala(101,1,'patamar 2');assert(respostas[101]:find('2000000',1,true))
+ fala(102,1,'sim');assert(#compras==0,'outro jogador confirmou compra')
+ fala(101,1,'sim');assert(#compras==1 and compras[1][2]=='espada' and compras[1][3]==2)
+ fala(101,1,'sim');assert(#compras==1,'compra repetida sem nova escolha')
+ fala(102,1,'arco');fala(102,1,'patamar 1');sair(102);fala(102,1,'sim');assert(#compras==1,'compra apos sair')
+ fala(102,1,'arco');fala(102,1,'patamar 1');fala(102,1,'nao');fala(102,1,'sim');assert(#compras==1,'compra apos cancelamento')
+ A.comprar=comprar;Player=anterior
+end
+print('OK: dialogo da loja por jogador, confirmacao e cancelamento')

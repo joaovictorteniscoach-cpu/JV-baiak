@@ -17,6 +17,21 @@ andares=importlib.util.module_from_spec(andares_spec);andares_spec.loader.exec_m
 
 
 class DadosAscensao(unittest.TestCase):
+    def test_respawn_bosses_idempotente_e_sem_alterar_comuns(self):
+        spec2=importlib.util.spec_from_file_location('bosses',ROOT/'servidor-imagem/ferramentas/acelerar_bosses.py')
+        bosses=importlib.util.module_from_spec(spec2);spec2.loader.exec_module(bosses)
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp);(data/'monster/Bosses').mkdir(parents=True);(data/'monster/Outros').mkdir()
+            (data/'monster/monsters.xml').write_text('<monsters><monster name="Ferumbras" file="Bosses/f.xml"/><monster name="Chef Especial" file="Outros/b.xml"/><monster name="Rat" file="Outros/r.xml"/></monsters>')
+            (data/'monster/Bosses/f.xml').write_text('<monster/>')
+            (data/'monster/Outros/b.xml').write_text('<monster><flags><flag isboss="1"/></flags></monster>')
+            (data/'monster/Outros/r.xml').write_text('<monster/>')
+            sp=data/'spawn.xml';sp.write_text('<spawns><spawn><monster name="Ferumbras" spawntime="30"/><monster name="Chef Especial" spawntime="45"/><monster name="Juggernaut" spawntime="60"/><monster name="Rat" spawntime="30"/><npc name="Ferumbras" spawntime="60"/></spawn></spawns>')
+            self.assertEqual(bosses.aplicar(data,[sp]),3)
+            once=sp.read_bytes();self.assertEqual(bosses.aplicar(data,[sp]),0);self.assertEqual(sp.read_bytes(),once)
+            tree=ET.fromstring(once);items=list(tree.find('spawn'))
+            self.assertEqual([e.get('spawntime') for e in items],['15','23','30','30','60'])
+
     def test_registro_drops_classicos_sem_substituir_loot(self):
         caminho=ROOT/'servidor-imagem/ferramentas/registrar_drops_classicos.py'
         spec2=importlib.util.spec_from_file_location('classicos',caminho)
@@ -108,7 +123,13 @@ class DadosAscensao(unittest.TestCase):
                 self.assertEqual(convidado.find('health').get('max'),r.find('health').get('max'))
                 self.assertEqual(convidado.find('script/event').get('name'),'JVAscensaoMorte')
         hunts=list(p['hunts'].values())
-        self.assertEqual(sum(bool(h['dupla']) for h in hunts),2)
+        self.assertEqual(len(hunts),9)
+        self.assertEqual(sum(bool(h['dupla']) for h in hunts),4)
+        for i in range(4):
+            self.assertEqual(hunts[i+5]['arsenalBase'],i+1)
+            self.assertEqual(hunts[i+5]['monstro'],hunts[i]['monstro'])
+            self.assertEqual(hunts[i+5]['tier'],hunts[i]['tier'])
+        self.assertEqual(hunts[4]['respawn'],150)
         for i,a in enumerate(hunts):
             for b in hunts[i+1:]:
                 self.assertGreater(abs(a['x']-b['x']),a['raio']+b['raio'])

@@ -16,7 +16,10 @@ local QUANTIDADE_ANDAR={6,8,10,12,14}
 local placas={'Portal Infernal','Portal Abissal','Portal Ancestral','Portal Titas','Portal Soberano'}
 H.areas, H.slots, H.monstros = H.areas or {}, H.slots or {}, H.monstros or {}
 local function pos(t, dx, dy) return Position(t.x+(dx or 0), t.y+(dy or 0), t.z) end
-local function posPortal(i) return pos(P.hub,-12+(i-1)*6,0) end
+local function posPortal(i)
+    if i<=5 then return pos(P.hub,-12+(i-1)*6,0) end
+    return pos(P.hub,-9+(i-6)*6,-10)
+end
 local function chave(p) return p.x .. ':' .. p.y .. ':' .. p.z end
 local function mensagem(p, s) p:sendTextMessage(MSG, '[Ascensao] ' .. s) end
 
@@ -202,7 +205,7 @@ function passo.onStepIn(creature,item,position,fromPosition)
     end
     return true
 end
-passo:aid(AID_HUB,AID_VOLTA,AID_ANDAR,47801,47802,47803,47804,47805,47901,47902,47903,47904); passo:register()
+passo:aid(AID_HUB,AID_VOLTA,AID_ANDAR,47801,47802,47803,47804,47805,47806,47807,47808,47809,47901,47902,47903,47904); passo:register()
 
 local comando=TalkAction('!ascensao')
 function comando.onSay(player,words,param)
@@ -316,7 +319,7 @@ function inicio.onStartup()
     H.entradasAtivas={}
     H.hub=H.criarSala(P.hub,HUB_RAIO)
     for i,h in ipairs(P.hunts) do
-        h.arsenalIndice=i
+        h.arsenalIndice=h.arsenalBase or i
         H.andares[i]={}
         local livres=H.hub
         for andar=1,5 do
@@ -332,9 +335,9 @@ function inicio.onStartup()
                 H.areas[i]=true
                 local primeiroSlot=#H.slots
                 local portaisOk=true
-                local modelo=pos(P.hub,-12+(i-1)*6,-2)
-                if not Game.createNpc(placas[i],modelo,false,false) then
-                    print('[Ascensao] Nao foi possivel criar identificacao: '..placas[i])
+                local modelo=pos(posPortal(i),0,-2)
+                if not Game.createNpc(placas[h.arsenalBase or i],modelo,false,false) then
+                    print('[Ascensao] Nao foi possivel criar identificacao: '..placas[h.arsenalBase or i])
                 end
                 for andar=1,5 do
                     local sala=H.andares[i][andar]
@@ -351,8 +354,8 @@ function inicio.onStartup()
                     end
                     local nivel={}
                     for chave,valor in pairs(h) do nivel[chave]=valor end
-                    nivel.andar=andar
-                    nivel.garantiaIndice=(h.boss and andar<5) and 6 or i
+                    nivel.andar=andar; nivel.spotIndice=i
+                    nivel.garantiaIndice=(h.boss and andar<5) and 6 or h.arsenalIndice
                     nivel.chance=h.chance*(0.6+0.1*(andar-1))
                     if h.boss and andar<5 then
                         nivel.tier=3;nivel.boss=false;nivel.respawn=50;nivel.chance=0.012*(0.6+0.1*(andar-1));nivel.arsenalIndice=4
@@ -391,7 +394,7 @@ function inicio.onStartup()
             if MonsterType(b.nome) and H.criarSala(sala,10) and portal(pos(sala,-8,0),AID_VOLTA)
                 and portal(entrada,AID_BOSS+i) then
                 H.salasBoss[i]=sala
-                H.slots[#H.slots+1]={hunt={monstro=b.nome,respawn=300},pos=pos(sala,0,0)}
+                H.slots[#H.slots+1]={hunt={monstro=b.nome,respawn=150},pos=pos(sala,0,0)}
                 if not Game.createNpc(b.modelo,pos(entrada,0,-2),false,false) then
                     print('[Bosses] Nao foi possivel criar a identificacao de '..b.nome)
                 end
@@ -442,7 +445,7 @@ function nomes.onThink()
     end
     if H.hub then
         for i,h in ipairs(P.hunts) do
-            if H.areas[i] then lista[#lista+1]={p=posPortal(i),n='Lv '..h.level..' Evo '..h.evo} end
+            if H.areas[i] then lista[#lista+1]={p=posPortal(i),n=(h.arsenalBase and 'Spot 2 ' or '')..'Lv '..h.level..' Evo '..h.evo} end
         end
         for i,b in ipairs(bosses) do
             if H.salasBoss and H.salasBoss[i] then lista[#lista+1]={p=pos(P.hub,-9+(i-1)*6,10),n='Boss '..b.nome} end
