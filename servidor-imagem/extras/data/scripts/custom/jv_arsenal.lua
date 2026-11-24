@@ -136,7 +136,9 @@ function A.resgatar(player,chave,n)
 end
 function A.catalogo(player)
     local classe=player:getVocation():getClientId()
-    local linhas={'ARSENAL DE ASCENSAO - sua proxima conquista','Drops nao sao multiplicados pelo loot 100x.','Arma garantida ate 20 abates sem arma na mesma hunt; no Soberano, ate 5. Demon e Juggernaut: ate 20 de cada.', 'Fragmentos e garantias ficam salvos no personagem.'}
+    local linhas={'ARSENAL DE ASCENSAO - sua proxima conquista','Arma garantida ate 20 abates validos sem arma na mesma hunt; no Soberano, ate 5. Demon e Juggernaut: ate 20 de cada.',
+        'A garantia conta para quem teve o maior dano ou, se indisponivel, para quem matou. A arma vai para o corpo; o autoloot pode recolher.',
+        'Se o corpo estiver cheio, a garantia continua para o proximo abate. Fragmentos e garantias ficam salvos no personagem.'}
     for n=1,4 do
         local saldo=math.max(0,player:getStorageValue(C.fragmentosStorage+n-1))
         linhas[#linhas+1]='\nPATAMAR '..n..' - '..C.origem[n]..'\nFragmentos: '..saldo..'/'..C.custos[n]
