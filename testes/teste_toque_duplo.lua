@@ -36,6 +36,13 @@ agora=4300;assert(tocar({},1,nil,nil,alavanca,nil,nil));assert(usos==1,'segundo 
 agora=5000;tocar({},1,{x=15,y=10,z=7},nil,nil,nil,nil);assert(pausas==1 and caminhadas==1 and originais==0,'andar foi bloqueado')
 agora=5500;tocar({},1,{x=12,y=10,z=7},nil,corpo,nil,nil);assert(caminhadas==2 and aberturas==1,'primeiro toque no corpo nao caminhou')
 agora=5700;tocar({},1,{x=12,y=10,z=7},nil,corpo,nil,nil);assert(aberturas==2 and caminhadas==2,'segundo toque nao abriu corpo')
+local caminhosCampo=0
+modules.jv_caminho={caminhar=function(_,destino)caminhosCampo=caminhosCampo+1;return true end}
+agora=5800;tocar({},1,{x=16,y=10,z=7},nil,nil,nil,nil)
+assert(caminhosCampo==1 and caminhadas==2,'toque ignorou o caminho que atravessa fogo e veneno')
+modules.jv_caminho.caminhar=function()return false end
+agora=5900;tocar({},1,{x=17,y=10,z=7},nil,nil,nil,nil)
+assert(caminhadas==3,'caminho padrao nao retomou quando nao ha rota especial')
 g_platform.isMobile=function()return false end
 agora=6000;tocar({},1,nil,nil,nil,monstro,nil);assert(originais==1 and ataques==1,'mudou clique PC')
 print('OK: dois toques para atacar, falar, abrir e usar; caminhada e PC preservados')

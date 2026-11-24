@@ -4,6 +4,7 @@ return {
     levels={400,600,800,1000}, evoStorage=79500,
     fragmentosStorage=79610, custos={200,250,300,12},
     chances={0.0035,0.005,0.0075,0.01,0.12},
+    garantiaHunt=20, garantiaBoss=5, garantiaClassico=20,
     -- Chances por morte, independentes do rate de loot global.
     classicos={demon={tier=1,chance=0.02},juggernaut={tier=2,chance=0.05}},
     magia={1.15,1.30,1.45,1.65}, distancia={1.15,1.30,1.45,1.65},

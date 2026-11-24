@@ -307,11 +307,12 @@ main() {
 	cp "$FONTE/schema.sql" "$SRV/schema.sql"
 	# Arquivos proprios do JV Baiak (sempre atualizados)
 	cp -a "$BASE/servidor-imagem/extras/." "$SRV/"
-	python3 "$BASE/servidor-imagem/ferramentas/registrar_ascensao.py" "$SRV/data" \
+	ANDARES_MUDARAM="$(python3 "$BASE/servidor-imagem/ferramentas/gerar_andares_ascensao.py" "$SRV/data")" \
+		|| falha "nao consegui preparar os cinco andares das hunts"
+	MONSTROS_REGISTRADOS="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_ascensao.py" "$SRV/data")" \
 		|| falha "nao consegui registrar as hunts de Ascensao"
 	DROPS_CLASSICOS="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_drops_classicos.py" "$SRV/data")" \
 		|| falha "nao consegui registrar drops de Demon e Juggernaut"
-	if [ "$DROPS_CLASSICOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 
 	lua_define() { # chave valor_lua
 		LC_ALL=C awk -v k="$1" -v v="$2" '
@@ -341,6 +342,9 @@ main() {
 	# Ajustes pedidos depois (cada um roda uma vez so; depois e voce quem manda)
 	AJUSTES="$SRV/.jvbaiak-ajustes"
 	REINICIAR_SERVIDOR=0
+	if [ "$ANDARES_MUDARAM" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
+	if [ "$MONSTROS_REGISTRADOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
+	if [ "$DROPS_CLASSICOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	touch "$AJUSTES"
 	VAMPIRISMO="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_vampirismo.py" "$SRV/data")" \
 		|| falha "nao consegui registrar a magia Vampirismo"

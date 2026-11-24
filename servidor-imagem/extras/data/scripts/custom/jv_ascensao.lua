@@ -3,8 +3,9 @@ JV_ASCENSAO = JV_ASCENSAO or {}
 local H = JV_ASCENSAO
 local P = dofile('data/lib/jv_progressao.lua')
 local MSG = MESSAGE_STATUS_CONSOLE_BLUE
-local AID_HUB, AID_VOLTA, AID_HUNT = 47800, 47820, 47801
+local AID_HUB, AID_VOLTA, AID_HUNT, AID_ANDAR = 47800, 47820, 47801, 47830
 local HUB_RAIO=17
+local QUANTIDADE_ANDAR={6,8,10,12,14}
 local placas={'Portal Infernal','Portal Abissal','Portal Ancestral','Portal Titas','Portal Soberano'}
 H.areas, H.slots, H.monstros = H.areas or {}, H.slots or {}, H.monstros or {}
 local function pos(t, dx, dy) return Position(t.x+(dx or 0), t.y+(dy or 0), t.z) end
@@ -66,7 +67,7 @@ function morte.onDeath(creature, corpse, killer, mostDamageKiller)
         local item = corpse:addItem(P.itens[math.random(#P.itens)],1)
         if item then H.reforcar(item,hunt.tier) end
     end
-    if JV_ARSENAL then JV_ARSENAL.sortear(corpse,hunt,hunt.arsenalIndice) end
+    if JV_ARSENAL then JV_ARSENAL.sortear(corpse,hunt,hunt.arsenalIndice,player) end
     return true
 end
 morte:register()
@@ -80,12 +81,17 @@ local function portal(p, aid)
     return true
 end
 
-function H.criarSala(sala, raio)
+function H.salaLivre(sala, raio)
     -- Verificar a sala inteira antes de criar o primeiro tile: falha fechada em
     -- mapas customizados que ja usam estas coordenadas.
     for dx=-raio,raio do for dy=-raio,raio do
         if Tile(pos(sala,dx,dy)) then return false end
     end end
+    return true
+end
+
+function H.criarSala(sala, raio)
+    if not H.salaLivre(sala,raio) then return false end
     for dx=-raio,raio do for dy=-raio,raio do
         local p=pos(sala,dx,dy)
         if not Game.createTile(p,true) or not Game.createItem(407,1,p) then return false end
@@ -124,7 +130,7 @@ function H.entrar(player, indice)
     if not destino or destino.x==0 or not Tile(destino) then mensagem(player,'Entrada ocupada; tente novamente.'); return false end
     if not player:teleportTo(destino) then mensagem(player,'Nao foi possivel viajar.'); return false end
     destino:sendMagicEffect(CONST_ME_TELEPORT)
-    mensagem(player,h.nome .. (h.dupla and ': recomendada para 2; solo na evolucao maxima.' or ': hunt solo.') .. ' Volte pelo portal azul na entrada.')
+    mensagem(player,h.nome .. ' - andar 1/5. Portal da direita avanca; o da esquerda volta ao templo.')
     return true
 end
 
@@ -151,12 +157,29 @@ function passo.onStepIn(creature,item,position,fromPosition)
             mensagem(player,'Entrada ocupada ou indisponivel; tente novamente.')
             player:teleportTo(fromPosition,true)
         end
+    elseif aid==AID_ANDAR then
+        local transicao=H.transicoes[chave(position)]
+        local h=transicao and P.hunts[transicao.hunt]
+        local sala=transicao and H.andares[transicao.hunt] and H.andares[transicao.hunt][transicao.andar]
+        local ok,erro=transicao and H.podeEntrar(player,transicao.hunt)
+        if not transicao or not h or not sala or not ok then
+            mensagem(player,erro or 'Andar indisponivel; tente novamente.')
+            player:teleportTo(fromPosition,true);return true
+        end
+        local x=transicao.lado=='direita' and h.raio-3 or -h.raio+3
+        local livre=H.livre(player,pos(sala,x,0),2)
+        if not livre or not player:teleportTo(livre) then
+            mensagem(player,'Entrada ocupada; tente novamente.');player:teleportTo(fromPosition,true)
+        else
+            livre:sendMagicEffect(CONST_ME_TELEPORT)
+            mensagem(player,h.nome..' - andar '..transicao.andar..'/5. Direita: proximo; esquerda: anterior.')
+        end
     elseif not H.entrar(player,aid-AID_HUNT+1) then
         player:teleportTo(fromPosition,true)
     end
     return true
 end
-passo:aid(AID_HUB,AID_VOLTA,47801,47802,47803,47804,47805); passo:register()
+passo:aid(AID_HUB,AID_VOLTA,AID_ANDAR,47801,47802,47803,47804,47805); passo:register()
 
 local comando=TalkAction('!ascensao')
 function comando.onSay(player,words,param)
@@ -169,7 +192,7 @@ function comando.onSay(player,words,param)
         local noHub=p.z==P.hub.z and math.max(math.abs(p.x-P.hub.x),math.abs(p.y-P.hub.y))<HUB_RAIO
         if perto or noHub then H.entrar(player,i) else mensagem(player,'Use o portal do templo ou volte ao templo para viajar.') end
     else
-        local linhas={'HUNTS NOVAS: procure o portal azul HUNTS NOVAS junto ao templo.', 'Primeira hunt: level 300 e Evolucao I. !ascensao numero funciona no templo ou sala.'}
+        local linhas={'HUNTS NOVAS: procure o portal azul HUNTS NOVAS junto ao templo.', 'Cada hunt tem cinco andares; a dificuldade aumenta ao avancar.', 'Primeira hunt: level 300 e Evolucao I. !ascensao numero funciona no templo ou sala.'}
         if H.entrada then linhas[#linhas+1]='Portal no templo: x '..H.entrada.x..', y '..H.entrada.y..', andar '..H.entrada.z..'.' end
         for n,h in ipairs(P.hunts) do
             linhas[#linhas+1]=n .. '. ' .. h.nome .. ' - lv ' .. h.level .. ', Evo ' .. h.evo .. (h.dupla and ' (dupla recomendada)' or '')
@@ -261,30 +284,72 @@ end
 local inicio=GlobalEvent('JVAscensaoInicio')
 inicio:type('startup')
 function inicio.onStartup()
-    H.areas,H.slots,H.monstros={},{},{}
+    H.areas,H.slots,H.monstros,H.andares,H.transicoes={},{},{},{},{}
     H.entradasAtivas={}
     H.hub=H.criarSala(P.hub,HUB_RAIO)
     for i,h in ipairs(P.hunts) do
         h.arsenalIndice=i
-        H.monstros[h.monstro]=h
-        if h.variante then H.monstros[h.variante]=h end
-        if h.convidado then H.monstros[h.convidado]=h end
-        if H.hub and H.criarSala(h,h.raio) and portal(pos(h,-h.raio+2,0),AID_VOLTA) then
-            H.areas[i]=true
-            if not portal(posPortal(i),AID_HUNT+i-1) then H.areas[i]=nil end
-            if H.areas[i] then
+        H.andares[i]={}
+        local livres=H.hub
+        for andar=1,5 do
+            -- Espaco entre andares evita que o teto de um obscureca o outro.
+            local sala={x=h.x+(andar-1)*1000,y=h.y,z=h.z+andar-1}
+            H.andares[i][andar]=sala
+            if not H.salaLivre(sala,h.raio) then livres=false end
+        end
+        if livres then
+            local criadas=true
+            for andar=1,5 do if not H.criarSala(H.andares[i][andar],h.raio) then criadas=false;break end end
+            if criadas and portal(posPortal(i),AID_HUNT+i-1) then
+                H.areas[i]=true
+                local primeiroSlot=#H.slots
+                local portaisOk=true
                 local modelo=pos(P.hub,-12+(i-1)*6,-2)
                 if not Game.createNpc(placas[i],modelo,false,false) then
                     print('[Ascensao] Nao foi possivel criar identificacao: '..placas[i])
                 end
-                for n=1,h.quantidade do
-                    -- Os primeiros monstros ficam visiveis a partir da chegada,
-                    -- sem ocupar o quadrado de entrada nem o portal de volta.
-                    local col=(n-1)%5
-                    local linha=math.floor((n-1)/5)
-                    local dx=h.boss and (-h.raio+8) or (-h.raio+7+col*4)
-                    local dy=h.boss and 0 or (-8+linha*3)
-                    H.slots[#H.slots+1]={hunt=h,nome=(h.convidado and n%3==1) and h.convidado or ((h.variante and n%3==0) and h.variante or h.monstro),pos=pos(h,dx,dy)}
+                for andar=1,5 do
+                    local sala=H.andares[i][andar]
+                    local esquerda=pos(sala,-h.raio+2,0)
+                    if andar==1 then portaisOk=portal(esquerda,AID_VOLTA) and portaisOk
+                    else
+                        portaisOk=portal(esquerda,AID_ANDAR) and portaisOk
+                        H.transicoes[chave(esquerda)]={hunt=i,andar=andar-1,lado='direita'}
+                        portaisOk=portal(pos(sala,-h.raio+2,-3),AID_VOLTA) and portaisOk
+                    end
+                    if andar<5 then
+                        local direita=pos(sala,h.raio-2,0);portaisOk=portal(direita,AID_ANDAR) and portaisOk
+                        H.transicoes[chave(direita)]={hunt=i,andar=andar+1,lado='esquerda'}
+                    end
+                    local nivel={}
+                    for chave,valor in pairs(h) do nivel[chave]=valor end
+                    nivel.andar=andar
+                    nivel.garantiaIndice=(h.boss and andar<5) and 6 or i
+                    nivel.chance=h.chance*(0.6+0.1*(andar-1))
+                    if h.boss and andar<5 then
+                        nivel.tier=3;nivel.boss=false;nivel.respawn=50;nivel.chance=0.012*(0.6+0.1*(andar-1));nivel.arsenalIndice=4
+                    end
+                    local nomes={h.monstro,h.variante,h.convidado}
+                    for _,nome in ipairs(nomes) do
+                        local variante=andar==5 and nome or nome..' A'..andar
+                        H.monstros[variante]=nivel
+                    end
+                    local quantidade=(h.boss and andar==5) and 1 or QUANTIDADE_ANDAR[andar]
+                    for n=1,quantidade do
+                        local col=(n-1)%5;local linha=math.floor((n-1)/5)
+                        local dx=(h.boss and andar==5) and (-h.raio+8) or (-h.raio+7+col*4)
+                        local dy=(h.boss and andar==5) and 0 or (-8+linha*3)
+                        local nome=(h.convidado and n%3==1) and h.convidado or ((h.variante and n%3==0) and h.variante or h.monstro)
+                        if andar<5 then nome=nome..' A'..andar end
+                        H.slots[#H.slots+1]={hunt=nivel,nome=nome,andar=andar,pos=pos(sala,dx,dy)}
+                    end
+                end
+                if not portaisOk then
+                    H.areas[i]=nil
+                    for n=#H.slots,primeiroSlot+1,-1 do H.slots[n]=nil end
+                    local t=Tile(posPortal(i));local entrada=t and t:getItemById(1387)
+                    if entrada then entrada:remove() end
+                    print('[Ascensao] Portais incompletos; hunt desativada: '..h.nome)
                 end
             end
         end

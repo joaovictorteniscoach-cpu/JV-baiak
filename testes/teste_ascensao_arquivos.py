@@ -12,6 +12,8 @@ FONTE = Path(sys.argv.pop(1)) if len(sys.argv)>1 else Path('/tmp/servidor-progre
 spec = importlib.util.spec_from_file_location('registrar', ROOT/'servidor-imagem/ferramentas/registrar_ascensao.py')
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
+andares_spec=importlib.util.spec_from_file_location('andares',ROOT/'servidor-imagem/ferramentas/gerar_andares_ascensao.py')
+andares=importlib.util.module_from_spec(andares_spec);andares_spec.loader.exec_module(andares)
 
 
 class DadosAscensao(unittest.TestCase):
@@ -37,10 +39,22 @@ class DadosAscensao(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
             shutil.copytree(ROOT/'servidor-imagem/extras/data/monster/Ascensao',data/'monster/Ascensao')
+            self.assertEqual(andares.gerar(data),52)
+            self.assertEqual(andares.gerar(data),0)
+            for arquivos,vidas,danos in andares.GRUPOS:
+                for arquivo in arquivos:
+                    for i in range(4):
+                        raiz=ET.parse(data/'monster/Ascensao'/f'{arquivo}_andar{i+1}.xml').getroot()
+                        self.assertEqual(int(raiz.find('health').get('max')),vidas[i])
+                        self.assertEqual(int(raiz.find('./attacks/attack').get('max')),-danos[i])
+                        self.assertEqual(raiz.find('./script/event').get('name'),'JVAscensaoMorte')
+                    raiz=ET.parse(data/'monster/Ascensao'/f'{arquivo}.xml').getroot()
+                    self.assertEqual(int(raiz.find('health').get('max')),vidas[4])
+                    self.assertEqual(int(raiz.find('./attacks/attack').get('max')),-danos[4])
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),21)
+            self.assertEqual(mod.registrar(data),73)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)
