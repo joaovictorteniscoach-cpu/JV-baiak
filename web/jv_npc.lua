@@ -181,13 +181,13 @@ local function conferirAlvo()
     if podeFalar(eu, npc) then cumprimentar(npc) end
 end
 
+local caminhar
 local function andarAte(eu, npc)
     -- vai para o quadrado do lado do NPC que fica virado para mim
     local p, q = eu:getPosition(), npc:getPosition()
     local function passo(a, b) if a > b then return 1 elseif a < b then return -1 end return 0 end
     local destino = {x = q.x + passo(p.x, q.x), y = q.y + passo(p.y, q.y), z = q.z}
-    local ok, r = pcall(function() return eu:autoWalk(destino) end)
-    return ok and r ~= false
+    return caminhar(destino)
 end
 
 local function tocou(botao, npc)
@@ -232,11 +232,18 @@ local function abrirMenu(menuPosition, lookThing, useThing, criatura)
     if gi and gi.createThingMenu then pcall(gi.createThingMenu, menuPosition, lookThing, useThing, criatura) end
 end
 
-local function caminhar(destino)
+caminhar = function(destino)
     local eu=g_game.getLocalPlayer()
     if not eu or not destino then return false end
     local a=JVAutoAtaque or (modules.jv_autoataque and modules.jv_autoataque.JVAutoAtaque)
     if a and a.andarManual then pcall(a.andarManual,destino) end
+    -- OTClientV8 precisa do modulo que permite atravessar campos. No cliente
+    -- web ele nao existe e o proprio motor de caminho ja trata esses campos.
+    local caminho=modules.jv_caminho
+    if caminho and type(caminho.caminhar)=='function' then
+        local ok,feito=pcall(caminho.caminhar,eu,destino)
+        if ok and feito then return true end
+    end
     local ok, resultado=pcall(function() return eu:autoWalk(destino) end)
     return ok and resultado ~= false
 end

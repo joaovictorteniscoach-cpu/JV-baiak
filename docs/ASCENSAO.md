@@ -38,25 +38,23 @@ Exemplo: um hit que causaria 1.000 contra o mesmo monstro passa a 2.000, 4.000, 
 
 ## Hunts depois do Demon
 
-| Hunt | Entrada | Monstro | HP final | Modalidade sugerida |
-|---|---|---|---:|---|
-| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido / Arauto das Brasas / Master Snoop | 50.000 | Solo |
-| Forja Abissal | Lv 600, Evo II | Colosso Abissal / Cavaleiro do Abismo / Dr Dre | 120.000 | Solo |
-| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral / Vigia da Cripta / Mr 420 | 220.000 | Dupla; solo no topo |
-| Covil dos Titãs | Lv 800, Evo III | Titã Profanado / Dragão das Ruínas / O.G Chef | 500.000 | Dupla; solo no topo |
-| Trono Infernal | Lv 1.000, Evo IV | Soberano Infernal | 3.000.000 | Chefe solo no topo |
+| Hunt | Entrada | Principais criaturas | Vida do andar 1 ao 5 | Maior hit corporal do andar 1 ao 5 |
+|---|---|---|---|---|
+| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido, Arauto das Brasas e Master Snoop | 7.000 → 25.000 | 180 → 550 |
+| Forja Abissal | Lv 600, Evo II | Colosso Abissal, Cavaleiro do Abismo e Dr Dre | 14.000 → 50.000 | 350 → 1.000 |
+| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral, Vigia da Cripta e Mr 420 | 20.000 → 75.000 | 500 → 1.450 |
+| Covil dos Titãs | Lv 800, Evo III | Titã Profanado, Dragão das Ruínas e O.G Chef | 30.000 → 120.000 | 700 → 2.000 |
+| Trono Infernal | Lv 1.000, Evo IV | Guardas e Soberano Infernal | 40.000 → 300.000 | 900 → 2.600 |
 
-O Demon base tem 8.200 HP, ou 16.400 após a migração 2×. Todas as novas criaturas têm mais HP e ataques maiores. A vida da tabela já é final: não é dobrada novamente. As duas hunts de dupla não obrigam party nem duas pessoas para entrar; todo conteúdo permite tentativa solo com evolução máxima, level e equipamentos adequados. Estes são valores iniciais para balancear em jogo, não uma garantia de sobrevivência com qualquer personagem.
+Cada hunt tem cinco andares: os quatro primeiros sobem gradualmente em vida e dano; o quinto tem as versões finais. Cada área foi calibrada para tentativa solo com a evolução exigida, também podendo ser feita em dupla. O dano real depende de equipamento, evolução e resistência; estes são valores iniciais para validar em jogo, não uma garantia de sobrevivência. Os sprites existentes não mudam.
 
-Além das criaturas originais da Ascensão, as quatro primeiras hunts recebem Arauto das Brasas, Cavaleiro do Abismo, Vigia da Cripta e Dragão das Ruínas, com sprites clássicos, atributos e drops do respectivo patamar. Master Snoop, Dr Dre, Mr 420 e O.G Chef também aparecem nas quatro hunts, respectivamente; mantêm os sprites clássicos e os atributos do patamar correspondente.
-
-O portal de Ascensão é colocado em um tile vazio perto do templo de Thunder City e leva a um salão com cinco portais identificados. Cada hunt tem volta ao templo na entrada. `!ascensao` lista as hunts e `!ascensao 1` até `!ascensao 5` permitem viajar a partir do templo/salão. Não são atalhos para fugir de qualquer local do mapa.
+O portal de Ascensão é colocado em um tile vazio perto do templo de Thunder City e leva a um salão com cinco portais identificados. Em cada andar, o portal à direita avança e o da esquerda volta ao anterior; há também retorno ao templo junto à entrada de cada andar. `!ascensao` lista as hunts e `!ascensao 1` até `!ascensao 5` permitem viajar a partir do templo/salão. Não são atalhos para fugir de qualquer local do mapa.
 
 `!missao` mostra a tarefa diária da Ascensão: 50 abates válidos, com crédito para participantes vivos e próximos. `!missao resgatar` envia 50.000 moedas ao banco uma vez por dia; o progresso reinicia à meia-noite UTC. A tarefa usa as mesmas regras de participação e proteção contra invocações dos fragmentos.
 
 **Vampirismo:** a partir do level 200, todas as vocações podem usar `utito vita sanguis` (250 de mana, duração de 20 segundos e recarga de 60 segundos). Recupera 10% do dano efetivo causado a monstros não invocados, limitado a 10% da vida máxima por acerto. Não funciona em PvP nem com dano de invocações. O valor é aplicado depois de defesas e limitado à vida restante do monstro. O balanceamento inicial deve ser acompanhado em jogo.
 
-As salas são criadas no startup em coordenadas reservadas 30000–30516, com chão de mármore e paredes clássicas. O sistema confere todos os tiles antes de criar a sala; se houver colisão com mapa customizado, a área fica indisponível. Não substitui o mapa OTBM, casas ou hunts existentes. As quatro hunts têm limites de 18, 21, 24 e 27 monstros, com respawn de 35, 40, 45 e 50 segundos; o chefe continua único, com respawn de 300 segundos. Parte nasce a poucos quadrados da chegada e os demais ficam espalhados. Não há spawn forçado sobre jogadores. A chegada escolhe tile livre e evita o portal de retorno, inclusive para a segunda pessoa da dupla.
+As salas são criadas no startup em coordenadas reservadas 30000–30516, com chão de mármore e paredes clássicas. O sistema confere todos os tiles antes de criar a sala; se houver colisão com mapa customizado, a área fica indisponível. Não substitui o mapa OTBM, casas ou hunts existentes. Cada andar tem respectivamente 6, 8, 10, 12 ou 14 monstros; no quinto andar do Trono o Soberano continua único, com respawn de 300 segundos. As demais hunts mantêm seus intervalos de respawn. Parte nasce a poucos quadrados da chegada e os demais ficam espalhados. Não há spawn forçado sobre jogadores. A chegada escolhe tile livre e evita o portal de retorno, inclusive para a segunda pessoa da dupla.
 
 Das 67 entradas antigas identificadas como hunts no mapa fixado, dez tinham zero ou um monstro a até sete quadrados da chegada. Cada uma recebeu até dois monstros evoluídos da família daquela hunt, em posições acessíveis e fora de zonas protegidas, casas e teleportes. Entradas para templos, cidades, eventos e o boss Ashmunrah não recebem reforços. Se o portal da VPS tiver outro destino ou faltar posição segura, o reforço é ignorado e o servidor registra o motivo no log. As oito variantes usam o sprite original, aproximadamente 35% mais vida que a versão base já dobrada, 30% mais dano nos valores configurados e 30% mais experiência; conservam o loot da família e não concedem fragmentos da Ascensão. Os bônus não se aplicam a todos os ataques especiais que não usam valores numéricos no XML.
 

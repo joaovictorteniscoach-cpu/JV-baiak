@@ -25,7 +25,15 @@ g_game = {isOnline = function() return true end, getLocalPlayer = function() ret
 carregar('web/jv_autoataque.lua')
 JVAutoAtaque.iniciar(); JVAutoAtaque.definir(true)
 JVAutoAtaque.andarManual({x=15,y=10,z=7});check(modos[#modos]==0,'nao liberou caminhada manual')
-tick();check(atacando and modos[#modos]==0,'auto ataque interrompeu caminhada para perseguir')
+tick();check(not atacando and ataques==0 and modos[#modos]==0,'auto ataque cancelou caminhada para escolher alvo')
+pl.getPosition=function()return{x=15,y=10,z=7}end
+tick();check(atacando and ataques==1,'auto ataque nao retomou ao chegar')
+tick();atacando=false;JVAutoAtaque.andarManual({x=19,y=10,z=7})
+pl.getPosition=function()return{x=15,y=10,z=8}end
+alvo.getPosition=function()return{x=16,y=10,z=8}end
+tick();check(atacando and ataques==2,'auto ataque nao retomou apos mudar de andar')
+pl.getPosition=function()return{x=15,y=10,z=7}end
+alvo.getPosition=function()return{x=11,y=10,z=7}end
 atacando=false;ataques=0;JVAutoAtaque.definir(false)
 JVAutoAtaque.iniciar(); JVAutoAtaque.definir(true); tick(); tick()
 JVAutoAtaque.pararCombate()

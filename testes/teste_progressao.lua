@@ -129,18 +129,28 @@ globais.JVAscensaoInicio.onStartup()
 assert(H.hub and H.entrada and Tile(H.entrada)==velho)
 local total=0
 for i,h in ipairs(P.hunts)do
- assert(H.areas[i]);total=total+h.quantidade
+ assert(H.areas[i]);total=total+(h.boss and 37 or 50)
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
  assert(Tile(Position(P.hub.x-12+(i-1)*6,P.hub.y,7)):getItemById(1387).aid==47800+i)
+ for andar=1,5 do
+  local sala=H.andares[i][andar];assert(sala.z==h.z+andar-1)
+  local volta=Tile(Position(sala.x-h.raio+2,sala.y,sala.z)):getItemById(1387)
+  assert(volta and volta.aid==(andar==1 and 47820 or 47830),'portal de volta ausente')
+  if andar<5 then
+   local avancar=Position(sala.x+h.raio-2,sala.y,sala.z)
+   assert(Tile(avancar):getItemById(1387).aid==47830 and H.transicoes[key(avancar)].andar==andar+1,'portal seguinte ausente')
+  end
+ end
 end
 for i,h in ipairs(P.hunts)do
  local chegada=Position(h.x-h.raio+3,h.y,7);local visiveis=0
  local convidados=0
  for _,slot in ipairs(H.slots)do if slot.hunt.monstro==h.monstro then
   if h.convidado and slot.nome==h.convidado then convidados=convidados+1 end
-  local p=slot.pos;assert(math.abs(p.x-h.x)<h.raio and math.abs(p.y-h.y)<h.raio,'spawn fora da sala')
+  local p=slot.pos;local sala=H.andares[i][slot.andar]
+  assert(sala and math.abs(p.x-sala.x)<h.raio and math.abs(p.y-sala.y)<h.raio and p.z==sala.z,'spawn fora da sala')
   assert(not (p.x==chegada.x and p.y==chegada.y),'spawn na chegada')
-  if math.abs(p.x-chegada.x)<=7 and math.abs(p.y-chegada.y)<=5 then visiveis=visiveis+1 end
+  if slot.andar==1 and math.abs(p.x-chegada.x)<=7 and math.abs(p.y-chegada.y)<=5 then visiveis=visiveis+1 end
  end end
  assert(visiveis>=1,'nenhum monstro visivel na chegada da hunt '..i)
  if h.convidado then assert(convidados>0 and H.monstros[h.convidado] and H.monstros[h.convidado].nome==h.nome,'monstro convidado ausente da hunt '..i) end
@@ -167,6 +177,23 @@ p.dados[P.storage]=1;p.nivel=299;assert(not H.podeEntrar(p,1))
 p.nivel=300;assert(H.podeEntrar(p,1),'primeira hunt deve aceitar level 300 e Evolucao I')
 p.dados[P.storage]=4;p.nivel=1000
 for i=1,#P.hunts do assert(H.entrar(p,i),'conteudo maximo exige dupla') end
+for i,h in ipairs(P.hunts) do
+ for andar=1,4 do
+  local origem=H.andares[i][andar];local alvo=H.andares[i][andar+1]
+  local saida=Position(origem.x+h.raio-2,origem.y,origem.z)
+  move.onStepIn(p,{getActionId=function()return 47830 end},saida,p.localidade)
+  assert(p.localidade.x==alvo.x-h.raio+3 and p.localidade.z==alvo.z,'portal de avanco falhou na hunt '..i..' andar '..andar)
+  local retorno=Position(alvo.x-h.raio+2,alvo.y,alvo.z)
+  move.onStepIn(p,{getActionId=function()return 47830 end},retorno,p.localidade)
+  assert(p.localidade.x==origem.x+h.raio-3 and p.localidade.z==origem.z,'portal de retorno falhou na hunt '..i..' andar '..andar)
+ end
+end
+local sala=H.andares[1][1];local avancar=Position(sala.x+P.hunts[1].raio-2,sala.y,sala.z)
+move.onStepIn(p,{getActionId=function()return 47830 end},avancar,p.localidade)
+assert(p.localidade.z==8 and p.localidade.x==H.andares[1][2].x-P.hunts[1].raio+3,'portal nao avancou ao segundo andar')
+local sala2=H.andares[1][2];local voltar=Position(sala2.x-P.hunts[1].raio+2,sala2.y,sala2.z)
+move.onStepIn(p,{getActionId=function()return 47830 end},voltar,p.localidade)
+assert(p.localidade.z==7 and p.localidade.x==sala.x+P.hunts[1].raio-3,'portal nao voltou ao primeiro andar')
 p.locked=true;assert(not H.entrar(p,1));p.locked=false
 p.locked=true;move.onStepIn(p,{getActionId=function()return 47820 end},p.localidade,p.localidade)
 assert(p.msg:find('bloqueio de combate'));p.locked=false

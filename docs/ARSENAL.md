@@ -55,7 +55,7 @@ Uma segunda rolagem, independente dos treze raros reforçados existentes, pode c
 | Demon comum | 2% | I |
 | Juggernaut comum | 5% | II |
 
-A rolagem escolhe uma das sete famílias com igual chance e não é multiplicada pelo loot global de 100×. Pode cair arma de outra classe para troca. O drop no corpo respeita as regras existentes de dono e coleta.
+A rolagem escolhe uma das sete famílias com igual chance e não é multiplicada pelo loot global de 100×. Nas hunts, os andares 1–4 têm respectivamente 60%, 70%, 80% e 90% da chance mostrada; o quinto usa 100%. Para evitar azar prolongado, o jogador recebe uma arma até o 20º abate qualificado sem arma na mesma hunt, ou até o 5º abate do Soberano. Demon e Juggernaut têm contadores individuais e garantia no 20º abate de cada espécie. A garantia só zera quando o item é criado no corpo; se o corpo estiver cheio, ela permanece para a próxima morte. Pode cair arma de outra classe para troca. O drop no corpo respeita as regras existentes de dono e coleta.
 
 As armas de Demon e Juggernaut seguem os requisitos da tabela: por exemplo, uma arma I pode cair antes do level 400, mas só pode ser equipada a partir do level 400 e Evolução I. Essas mortes não dão fragmentos de hunt. Invocações de jogadores não dão o drop especial.
 

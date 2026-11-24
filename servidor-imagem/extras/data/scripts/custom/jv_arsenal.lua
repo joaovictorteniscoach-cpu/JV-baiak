@@ -63,12 +63,32 @@ function A.criar(chave,n,container)
     item:setCustomAttribute('jvascensaotier',n) -- autoloot raro; patamar IV protegido na venda
     return item
 end
-function A.sortear(corpse,hunt,indice)
+local function rolar(corpse,player,chance,tier,storage,limite)
+    if not corpse or not chance then return nil end
+    local contador=player and math.max(0,player:getStorageValue(storage)) or 0
+    local saiu=math.random(1,1000000)<=math.floor(chance*1000000)
+    if not saiu and (not player or contador+1<limite) then
+        if player then player:setStorageValue(storage,math.min(limite,contador+1)) end
+        return nil
+    end
+    local f=C.familias[math.random(#C.familias)]
+    local item=A.criar(f.chave,tier,corpse)
+    if player then
+        if item then
+            player:setStorageValue(storage,0)
+            avisar(player,'Uma arma rara caiu no corpo: '..f.nomes[tier]..'. Confira o corpo ou o autoloot.')
+        else
+            player:setStorageValue(storage,math.min(limite,contador+1))
+            avisar(player,'O corpo nao recebeu a arma rara; a garantia ficou guardada para o proximo abate.')
+        end
+    end
+    return item
+end
+function A.sortear(corpse,hunt,indice,player)
     local chance=C.chances[indice]
     if not corpse or not chance then return nil end
-    if math.random(1,1000000)>math.floor(chance*1000000) then return nil end
-    local f=C.familias[math.random(#C.familias)]
-    return A.criar(f.chave,hunt.tier,corpse)
+    if hunt.andar and not hunt.boss then chance=chance*(0.6+0.1*(hunt.andar-1)) end
+    return rolar(corpse,player,chance,hunt.tier,79920+(hunt.garantiaIndice or indice),hunt.boss and C.garantiaBoss or C.garantiaHunt)
 end
 local classico=CreatureEvent('JVArsenalClassico')
 function classico.onDeath(creature,corpo,killer,mostDamage)
@@ -80,9 +100,7 @@ function classico.onDeath(creature,corpo,killer,mostDamage)
     local atacante=jogador(mostDamage) or jogador(killer)
     if not atacante or not atacante:isPlayer() then return true end
     local config=C.classicos[creature:getName():lower()]
-    if not config or math.random(1,1000000)>math.floor(config.chance*1000000) then return true end
-    local f=C.familias[math.random(#C.familias)]
-    A.criar(f.chave,config.tier,corpo)
+    if config then rolar(corpo,atacante,config.chance,config.tier,79930+config.tier,C.garantiaClassico) end
     return true
 end
 classico:register()
@@ -118,7 +136,7 @@ function A.resgatar(player,chave,n)
 end
 function A.catalogo(player)
     local classe=player:getVocation():getClientId()
-    local linhas={'ARSENAL DE ASCENSAO - sua proxima conquista','Drops nao sao multiplicados pelo loot 100x.','Fragmentos sao individuais e ficam salvos no personagem.'}
+    local linhas={'ARSENAL DE ASCENSAO - sua proxima conquista','Drops nao sao multiplicados pelo loot 100x.','Arma garantida ate 20 abates sem arma na mesma hunt; no Soberano, ate 5. Demon e Juggernaut: ate 20 de cada.', 'Fragmentos e garantias ficam salvos no personagem.'}
     for n=1,4 do
         local saldo=math.max(0,player:getStorageValue(C.fragmentosStorage+n-1))
         linhas[#linhas+1]='\nPATAMAR '..n..' - '..C.origem[n]..'\nFragmentos: '..saldo..'/'..C.custos[n]

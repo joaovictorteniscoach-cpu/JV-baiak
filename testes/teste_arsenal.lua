@@ -123,3 +123,24 @@ T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
 assert(quantidade==2,'invocacao ou sorteio perdido gerou drop')
 math.random=sorte
 print('OK: Demon e Juggernaut derrubam patamares corretos, sem farm de invocacao')
+
+-- Mesmo com azar consecutivo, cada personagem recebe uma arma no limite.
+local azar=math.random;math.random=function(a,b)return b or a end
+local paciente=T.player(1);local n=0
+local espaco={addItem=function(_,id)n=n+1;return T.item(id)end}
+local piso={tier=1,andar=1,boss=false}
+for i=1,19 do assert(not A.sortear(espaco,piso,1,paciente)) end
+assert(n==0 and paciente:getStorageValue(79921)==19)
+assert(A.sortear(espaco,piso,1,paciente) and n==1 and paciente:getStorageValue(79921)==0,'garantia de hunt falhou')
+paciente:setStorageValue(79921,19)
+assert(not A.sortear({addItem=function()end},piso,1,paciente) and paciente:getStorageValue(79921)==20,'garantia perdida por corpo cheio')
+assert(A.sortear(espaco,piso,1,paciente) and paciente:getStorageValue(79921)==0,'garantia nao tentou novamente')
+local guarda={tier=3,andar=4,boss=false,garantiaIndice=6}
+paciente:setStorageValue(79926,19);paciente:setStorageValue(79925,3)
+assert(A.sortear(espaco,guarda,4,paciente) and paciente:getStorageValue(79926)==0 and paciente:getStorageValue(79925)==3,'guardas interferiram na garantia do chefe')
+local dem=T.player(1);criatura.getName=function()return 'Demon' end;criatura.getMaster=function()end
+local antes=quantidade
+for i=1,20 do T.eventos.JVArsenalClassico.onDeath(criatura,corpo,dem,dem) end
+assert(quantidade==antes+1 and dem:getStorageValue(79931)==0,'garantia do Demon falhou')
+math.random=azar
+print('OK: garantia por personagem, azar, corpo cheio e Demon')

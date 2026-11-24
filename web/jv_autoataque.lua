@@ -54,6 +54,7 @@ function A.andarManual(destino)
     local p=g_game.getLocalPlayer();local pos=p and p:getPosition()
     local distancia=pos and destino and math.max(math.abs(pos.x-destino.x),math.abs(pos.y-destino.y)) or 1
     A.andandoAte=g_clock.millis()+math.min(30000,math.max(3000,distancia*1000+2000))
+    A.destinoManual=destino and {x=destino.x,y=destino.y,z=destino.z} or nil
     pcall(function() g_game.setChaseMode(0) end)
 end
 local function maisPerto(player)
@@ -85,6 +86,15 @@ local function ciclo()
         A.tentativa = nil -- deu certo: esta atacando
         return
     end
+    -- Game::attack cancela autoWalk mesmo com "nao perseguir". Espera chegar
+    -- ou expirar o prazo antes de iniciar outro alvo; nao cancela um ataque atual.
+    if A.andandoAte then
+        local pos=player:getPosition(); local destino=A.destinoManual
+        local chegou=pos and destino and pos.x==destino.x and pos.y==destino.y and pos.z==destino.z
+        local mudouSala=pos and destino and (pos.z~=destino.z or math.max(math.abs(pos.x-destino.x),math.abs(pos.y-destino.y))>32)
+        if not chegou and not mudouSala and g_clock.millis()<A.andandoAte then return end
+        A.andandoAte,A.destinoManual=nil,nil
+    end
     local alvo = maisPerto(player)
     if not alvo then return end
     local id = alvo:getId()
@@ -108,7 +118,7 @@ end
 
 function A.definir(ligado)
     A.ligado = ligado
-    A.tentativa, A.ignorar, A.andandoAte = nil, {}, nil
+    A.tentativa, A.ignorar, A.andandoAte, A.destinoManual = nil, {}, nil, nil
     g_settings.set('jvAutoAtaque', ligado and 'true' or 'false')
     avisarServidor()
     marcar(A.botao, ligado)
