@@ -43,6 +43,16 @@ assert(caminhosCampo==1 and caminhadas==2,'toque ignorou o caminho que atravessa
 modules.jv_caminho.caminhar=function()return false end
 agora=5900;tocar({},1,{x=17,y=10,z=7},nil,nil,nil,nil)
 assert(caminhadas==3,'caminho padrao nao retomou quando nao ha rota especial')
+-- Ataque manual com autoataque desligado: o caminho nao deve disputar a perseguicao.
+local modo=1;local mudancas=0
+g_game.isAttacking=function()return true end
+g_game.getChaseMode=function()return modo end
+g_game.setChaseMode=function(v)modo=v;mudancas=mudancas+1 end
+JVAutoAtaque={ligado=false,andarManual=function()end}
+agora=5950;tocar({},1,{x=18,y=10,z=7},nil,nil,nil,nil)
+assert(modo==0 and mudancas==1,'caminhada manual deixou perseguicao ligada')
+agora=5970;tocar({},1,{x=19,y=10,z=7},nil,nil,nil,nil)
+assert(mudancas==1,'reenviou modo de perseguicao sem necessidade')
 g_platform.isMobile=function()return false end
 agora=6000;tocar({},1,nil,nil,nil,monstro,nil);assert(originais==1 and ataques==1,'mudou clique PC')
 print('OK: dois toques para atacar, falar, abrir e usar; caminhada e PC preservados')
