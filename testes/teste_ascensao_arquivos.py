@@ -17,6 +17,28 @@ andares=importlib.util.module_from_spec(andares_spec);andares_spec.loader.exec_m
 
 
 class DadosAscensao(unittest.TestCase):
+    def test_vida_10x_existente_nova_idempotente_e_limite(self):
+        spec2=importlib.util.spec_from_file_location('vida',ROOT/'servidor-imagem/ferramentas/vida_monstros.py')
+        vida=importlib.util.module_from_spec(spec2);spec2.loader.exec_module(vida)
+        with tempfile.TemporaryDirectory() as tmp:
+            pasta=Path(tmp)
+            antigo=pasta/'animal.xml';antigo.write_bytes(b'<monster name="Sheep"><health now="20" max="30"/><!-- jv-vida-2x --><loot/></monster>')
+            livre=pasta/'custom.xml';livre.write_bytes(b"<monster><health max='9' now='7'/><attacks/></monster>")
+            self.assertEqual(vida.atualizar(pasta),2)
+            self.assertEqual((ET.parse(antigo).getroot().find('health').get('max')), '300')
+            self.assertEqual((ET.parse(livre).getroot().find('health').get('now')), '70')
+            antes={p:p.read_bytes() for p in pasta.iterdir()}
+            self.assertEqual(vida.atualizar(pasta),0)
+            self.assertEqual(antes,{p:p.read_bytes() for p in pasta.iterdir()})
+            novo=pasta/'novo.xml';novo.write_bytes(b'<monster><health now="5" max="5"/></monster>')
+            self.assertEqual(vida.atualizar(pasta,instalacao_nova=True),1)
+            self.assertEqual(ET.parse(novo).getroot().find('health').get('max'),'100')
+            transacao=pasta/'a.xml';transacao.write_bytes(b'<monster><health now="1" max="1"/></monster>')
+            overflow=pasta/'z.xml';overflow.write_bytes(b'<monster><health now="214748365" max="214748365"/></monster>')
+            antes=transacao.read_bytes()
+            with self.assertRaises(ValueError):vida.atualizar(pasta)
+            self.assertEqual(transacao.read_bytes(),antes)
+
     def test_respawn_bosses_idempotente_e_sem_alterar_comuns(self):
         spec2=importlib.util.spec_from_file_location('bosses',ROOT/'servidor-imagem/ferramentas/acelerar_bosses.py')
         bosses=importlib.util.module_from_spec(spec2);spec2.loader.exec_module(bosses)
@@ -60,12 +82,22 @@ class DadosAscensao(unittest.TestCase):
                 for arquivo in arquivos:
                     for i in range(4):
                         raiz=ET.parse(data/'monster/Ascensao'/f'{arquivo}_andar{i+1}.xml').getroot()
-                        self.assertEqual(int(raiz.find('health').get('max')),vidas[i])
+                        self.assertEqual(int(raiz.find('health').get('max')),vidas[i]*10)
+                        self.assertIn('<!-- jv-vida-10x -->',(data/'monster/Ascensao'/f'{arquivo}_andar{i+1}.xml').read_text())
                         self.assertEqual(int(raiz.find('./attacks/attack').get('max')),-danos[i])
                         self.assertEqual(raiz.find('./script/event').get('name'),'JVAscensaoMorte')
                     raiz=ET.parse(data/'monster/Ascensao'/f'{arquivo}.xml').getroot()
                     self.assertEqual(int(raiz.find('health').get('max')),vidas[4])
                     self.assertEqual(int(raiz.find('./attacks/attack').get('max')),-danos[4])
+            spec_vida=importlib.util.spec_from_file_location('vida_instalacao',ROOT/'servidor-imagem/ferramentas/vida_monstros.py')
+            vida=importlib.util.module_from_spec(spec_vida);spec_vida.loader.exec_module(vida)
+            vida.atualizar(data/'monster')
+            self.assertEqual(andares.gerar(data),0, 'regerou os andares ja aumentados')
+            arquivos={p.name:p.read_bytes() for p in (data/'monster/Ascensao').glob('*.xml')}
+            shutil.copytree(ROOT/'servidor-imagem/extras/data/monster/Ascensao',data/'monster/Ascensao',dirs_exist_ok=True)
+            self.assertEqual(andares.gerar(data),0)
+            vida.atualizar(data/'monster')
+            self.assertEqual(arquivos,{p.name:p.read_bytes() for p in (data/'monster/Ascensao').glob('*.xml')},'segunda atualizacao alterou a vida')
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)

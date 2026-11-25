@@ -295,7 +295,14 @@ main() {
 	# --------------------------------------------------- dados do servidor (mapa etc)
 	etapa "Preparando mapa, scripts e config.lua"
 	SRV="$BASE/servidor"
+	# Guarda o estado anterior para reconhecer extras repostos sem mudanca efetiva.
+	MONSTROS_ANTES=""
+	if [ -d "$SRV/data/monster" ]; then
+		MONSTROS_ANTES="$(cd "$SRV/data/monster" && find . -type f -name '*.xml' -print0 | sort -z | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1)"
+	fi
+	DADOS_NOVOS=0
 	if [ ! -f "$SRV/config.lua" ]; then
+		DADOS_NOVOS=1
 		mkdir -p "$SRV"
 		cp -a "$FONTE/data" "$SRV/data"
 		cp "$FONTE/key.pem" "$FONTE/config.lua" "$SRV/"
@@ -482,13 +489,16 @@ main() {
 		ok "AFK: personagem fica no jogo ate 60 min parado ou com o app fechado"
 		REINICIAR_SERVIDOR=1
 	fi
-	# Monstros com o dobro de vida (experiencia e loot iguais). Roda sempre: cada arquivo
-	# e marcado e so e dobrado uma vez (os recolocados pelos extras sao dobrados de novo).
+	# Dez vezes a vida anterior, com marcacao individual e verificacao de overflow.
 	if command -v python3 >/dev/null; then
-		N_VIDA="$(python3 "$BASE/servidor-imagem/ferramentas/vida_monstros.py" "$SRV/data/monster" 2>/dev/null || echo 0)"
-		if [ "${N_VIDA:-0}" != "0" ]; then
+		TIPO_DADOS=existente
+		if [ "$DADOS_NOVOS" = 1 ]; then TIPO_DADOS=nova; fi
+		N_VIDA="$(python3 "$BASE/servidor-imagem/ferramentas/vida_monstros.py" "$SRV/data/monster" "$TIPO_DADOS")" \
+			|| falha "nao consegui aumentar a vida dos monstros"
+		MONSTROS_DEPOIS="$(cd "$SRV/data/monster" && find . -type f -name '*.xml' -print0 | sort -z | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1)"
+		if [ "$MONSTROS_ANTES" != "$MONSTROS_DEPOIS" ]; then
 			REINICIAR_SERVIDOR=1
-			ok "monstros com o dobro de vida ($N_VIDA arquivo(s))"
+			if [ "${N_VIDA:-0}" != "0" ]; then ok "vida dos monstros e animais aumentada em 10x ($N_VIDA arquivo(s))"; fi
 		fi
 	fi
 	# Evolucao de classe: liga o "ataque multiplicado" no monstro quando um jogador o ataca

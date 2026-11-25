@@ -42,7 +42,11 @@ def gerar(data):
             raiz=ET.fromstring(base);nome=raiz.get('name');exp=int(raiz.get('experience'))
             for i in range(4):
                 nome_andar=f'{nome} A{i+1}'
-                gerado=balancear(base,nome_andar,vidas[i],danos[i],max(1,round(exp*(0.55+0.1*i))))
+                # A vida em GRUPOS e a anterior: variantes sao geradas ja com 10x
+                # e marcadas, para nao serem regravadas em toda atualizacao.
+                gerado=balancear(base,nome_andar,vidas[i]*10,danos[i],max(1,round(exp*(0.55+0.1*i))))
+                gerado=gerado.replace('<!-- jv-vida-10x -->','')
+                gerado=gerado.replace('<!-- jv-vida-2x -->','<!-- jv-vida-2x --><!-- jv-vida-10x -->',1)
                 destino=pasta/(arquivo+f'_andar{i+1}.xml')
                 if not destino.exists() or destino.read_text(encoding='utf-8')!=gerado:
                     destino.write_text(gerado,encoding='utf-8');alterados+=1
