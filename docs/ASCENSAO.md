@@ -4,7 +4,7 @@ Guia das evoluções e hunts de Ascensão. Mantém auto pot, auto ataque, autolo
 
 ## O que foi encontrado na versão atual
 
-Base revisada: `74d60fa`, de 21/11/2026. O Mestre das Classes já oferece quatro evoluções (2×, 4×, 7× e 10×), antes por 100k cada e sem level mínimo. Os monstros base recebem vida em dobro pelo instalador. As quatro vocações têm três nomes de promoção na base, mas essas promoções mantêm os mesmos multiplicadores físicos.
+Base revisada: `74d60fa`, de 21/11/2026. O Mestre das Classes já oferece quatro evoluções (2×, 4×, 7× e 10×), antes por 100k cada e sem level mínimo. Os monstros base receberam vida em dobro e depois tiveram essa vida aumentada mais dez vezes pelo instalador. As quatro vocações têm três nomes de promoção na base, mas essas promoções mantêm os mesmos multiplicadores físicos.
 
 As promoções originais continuam: Knight → Elite Knight → Rageful Knight; Paladin → Royal Paladin → Glorious Paladin; Sorcerer → Master Sorcerer → Masterful Sorcerer; Druid → Elder Druid → Ancient Druid. A Ascensão funciona em paralelo e não troca a vocação, evitando perder magias, equipamentos ou compatibilidade do cliente.
 
@@ -40,11 +40,11 @@ Exemplo: um hit que causaria 1.000 contra o mesmo monstro passa a 2.000, 4.000, 
 
 | Hunt | Entrada | Principais criaturas | Vida do andar 1 ao 5 | Maior hit corporal do andar 1 ao 5 |
 |---|---|---|---|---|
-| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido, Arauto das Brasas e Master Snoop | 7.000 → 25.000 | 180 → 550 |
-| Forja Abissal | Lv 600, Evo II | Colosso Abissal, Cavaleiro do Abismo e Dr Dre | 14.000 → 50.000 | 350 → 1.000 |
-| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral, Vigia da Cripta e Mr 420 | 20.000 → 75.000 | 500 → 1.450 |
-| Covil dos Titãs | Lv 800, Evo III | Titã Profanado, Dragão das Ruínas e O.G Chef | 30.000 → 120.000 | 700 → 2.000 |
-| Trono Infernal | Lv 1.000, Evo IV | Guardas e Soberano Infernal | 40.000 → 300.000 | 900 → 2.600 |
+| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido, Arauto das Brasas e Master Snoop | 70.000 → 250.000 | 180 → 550 |
+| Forja Abissal | Lv 600, Evo II | Colosso Abissal, Cavaleiro do Abismo e Dr Dre | 140.000 → 500.000 | 350 → 1.000 |
+| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral, Vigia da Cripta e Mr 420 | 200.000 → 750.000 | 500 → 1.450 |
+| Covil dos Titãs | Lv 800, Evo III | Titã Profanado, Dragão das Ruínas e O.G Chef | 300.000 → 1.200.000 | 700 → 2.000 |
+| Trono Infernal | Lv 1.000, Evo IV | Guardas e Soberano Infernal | 400.000 → 3.000.000 | 900 → 2.600 |
 
 As quatro hunts comuns têm cinco andares: os quatro primeiros sobem gradualmente em vida e dano; o quinto tem as versões finais. O Trono Infernal tem um sexto andar de bosses mais fortes. Cada área foi calibrada para tentativa solo com a evolução exigida, também podendo ser feita em dupla. O dano real depende de equipamento, evolução e resistência; estes são valores iniciais para validar em jogo, não uma garantia de sobrevivência. Os sprites existentes não mudam.
 
@@ -103,8 +103,10 @@ Os spawns registrados de bosses do mapa e de Juggernaut também têm o intervalo
 
 ### Novas criaturas e sexto andar
 
-No quinto andar da Caverna Infernal e seu Spot 2 aparecem **Batedor das Cinzas** (18.000 de vida, hit corporal até 400) e **Carrasco das Cinzas** (32.500, até 700). No quinto andar do Covil dos Titãs e seu Spot 2 aparecem **Guardião das Ruínas** (85.000, até 1.400) e **Devastador das Ruínas** (150.000, até 2.500). Esses valores são antes das defesas e da evolução.
+No quinto andar da Caverna Infernal e seu Spot 2 aparecem **Batedor das Cinzas** (180.000 de vida, hit corporal até 400) e **Carrasco das Cinzas** (325.000, até 700). No quinto andar do Covil dos Titãs e seu Spot 2 aparecem **Guardião das Ruínas** (850.000, até 1.400) e **Devastador das Ruínas** (1.500.000, até 2.500). Esses valores são antes das defesas e da evolução.
 
-No Trono Infernal, o portal da direita do quinto andar leva ao sexto: **Rei das Cinzas** (390.000 de vida), **Lorde do Abismo** (420.000) e **Imperador Infernal** (450.000). São mais fortes que o Soberano (300.000), nascem separados e voltam após 150 segundos. O portal da esquerda retorna ao quinto andar e o portal acima da entrada leva ao templo. Entrada no Trono: level 1.000 e Evolução IV. Os números são calibragem inicial para solo máximo e precisam de observação em jogo.
+No Trono Infernal, o portal da direita do quinto andar leva ao sexto: **Rei das Cinzas** (3.900.000 de vida), **Lorde do Abismo** (4.200.000) e **Imperador Infernal** (4.500.000). São mais fortes que o Soberano (3.000.000), nascem separados e voltam após 150 segundos. O portal da esquerda retorna ao quinto andar e o portal acima da entrada leva ao templo. Entrada no Trono: level 1.000 e Evolução IV. Os números são calibragem inicial para solo máximo e precisam de observação em jogo.
 
 As criaturas novas deixam somente moedas e peças valiosas no loot normal. Os bosses do sexto andar podem deixar Magic Plate Armor e Great Shield; as outras criaturas novas podem deixar Demon Armor e Demon Helmet. Os drops especiais e as garantias de armas de Ascensão continuam, independentes do loot global. As chances do loot normal variam com o rate e os bônus do servidor. A limpeza de itens inúteis aplica-se às criaturas novas; os drops anteriores não foram alterados.
+
+A vida de animais e monstros foi multiplicada por 10 em relação ao valor que tinham antes desta atualização; dano, experiência e loot por abate não foram alterados. O aumento é aplicado uma única vez por arquivo e inclui as variantes geradas, as hunts e os bosses.
