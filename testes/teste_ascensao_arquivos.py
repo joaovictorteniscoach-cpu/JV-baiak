@@ -69,7 +69,7 @@ class DadosAscensao(unittest.TestCase):
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),73)
+            self.assertEqual(mod.registrar(data),80)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)
@@ -78,6 +78,24 @@ class DadosAscensao(unittest.TestCase):
             xml.write_text(texto)
             with self.assertRaises(ValueError):mod.registrar(data)
             self.assertEqual(xml.read_text(),texto)
+
+    def test_monstros_novos_loot_util_e_bosses_mais_fortes(self):
+        pasta=ROOT/'servidor-imagem/extras/data/monster/Ascensao'
+        dados={p.stem:ET.parse(p).getroot() for p in pasta.glob('*.xml')}
+        faciles=['batedor_das_cinzas','guardiao_das_ruinas']
+        fortes=['carrasco_das_cinzas','devastador_das_ruinas']
+        for facil,forte in zip(faciles,fortes):
+            self.assertLess(int(dados[facil].find('health').get('max')),int(dados[forte].find('health').get('max')))
+        soberano=int(dados['soberano_infernal'].find('health').get('max'))
+        for nome in ['rei_das_cinzas','lorde_do_abismo','imperador_infernal']:
+            self.assertGreater(int(dados[nome].find('health').get('max')),soberano)
+        for nome in faciles+fortes+['rei_das_cinzas','lorde_do_abismo','imperador_infernal']:
+            raiz=dados[nome]
+            self.assertEqual(raiz.find('./script/event').get('name'),'JVAscensaoMorte')
+            loot={int(e.get('id')) for e in raiz.findall('./loot/item')}
+            self.assertTrue(loot <= {2152,2160,2493,2494,2472,2522})
+            self.assertIn(2160,loot)
+            self.assertTrue(loot & {2493,2494,2472,2522})
 
     def test_itens_outfits_e_hunts(self):
         lua = LuaRuntime()

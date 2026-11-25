@@ -141,15 +141,15 @@ for i=1,4 do
 end
 local total=4
 for i,h in ipairs(P.hunts)do
- assert(H.areas[i]);total=total+(h.boss and 37 or 50)
+ assert(H.areas[i]);total=total+(h.boss and 40 or 50)
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
  local hubPortal=i<=5 and Position(P.hub.x-12+(i-1)*6,P.hub.y,7) or Position(P.hub.x-9+(i-6)*6,P.hub.y-10,7)
  assert(Tile(hubPortal):getItemById(1387).aid==47800+i)
- for andar=1,5 do
+ for andar=1,(h.boss and 6 or 5) do
   local sala=H.andares[i][andar];assert(sala.z==h.z+andar-1)
   local volta=Tile(Position(sala.x-h.raio+2,sala.y,sala.z)):getItemById(1387)
   assert(volta and volta.aid==(andar==1 and 47820 or 47830),'portal de volta ausente')
-  if andar<5 then
+  if andar<(h.boss and 6 or 5) then
    local avancar=Position(sala.x+h.raio-2,sala.y,sala.z)
    assert(Tile(avancar):getItemById(1387).aid==47830 and H.transicoes[key(avancar)].andar==andar+1,'portal seguinte ausente')
   end
@@ -167,6 +167,11 @@ for i,h in ipairs(P.hunts)do
  end end
  assert(visiveis>=1,'nenhum monstro visivel na chegada da hunt '..i)
  if h.convidado then assert(convidados>0 and H.monstros[h.convidado] and H.monstros[h.convidado].tier==h.tier,'monstro convidado ausente da hunt '..i) end
+end
+for _,i in ipairs({1,4,6,9}) do
+ local h=P.hunts[i];local visto={}
+ for _,slot in ipairs(H.slots) do if slot.hunt.spotIndice==i and slot.andar==5 then visto[slot.nome]=true end end
+ assert(visto[h.extra[1]] and visto[h.extra[2]],'criaturas novas ausentes da hunt '..i)
 end
 assert(spawnCount==total);H.repor();assert(spawnCount==total,'duplicou monstros vivos')
 assert(not H.criarSala(P.hub,8),'sobrescreveu tiles ocupados')
@@ -196,11 +201,24 @@ for i,h in ipairs(P.hunts) do
   local saida=Position(origem.x+h.raio-2,origem.y,origem.z)
   move.onStepIn(p,{getActionId=function()return 47830 end},saida,p.localidade)
   assert(p.localidade.x==alvo.x-h.raio+3 and p.localidade.z==alvo.z,'portal de avanco falhou na hunt '..i..' andar '..andar)
-  if andar==4 then assert(p.msg:find('andar 5/5') and not p.msg:find('Direita:'),'orientacao incorreta no ultimo andar') end
+  if andar==4 and not h.boss then assert(p.msg:find('andar 5/5') and not p.msg:find('Direita:'),'orientacao incorreta no ultimo andar') end
   local retorno=Position(alvo.x-h.raio+2,alvo.y,alvo.z)
   move.onStepIn(p,{getActionId=function()return 47830 end},retorno,p.localidade)
   assert(p.localidade.x==origem.x+h.raio-3 and p.localidade.z==origem.z,'portal de retorno falhou na hunt '..i..' andar '..andar)
  end
+end
+-- Sexto andar: entrada, retorno, tres bosses distintos e sem duplicacao.
+do
+ local h=P.hunts[5];local quinto=H.andares[5][5];local sexto=H.andares[5][6]
+ local ida=Position(quinto.x+h.raio-2,quinto.y,quinto.z)
+ move.onStepIn(p,{getActionId=function()return 47830 end},ida,p.localidade)
+ assert(p.localidade.x==sexto.x-h.raio+3 and p.localidade.z==sexto.z and p.msg:find('andar 6/6'))
+ local nomes={};for _,slot in ipairs(H.slots) do if slot.hunt.spotIndice==5 and slot.andar==6 then nomes[slot.nome]=true;assert(slot.hunt.respawn==150) end end
+ assert(nomes['Rei das Cinzas'] and nomes['Lorde do Abismo'] and nomes['Imperador Infernal'])
+ for nome in pairs(nomes) do local n=H.monstros[nome];assert(n and n.boss and n.tier==4 and n.arsenalIndice==5 and n.garantiaIndice==5,'boss sem drop do patamar IV') end
+ local volta=Position(sexto.x-h.raio+2,sexto.y,sexto.z)
+ move.onStepIn(p,{getActionId=function()return 47830 end},volta,p.localidade)
+ assert(p.localidade.z==quinto.z and p.localidade.x==quinto.x+h.raio-3)
 end
 comandos['!ascensao'].onSay(p,'!ascensao','')
 assert(p.dialogo:find('cinco andares') and p.dialogo:find('!arsenal') and p.dialogo:find('volta ao templo') and p.dialogo:find('A partir do segundo andar'),'guia das hunts incompleto')
