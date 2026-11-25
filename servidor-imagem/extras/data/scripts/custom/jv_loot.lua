@@ -140,7 +140,11 @@ local function coletar(player, container, c)
 		local item = container:getItem(i)
 		if item then
 			local id = item:getId()
-			if c.ignorados[id] then
+			if item:isContainer() and item:getCustomAttribute('jvLootExcedente') == 1 then
+				-- Bolsa de excesso e parte do corpo; ignorar backpacks nao esconde o conteudo.
+				if item:getSize() > 0 then coletar(player, item, c) end
+				if item:getSize() == 0 then item:remove() end
+			elseif c.ignorados[id] then
 				-- A exclusao vem antes das moedas, categorias e da lista de coleta.
 			elseif item:isContainer() and item:getSize() > 0 then
 				coletar(player, item, c)

@@ -43,9 +43,9 @@ Os nomes no protocolo usam letras sem acento, compatíveis com o cliente existen
 
 ## Conquista por drop e por fragmentos
 
-Uma segunda rolagem, independente dos treze raros reforçados existentes, pode criar uma arma da coleção no corpo:
+Oito tentativas independentes, além dos treze raros reforçados, podem criar armas da coleção no corpo:
 
-| Hunt | Chance de uma arma | Patamar |
+| Hunt | Chance por tentativa | Patamar |
 |---|---:|---|
 | Caverna Infernal | 0,35% | I |
 | Forja Abissal | 0,50% | II |
@@ -55,11 +55,11 @@ Uma segunda rolagem, independente dos treze raros reforçados existentes, pode c
 | Demon comum | 2% | I |
 | Juggernaut comum | 5% | II |
 
-A rolagem escolhe uma das sete famílias com igual chance e não é multiplicada pelo loot global de 100×. Nas hunts, os andares 1–4 têm respectivamente 60%, 70%, 80% e 90% da chance mostrada; o quinto usa 100%. Para evitar azar prolongado, o jogador recebe uma arma até o 20º abate qualificado sem arma na mesma hunt, ou até o 5º abate do Soberano. Demon e Juggernaut têm contadores individuais e garantia no 20º abate de cada espécie. A garantia conta para o jogador que causou mais dano ou, se ele não estiver disponível, para quem deu o golpe final. Os guardas do Trono e o Soberano têm contadores separados. A garantia só zera quando o item é criado no corpo; se o corpo estiver cheio, ela permanece para a próxima morte. Pode cair arma de outra classe para troca. O drop no corpo respeita as regras existentes de dono e coleta.
+Cada tentativa escolhe uma das sete famílias com igual chance e não é multiplicada pelo loot global nem por boosters. São oito tentativas por morte; pode não cair arma ou podem cair várias na mesma morte. Nas hunts comuns e nos guardas do Trono, os andares 1–4 têm respectivamente 60%, 70%, 80% e 90% da chance mostrada; o quinto usa 100%, o sexto 110% e o sétimo 120%. Para evitar azar prolongado, o jogador recebe uma arma até o 20º abate qualificado sem arma na mesma hunt, ou até o 5º abate do Soberano. Demon e Juggernaut têm contadores individuais e garantia no 20º abate de cada espécie. A garantia conta para o jogador que causou mais dano ou, se ele não estiver disponível, para quem deu o golpe final. Os guardas do Trono e o Soberano têm contadores separados. A garantia só zera quando o item é criado no corpo; se não houver espaço para criar o item mesmo nas bolsas de excedente, ela permanece para a próxima morte. Pode cair arma de outra classe para troca. O drop no corpo respeita as regras existentes de dono e coleta.
 
 As armas de Demon e Juggernaut seguem os requisitos da tabela: por exemplo, uma arma I pode cair antes do level 400, mas só pode ser equipada a partir do level 400 e Evolução I. Essas mortes não dão fragmentos de hunt. Invocações de jogadores não dão o drop especial.
 
-Cada abate qualificado também dá um fragmento individual do patamar da hunt. Participantes vivos da party a até 20 tiles e no mesmo andar recebem progresso; líder duplicado e personagens distantes não recebem duas vezes. Não é necessário shared experience. Monstros invocados por jogadores não concedem progresso. O patamar IV é conquistado exclusivamente no Soberano. Fragmentos ficam salvos em storages separadas (79610–79613), não ocupam mochila e não são convertidos entre patamares.
+Cada abate qualificado também dá um fragmento individual do patamar da hunt. Participantes vivos da party a até 20 tiles e no mesmo andar recebem progresso; líder duplicado e personagens distantes não recebem duas vezes. Não é necessário shared experience. Monstros invocados por jogadores não concedem progresso. O patamar IV é conquistado no Soberano e nos chefes finais do Trono. Fragmentos ficam salvos em storages separadas (79610–79613), não ocupam mochila e não são convertidos entre patamares.
 
 `!arsenal` abre o catálogo nativo da própria classe, com saldo, requisitos, origem, poder e comando de cada arma. Exemplo: `!arsenal resgatar, cetro, 4`. Famílias: `espada`, `machado`, `martelo`, `arco`, `besta`, `cetro`, `bastao`. O resgate exige os fragmentos, requisitos e mochila equipada com espaço/capacidade; cobra somente após entregar a arma, sem jogá-la no chão. Assim há uma meta de conquista mesmo quando o drop não vem.
 

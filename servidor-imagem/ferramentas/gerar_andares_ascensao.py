@@ -18,6 +18,15 @@ GRUPOS = [
 ]
 
 
+EXTRAS = ('batedor_das_cinzas', 'carrasco_das_cinzas', 'guardiao_das_ruinas', 'devastador_das_ruinas')
+BOSSES = ('rei_das_cinzas', 'lorde_do_abismo', 'imperador_infernal')
+
+
+def marcar(texto):
+    texto=texto.replace('<!-- jv-vida-10x -->','')
+    return texto.replace('<!-- jv-vida-2x -->','<!-- jv-vida-2x --><!-- jv-vida-10x -->',1)
+
+
 def balancear(texto, nome, hp, dano, experiencia=None):
     texto, a = re.subn(r'(<monster\s+name=")[^"]+("\s+nameDescription=")[^"]+(")', lambda m:m[1]+nome+m[2]+nome+m[3], texto, count=1)
     texto, b = re.subn(r'<health\s+now="\d+"\s+max="\d+"\s*/>', f'<health now="{hp}" max="{hp}"/>', texto, count=1)
@@ -45,9 +54,29 @@ def gerar(data):
                 # A vida em GRUPOS e a anterior: variantes sao geradas ja com 10x
                 # e marcadas, para nao serem regravadas em toda atualizacao.
                 gerado=balancear(base,nome_andar,vidas[i]*10,danos[i],max(1,round(exp*(0.55+0.1*i))))
-                gerado=gerado.replace('<!-- jv-vida-10x -->','')
-                gerado=gerado.replace('<!-- jv-vida-2x -->','<!-- jv-vida-2x --><!-- jv-vida-10x -->',1)
+                gerado=marcar(gerado)
                 destino=pasta/(arquivo+f'_andar{i+1}.xml')
+                if not destino.exists() or destino.read_text(encoding='utf-8')!=gerado:
+                    destino.write_text(gerado,encoding='utf-8');alterados+=1
+    # Os dois ultimos andares usam variantes independentes mais resistentes.
+    normais=tuple(nome for grupo,_,_ in GRUPOS[:4] for nome in grupo)+EXTRAS
+    for arquivos,andares in ((normais,(6,7)),(BOSSES,(7,8))):
+        for arquivo in arquivos:
+            base=(pasta/(arquivo+'.xml')).read_text(encoding='utf-8')
+            raiz=ET.fromstring(base);nome=raiz.get('name');exp=int(raiz.get('experience'))
+            hp=int(raiz.find('health').get('max'))
+            if '<!-- jv-vida-10x -->' in base:
+                if hp%10: raise ValueError('Vida ja aumentada nao divisivel por 10: '+nome)
+                hp//=10
+            melee=re.search(r'<attack\s+name="melee"[^>]*\bmax="-(\d+)"',base)
+            if not melee: raise ValueError('Ataque corporal ausente: '+nome)
+            dano=int(melee.group(1))
+            for i,andar in enumerate(andares):
+                fator_vida=(120,140)[i];fator_ataque=(115,130)[i]
+                gerado=balancear(base,f'{nome} A{andar}',hp*10*fator_vida//100,
+                                 dano*fator_ataque//100,exp*(110+10*i)//100)
+                gerado=marcar(gerado)
+                destino=pasta/(arquivo+f'_andar{andar}.xml')
                 if not destino.exists() or destino.read_text(encoding='utf-8')!=gerado:
                     destino.write_text(gerado,encoding='utf-8');alterados+=1
     return alterados

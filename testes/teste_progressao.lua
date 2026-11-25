@@ -139,17 +139,17 @@ for i=1,4 do
  move.onStepIn(visitante,{getActionId=function()return 47900+i end},Position(0,0,0),visitante.localidade)
  assert(visitante.localidade.x==sala.x-7,"entrada do boss falhou")
 end
-local total=4
+local total=8
 for i,h in ipairs(P.hunts)do
- assert(H.areas[i]);total=total+(h.boss and 40 or 50)
+ assert(H.areas[i]);total=total+(h.boss and 56 or 84)
  assert(Tile(Position(h.x-h.raio+2,h.y,h.z)):getItemById(1387).aid==47820)
  local hubPortal=i<=5 and Position(P.hub.x-12+(i-1)*6,P.hub.y,7) or Position(P.hub.x-9+(i-6)*6,P.hub.y-10,7)
  assert(Tile(hubPortal):getItemById(1387).aid==47800+i)
- for andar=1,(h.boss and 6 or 5) do
+ for andar=1,(h.boss and 8 or 7) do
   local sala=H.andares[i][andar];assert(sala.z==h.z+andar-1)
   local volta=Tile(Position(sala.x-h.raio+2,sala.y,sala.z)):getItemById(1387)
   assert(volta and volta.aid==(andar==1 and 47820 or 47830),'portal de volta ausente')
-  if andar<(h.boss and 6 or 5) then
+  if andar<(h.boss and 8 or 7) then
    local avancar=Position(sala.x+h.raio-2,sala.y,sala.z)
    assert(Tile(avancar):getItemById(1387).aid==47830 and H.transicoes[key(avancar)].andar==andar+1,'portal seguinte ausente')
   end
@@ -172,6 +172,17 @@ for _,i in ipairs({1,4,6,9}) do
  local h=P.hunts[i];local visto={}
  for _,slot in ipairs(H.slots) do if slot.hunt.spotIndice==i and slot.andar==5 then visto[slot.nome]=true end end
  assert(visto[h.extra[1]] and visto[h.extra[2]],'criaturas novas ausentes da hunt '..i)
+end
+for i,h in ipairs(P.hunts) do
+ local ultimo=h.boss and 8 or 7
+ for andar=6,ultimo do
+  local qtd=0;for _,slot in ipairs(H.slots) do if slot.hunt.spotIndice==i and slot.andar==andar then qtd=qtd+1 end end
+  assert(qtd==(h.boss and 6 or (andar==6 and 16 or 18)),'quantidade no andar '..andar..' da hunt '..i)
+ end
+end
+for _,sala in pairs(H.salasBoss) do
+ local qtd=0;for _,slot in ipairs(H.slots) do if slot.pos.z==sala.z and math.abs(slot.pos.x-sala.x)<10 and math.abs(slot.pos.y-sala.y)<10 then qtd=qtd+1 end end
+ assert(qtd==2,'sala classica deve ter dois bosses')
 end
 assert(spawnCount==total);H.repor();assert(spawnCount==total,'duplicou monstros vivos')
 assert(not H.criarSala(P.hub,8),'sobrescreveu tiles ocupados')
@@ -196,12 +207,12 @@ p.nivel=300;assert(H.podeEntrar(p,1),'primeira hunt deve aceitar level 300 e Evo
 p.dados[P.storage]=4;p.nivel=1000
 for i=1,#P.hunts do assert(H.entrar(p,i),'conteudo maximo exige dupla') end
 for i,h in ipairs(P.hunts) do
- for andar=1,4 do
+ for andar=1,(h.boss and 7 or 6) do
   local origem=H.andares[i][andar];local alvo=H.andares[i][andar+1]
   local saida=Position(origem.x+h.raio-2,origem.y,origem.z)
   move.onStepIn(p,{getActionId=function()return 47830 end},saida,p.localidade)
   assert(p.localidade.x==alvo.x-h.raio+3 and p.localidade.z==alvo.z,'portal de avanco falhou na hunt '..i..' andar '..andar)
-  if andar==4 and not h.boss then assert(p.msg:find('andar 5/5') and not p.msg:find('Direita:'),'orientacao incorreta no ultimo andar') end
+  if andar==(h.boss and 7 or 6) then local ultimo=h.boss and 8 or 7;assert(p.msg:find('andar '..ultimo..'/'..ultimo) and not p.msg:find('Direita:'),'orientacao incorreta no ultimo andar') end
   local retorno=Position(alvo.x-h.raio+2,alvo.y,alvo.z)
   move.onStepIn(p,{getActionId=function()return 47830 end},retorno,p.localidade)
   assert(p.localidade.x==origem.x+h.raio-3 and p.localidade.z==origem.z,'portal de retorno falhou na hunt '..i..' andar '..andar)
@@ -212,16 +223,16 @@ do
  local h=P.hunts[5];local quinto=H.andares[5][5];local sexto=H.andares[5][6]
  local ida=Position(quinto.x+h.raio-2,quinto.y,quinto.z)
  move.onStepIn(p,{getActionId=function()return 47830 end},ida,p.localidade)
- assert(p.localidade.x==sexto.x-h.raio+3 and p.localidade.z==sexto.z and p.msg:find('andar 6/6'))
- local nomes={};for _,slot in ipairs(H.slots) do if slot.hunt.spotIndice==5 and slot.andar==6 then nomes[slot.nome]=true;assert(slot.hunt.respawn==150) end end
- assert(nomes['Rei das Cinzas'] and nomes['Lorde do Abismo'] and nomes['Imperador Infernal'])
+ assert(p.localidade.x==sexto.x-h.raio+3 and p.localidade.z==sexto.z and p.msg:find('andar 6/8'))
+ local nomes={};for _,slot in ipairs(H.slots) do if slot.hunt.spotIndice==5 and slot.andar==6 then nomes[slot.nome]=(nomes[slot.nome] or 0)+1;assert(slot.hunt.respawn==150) end end
+ assert(nomes['Rei das Cinzas']==2 and nomes['Lorde do Abismo']==2 and nomes['Imperador Infernal']==2)
  for nome in pairs(nomes) do local n=H.monstros[nome];assert(n and n.boss and n.tier==4 and n.arsenalIndice==5 and n.garantiaIndice==5,'boss sem drop do patamar IV') end
  local volta=Position(sexto.x-h.raio+2,sexto.y,sexto.z)
  move.onStepIn(p,{getActionId=function()return 47830 end},volta,p.localidade)
  assert(p.localidade.z==quinto.z and p.localidade.x==quinto.x+h.raio-3)
 end
 comandos['!ascensao'].onSay(p,'!ascensao','')
-assert(p.dialogo:find('cinco andares') and p.dialogo:find('!arsenal') and p.dialogo:find('volta ao templo') and p.dialogo:find('A partir do segundo andar'),'guia das hunts incompleto')
+assert(p.dialogo:find('sete andares') and p.dialogo:find('!arsenal') and p.dialogo:find('volta ao templo') and p.dialogo:find('A partir do segundo andar'),'guia das hunts incompleto')
 local sala=H.andares[1][1];local avancar=Position(sala.x+P.hunts[1].raio-2,sala.y,sala.z)
 move.onStepIn(p,{getActionId=function()return 47830 end},avancar,p.localidade)
 assert(p.localidade.z==8 and p.localidade.x==H.andares[1][2].x-P.hunts[1].raio+3,'portal nao avancou ao segundo andar')
@@ -250,9 +261,9 @@ local derrotado={getName=function()return P.hunts[1].monstro end,getMaster=funct
 local drops=0;local corpse={addItem=function(self,id,q)drops=drops+1;return item(id)end}
 local random=math.random;math.random=function(a,b)return 1 end
 eventos.JVAscensaoMorte.onDeath(derrotado,corpse,p,p)
-assert(drops==1 and p.dados[P.storageAbates]==1 and parceiro.dados[P.storageAbates]==1,'party duplicou credito ou nao creditou dupla')
+assert(drops==8 and p.dados[P.storageAbates]==1 and parceiro.dados[P.storageAbates]==1,'party duplicou credito ou nao creditou dupla')
 math.random=function(a,b)return b or a end
-eventos.JVAscensaoMorte.onDeath(derrotado,corpse,p,p);assert(drops==1,'chance rara saturada')
+eventos.JVAscensaoMorte.onDeath(derrotado,corpse,p,p);assert(drops==8,'chance rara saturada')
 math.random=random
 print('OK: atributos reais, sem reforco duplicado, wands, dupla e rareza independente do loot global')
 

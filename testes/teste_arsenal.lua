@@ -103,7 +103,7 @@ local drops=0;local corpse={addItem=function(s,id) drops=drops+1;return T.item(i
 assert(not A.sortear(corpse,hunt,5) and drops==0)
 math.random=function(a,b)return 1 end
 local item=A.sortear(corpse,hunt,5)
-assert(drops==1 and item:getCustomAttribute('jvarmaid')=='espada:4')
+assert(drops==8 and item:getCustomAttribute('jvarmaid')=='espada:4')
 local antigo=Game.createItem
 Game.createItem=function()error('drop sem espaco criou item virtual fora do corpo')end
 assert(not A.criar('cetro',4,{addItem=function()end}))
@@ -126,15 +126,15 @@ local atacante=T.player(1)
 local criatura={getName=function()return 'Demon' end,getMaster=function()end}
 math.random=function(a,b)return 1 end
 T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
-assert(quantidade==1 and ultimo:getCustomAttribute('jvarmaid')=='espada:1')
+assert(quantidade==8 and ultimo:getCustomAttribute('jvarmaid')=='espada:1')
 criatura.getName=function()return 'Juggernaut' end
 T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
-assert(quantidade==2 and ultimo:getCustomAttribute('jvarmaid')=='espada:2')
+assert(quantidade==16 and ultimo:getCustomAttribute('jvarmaid')=='espada:2')
 criatura.getMaster=function()return atacante end
 T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
 criatura.getMaster=function()end;math.random=function(a,b)return b or a end
 T.eventos.JVArsenalClassico.onDeath(criatura,corpo,atacante,atacante)
-assert(quantidade==2,'invocacao ou sorteio perdido gerou drop')
+assert(quantidade==16,'invocacao ou sorteio perdido gerou drop')
 math.random=sorte
 print('OK: Demon e Juggernaut derrubam patamares corretos, sem farm de invocacao')
 

@@ -13,7 +13,7 @@ Esta atualização mantém os sprites, o mapa, os ícones e a organização da i
 - 4 níveis, **100.000 gold cada** (mochila e/ou banco), sem level mínimo: nível 1 = 2x, nível 2 = 4x, nível 3 = 7x, nível 4 = 10x.
 - **Ataque**: o dano que você (ou sua invocação) causa em monstros é multiplicado. Contra jogadores o ataque continua normal.
 - **Defesa**: todo dano recebido (monstro ou jogador, vida e mana) é dividido pelo mesmo número.
-- **Animais e monstros com 10× a vida anterior**; experiência e loot por abate iguais.
+- **Animais e monstros com 10× a vida anterior**; experiência por abate igual e loot com oito rolagens.
 - `!evolucao` mostra o seu nível.
 
 ## Atualizar pelo SSH

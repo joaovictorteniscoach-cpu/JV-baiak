@@ -169,5 +169,16 @@ comando.onSay(player,'!loot','ignorados'); check(player.dialogo:find('2148'), 'L
 for s=79300,79399 do dados[s]=3000+s-79300 end
 comando.onSay(player,'!loot','ignorar, royal helmet')
 check(mensagens[#mensagens]:find('cheia') and dados[79400]==nil, 'Lista ultrapassou as storages reservadas')
+-- Bolsas de excesso fazem parte do corpo mesmo quando backpacks sao ignoradas.
+for s=79300,79399 do dados[s]=0 end
+dados[79300]=1988;dados[79205]=0;dados[79206]=0
+item.getId=function()return 2498 end;item.getWorth=function()return 0 end
+local overflow={getId=function()return 1988 end,isContainer=function()return true end,
+ getCustomAttribute=function(_,k)if k=='jvLootExcedente' then return 1 end end,
+ getSize=function()return 1 end,getItem=function()return item end}
+corpo={getSize=function()return 1 end,getItem=function()return overflow end,
+ getType=function()return{isCorpse=function()return true end}end,getAttribute=function()return 1 end}
+local anterior=movimentos;matar();check(movimentos==anterior+1,'backpack ignorada escondeu loot de excesso')
+dados[79301]=2498;anterior=movimentos;matar();check(movimentos==anterior,'item ignorado dentro do excesso foi coletado')
 print('OK: ignorar persistente, permitir, moedas e item invalido')
 print('Jogabilidade: todos os cenarios passaram')

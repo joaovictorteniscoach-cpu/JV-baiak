@@ -17,6 +17,22 @@ andares=importlib.util.module_from_spec(andares_spec);andares_spec.loader.exec_m
 
 
 class DadosAscensao(unittest.TestCase):
+    def test_registro_loot_multiplo_idempotente_e_seguro(self):
+        spec2=importlib.util.spec_from_file_location('loot8',ROOT/'servidor-imagem/ferramentas/registrar_loot_multiplo.py')
+        loot8=importlib.util.module_from_spec(spec2);spec2.loader.exec_module(loot8)
+        with tempfile.TemporaryDirectory() as tmp:
+            pasta=Path(tmp)
+            for arquivo,trocas in loot8.MUDANCAS.items():
+                p=pasta/arquivo;p.parent.mkdir(parents=True,exist_ok=True)
+                p.write_bytes(b'\n'.join(a for a,_ in trocas)+b'\n')
+            self.assertEqual(loot8.registrar(pasta),2)
+            antes={str(p):p.read_bytes() for p in pasta.rglob('*.lua')}
+            self.assertEqual(loot8.registrar(pasta),0)
+            self.assertEqual(antes,{str(p):p.read_bytes() for p in pasta.rglob('*.lua')})
+            p=pasta/'events/scripts/monster.lua';p.write_bytes(b'script customizado')
+            with self.assertRaises(ValueError):loot8.registrar(pasta)
+            self.assertEqual(p.read_bytes(),b'script customizado')
+
     def test_vida_10x_existente_nova_idempotente_e_limite(self):
         spec2=importlib.util.spec_from_file_location('vida',ROOT/'servidor-imagem/ferramentas/vida_monstros.py')
         vida=importlib.util.module_from_spec(spec2);spec2.loader.exec_module(vida)
@@ -76,7 +92,7 @@ class DadosAscensao(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
             shutil.copytree(ROOT/'servidor-imagem/extras/data/monster/Ascensao',data/'monster/Ascensao')
-            self.assertEqual(andares.gerar(data),52)
+            self.assertEqual(andares.gerar(data),90)
             self.assertEqual(andares.gerar(data),0)
             for arquivos,vidas,danos in andares.GRUPOS:
                 for arquivo in arquivos:
@@ -89,6 +105,16 @@ class DadosAscensao(unittest.TestCase):
                     raiz=ET.parse(data/'monster/Ascensao'/f'{arquivo}.xml').getroot()
                     self.assertEqual(int(raiz.find('health').get('max')),vidas[4])
                     self.assertEqual(int(raiz.find('./attacks/attack').get('max')),-danos[4])
+            for nomes,faixas in [(tuple(n for g,_,_ in andares.GRUPOS[:4] for n in g)+andares.EXTRAS,(6,7)),(andares.BOSSES,(7,8))]:
+                for nome in nomes:
+                    base=ET.parse(data/'monster/Ascensao'/f'{nome}.xml').getroot()
+                    anterior=int(base.find('health').get('max'))*10
+                    for n in faixas:
+                        monstro=ET.parse(data/'monster/Ascensao'/f'{nome}_andar{n}.xml').getroot()
+                        vida_atual=int(monstro.find('health').get('max'))
+                        self.assertGreater(vida_atual,anterior)
+                        self.assertTrue(monstro.get('name').endswith(f' A{n}'))
+                        anterior=vida_atual
             spec_vida=importlib.util.spec_from_file_location('vida_instalacao',ROOT/'servidor-imagem/ferramentas/vida_monstros.py')
             vida=importlib.util.module_from_spec(spec_vida);spec_vida.loader.exec_module(vida)
             vida.atualizar(data/'monster')
@@ -101,7 +127,7 @@ class DadosAscensao(unittest.TestCase):
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),80)
+            self.assertEqual(mod.registrar(data),118)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)
