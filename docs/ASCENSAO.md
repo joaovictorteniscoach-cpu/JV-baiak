@@ -46,7 +46,7 @@ Exemplo: um hit que causaria 1.000 contra o mesmo monstro passa a 2.000, 4.000, 
 | Covil dos Titãs | Lv 800, Evo III | Titã Profanado, Dragão das Ruínas e O.G Chef | 300.000 → 1.200.000 | 700 → 2.000 |
 | Trono Infernal | Lv 1.000, Evo IV | Guardas e Soberano Infernal | 400.000 → 3.000.000 | 900 → 2.600 |
 
-As quatro hunts comuns têm cinco andares: os quatro primeiros sobem gradualmente em vida e dano; o quinto tem as versões finais. O Trono Infernal tem um sexto andar de bosses mais fortes. Cada área foi calibrada para tentativa solo com a evolução exigida, também podendo ser feita em dupla. O dano real depende de equipamento, evolução e resistência; estes são valores iniciais para validar em jogo, não uma garantia de sobrevivência. Os sprites existentes não mudam.
+As quatro hunts comuns têm sete andares. O sexto e o sétimo usam variantes mais fortes, com respectivamente 20% e 40% mais vida e 15% e 30% mais dano corporal que as versões do quinto andar. O Trono Infernal tem oito andares. Cada área foi calibrada para tentativa solo com a evolução exigida, também podendo ser feita em dupla. O dano real depende de equipamento, evolução e resistência; estes são valores iniciais para validar em jogo, não uma garantia de sobrevivência. Os sprites existentes não mudam.
 
 O portal de Ascensão é colocado em um tile vazio perto do templo de Thunder City e leva a um salão com nove portais de hunts identificados. Em cada andar, o portal à direita avança e o da esquerda volta ao anterior; há também retorno ao templo junto à entrada de cada andar. `!ascensao` lista as hunts e `!ascensao 1` até `!ascensao 9` permitem viajar a partir do templo/salão. Não são atalhos para fugir de qualquer local do mapa.
 
@@ -54,7 +54,7 @@ O portal de Ascensão é colocado em um tile vazio perto do templo de Thunder Ci
 
 **Vampirismo:** a partir do level 200, todas as vocações podem usar `utito vita sanguis` (250 de mana, duração de 20 segundos e recarga de 60 segundos). Recupera 10% do dano efetivo causado a monstros não invocados, limitado a 10% da vida máxima por acerto. Não funciona em PvP nem com dano de invocações. O valor é aplicado depois de defesas e limitado à vida restante do monstro. O balanceamento inicial deve ser acompanhado em jogo.
 
-As salas são criadas no startup em áreas reservadas, com chão de mármore e paredes clássicas. O sistema confere todos os tiles antes de criar a sala; se houver colisão com mapa customizado, a área fica indisponível. Não substitui o mapa OTBM, casas ou hunts existentes. Os cinco primeiros andares têm respectivamente 6, 8, 10, 12 ou 14 monstros; no quinto andar do Trono o Soberano continua único, com respawn de 150 segundos. No sexto andar há três bosses espaçados, com o mesmo respawn. As demais hunts mantêm seus intervalos de respawn. Parte nasce a poucos quadrados da chegada e os demais ficam espalhados. Não há spawn forçado sobre jogadores. A chegada escolhe tile livre e evita o portal de retorno, inclusive para a segunda pessoa da dupla.
+As salas são criadas no startup em áreas reservadas, com chão de mármore e paredes clássicas. O sistema confere todos os tiles antes de criar a sala; se houver colisão com mapa customizado, a área fica indisponível. Não substitui o mapa OTBM, casas ou hunts existentes. As hunts comuns têm 6, 8, 10, 12, 14, 16 e 18 monstros por andar. No quinto andar do Trono há dois Soberanos; nos três últimos andares há seis bosses por andar, dois de cada tipo, com respawn de 150 segundos. As demais hunts mantêm seus intervalos de respawn. Parte nasce a poucos quadrados da chegada e os demais ficam espalhados. Não há spawn forçado sobre jogadores. A chegada escolhe tile livre e evita o portal de retorno, inclusive para a segunda pessoa da dupla.
 
 Das 67 entradas antigas identificadas como hunts no mapa fixado, dez tinham zero ou um monstro a até sete quadrados da chegada. Cada uma recebeu até dois monstros evoluídos da família daquela hunt, em posições acessíveis e fora de zonas protegidas, casas e teleportes. Entradas para templos, cidades, eventos e o boss Ashmunrah não recebem reforços. Se o portal da VPS tiver outro destino ou faltar posição segura, o reforço é ignorado e o servidor registra o motivo no log. As oito variantes usam o sprite original, aproximadamente 35% mais vida que a versão base já dobrada, 30% mais dano nos valores configurados e 30% mais experiência; conservam o loot da família e não concedem fragmentos da Ascensão. Os bônus não se aplicam a todos os ataques especiais que não usam valores numéricos no XML.
 
@@ -64,14 +64,14 @@ Além dos reforços abaixo, o [Arsenal de Ascensão](ARSENAL.md) adiciona 28 arm
 
 Os drops especiais usam itens existentes: Magic Sword, Magic Longsword, Thunder Hammer, Solar Axe, Royal Crossbow, Warsinger Bow, Wand of Voodoo, Hailstorm Rod, Magic Plate Armor, Golden Helmet, Demon Legs, Great Shield e Golden Boots.
 
-| Reforço | Atributos base | Chance de um item especial por abate |
+| Reforço | Atributos base | Chance de um item especial por tentativa |
 |---|---:|---:|
 | I | +10% | Caverna: 0,5% |
 | II | +20% | Forja: 0,8%; Cripta: 1% |
 | III | +35% | Covil: 1,2% |
 | IV | +50% | Soberano: 15% |
 
-É uma rolagem para escolher um dos treze itens; a chance de cada item específico é a chance da tabela dividida por treze. O sorteio não é multiplicado pelo loot global de 100× ou por boosters. Assim um raro não passa a ser garantido por causa da configuração do servidor.
+São oito tentativas independentes por abate para escolher um dos treze itens; em cada tentativa, a chance de um item específico é a chance da tabela dividida por treze. Essas tentativas especiais não são multiplicadas pelo rate global nem por boosters. A partir do sexto andar, a chance da tabela cresce 10% do valor-base por andar.
 
 Ataque, defesa e armadura são atributos reais da instância; itens normais do mesmo ID não são alterados. Por exemplo: Magic Sword 48/35 → 72/53 no reforço IV; Magic Plate Armor 17 → 26. Não se multiplica novamente um item já reforçado. O desenho é o mesmo, com descrição nativa do reforço.
 
@@ -95,18 +95,20 @@ python testes/teste_ascensao_arquivos.py /tmp/servidor-progressao
 
 Os testes executam o Lua real, compilam as funções C++ reais do ataque e conferem os dados da versão fixada. Ainda é necessário conferir o combate, sprites, teleporte e dificuldade no cliente/servidor em execução antes de declarar o balanceamento final.
 
-O portal antigo `Bosses` de Premia fica na sala de portais ao sair do templo. Ele leva ao salao das hunts novas; os quatro portais de bosses ficam na fileira inferior, identificados por modelos de Orshabaal, Ferumbras, Morgaroth e Ghazbaran. Exigem level 300 e cada sala tem um portal de retorno ao templo. Os monstros usam as estatisticas e drops originais, com reaparecimento de 150 segundos apos a morte. No mapa original, o portal antes tinha sido ligado por engano a sala de NPCs; a correcao preserva destinos personalizados diferentes desse erro conhecido.
+O portal antigo `Bosses` de Premia fica na sala de portais ao sair do templo. Ele leva ao salao das hunts novas; os quatro portais de bosses ficam na fileira inferior, identificados por modelos de Orshabaal, Ferumbras, Morgaroth e Ghazbaran. Exigem level 300 e cada sala tem dois bosses e um portal de retorno ao templo. Os monstros usam as estatisticas e drops originais, com reaparecimento de 150 segundos apos a morte. No mapa original, o portal antes tinha sido ligado por engano a sala de NPCs; a correcao preserva destinos personalizados diferentes desse erro conhecido.
 
-Os portais **Spot 2** são áreas independentes para Caverna Infernal, Forja Abissal, Cripta Ancestral e Covil dos Titãs. Cada um tem cinco andares, os mesmos monstros, requisitos e probabilidades do spot original. Os fragmentos e a garantia de loot são compartilhados com a hunt correspondente.
+Os portais **Spot 2** são áreas independentes para Caverna Infernal, Forja Abissal, Cripta Ancestral e Covil dos Titãs. Cada um tem sete andares, os mesmos monstros, requisitos e probabilidades do spot original. Os fragmentos e a garantia de loot são compartilhados com a hunt correspondente.
 
 Os spawns registrados de bosses do mapa e de Juggernaut também têm o intervalo reduzido à metade, uma única vez em cada posição; a regra não altera os monstros comuns. As salas dos quatro bosses e do Soberano usam 150 segundos.
 
-### Novas criaturas e sexto andar
+### Novas criaturas e andares finais
 
-No quinto andar da Caverna Infernal e seu Spot 2 aparecem **Batedor das Cinzas** (180.000 de vida, hit corporal até 400) e **Carrasco das Cinzas** (325.000, até 700). No quinto andar do Covil dos Titãs e seu Spot 2 aparecem **Guardião das Ruínas** (850.000, até 1.400) e **Devastador das Ruínas** (1.500.000, até 2.500). Esses valores são antes das defesas e da evolução.
+A partir do quinto andar da Caverna Infernal e seu Spot 2 aparecem **Batedor das Cinzas** (180.000 de vida, hit corporal até 400) e **Carrasco das Cinzas** (325.000, até 700). A partir do quinto andar do Covil dos Titãs e seu Spot 2 aparecem **Guardião das Ruínas** (850.000, até 1.400) e **Devastador das Ruínas** (1.500.000, até 2.500). Esses valores são antes das defesas e da evolução.
 
-No Trono Infernal, o portal da direita do quinto andar leva ao sexto: **Rei das Cinzas** (3.900.000 de vida), **Lorde do Abismo** (4.200.000) e **Imperador Infernal** (4.500.000). São mais fortes que o Soberano (3.000.000), nascem separados e voltam após 150 segundos. O portal da esquerda retorna ao quinto andar e o portal acima da entrada leva ao templo. Entrada no Trono: level 1.000 e Evolução IV. Os números são calibragem inicial para solo máximo e precisam de observação em jogo.
+No Trono Infernal, o portal da direita do quinto andar leva ao sexto: há dois **Reis das Cinzas** (3.900.000 de vida cada), dois **Lordes do Abismo** (4.200.000) e dois **Imperadores Infernais** (4.500.000). Os andares sete e oito têm versões com 20% e 40% mais vida e 15% e 30% mais dano corporal. Eles nascem separados e voltam após 150 segundos. Os portais avançam e retornam entre andares; acima da entrada há retorno ao templo. Entrada: level 1.000 e Evolução IV. A dificuldade solo precisa de observação em jogo.
 
-As criaturas novas deixam somente moedas e peças valiosas no loot normal. Os bosses do sexto andar podem deixar Magic Plate Armor e Great Shield; as outras criaturas novas podem deixar Demon Armor e Demon Helmet. Os drops especiais e as garantias de armas de Ascensão continuam, independentes do loot global. As chances do loot normal variam com o rate e os bônus do servidor. A limpeza de itens inúteis aplica-se às criaturas novas; os drops anteriores não foram alterados.
+As criaturas novas deixam somente moedas e peças valiosas no loot normal. Os bosses dos três últimos andares podem deixar Magic Plate Armor e Great Shield; as outras criaturas novas podem deixar Demon Armor e Demon Helmet. Os drops especiais e as garantias de armas de Ascensão continuam, independentes do loot global. As chances do loot normal variam com o rate e os bônus do servidor. A limpeza de itens inúteis aplica-se às criaturas novas; os itens possíveis nos drops anteriores foram preservados.
 
-A vida de animais e monstros foi multiplicada por 10 em relação ao valor que tinham antes desta atualização; dano, experiência e loot por abate não foram alterados. O aumento é aplicado uma única vez por arquivo e inclui as variantes geradas, as hunts e os bosses.
+A vida de animais e monstros foi multiplicada por 10 em relação ao valor que tinham antes desta atualização; o multiplicador de vida não altera dano nem experiência por abate. As novas variantes dos últimos andares recebem seus próprios bônus de dano e experiência. O aumento é aplicado uma única vez por arquivo e inclui as variantes geradas, as hunts e os bosses.
+
+O loot normal e as recompensas dos bosses têm oito rolagens independentes por morte, usando as chances e os boosts já existentes. O resultado é em média oito vezes a quantidade anterior, não uma garantia de oito itens específicos em cada morte. Quando o corpo enche, bolsas dentro dele guardam o excedente; o autoloot continua respeitando as exclusões de cada item.

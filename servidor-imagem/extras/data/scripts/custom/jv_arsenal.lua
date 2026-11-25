@@ -66,23 +66,30 @@ end
 local function rolar(corpse,player,chance,tier,storage,limite)
     if not corpse or not chance then return nil end
     local contador=player and math.max(0,player:getStorageValue(storage)) or 0
-    local saiu=math.random(1,1000000)<=math.floor(chance*1000000)
-    if not saiu and (not player or contador+1<limite) then
-        if player then player:setStorageValue(storage,math.min(limite,contador+1)) end
-        return nil
+    local primeiro,quantidade=nil,0
+    local function criar()
+        local f=C.familias[math.random(#C.familias)]
+        local destino=corpse
+        if JV_LOOT_MULTIPLO then destino=JV_LOOT_MULTIPLO.destino(corpse) end
+        local item=destino and A.criar(f.chave,tier,destino)
+        if item then primeiro=primeiro or item;quantidade=quantidade+1 end
     end
-    local f=C.familias[math.random(#C.familias)]
-    local item=A.criar(f.chave,tier,corpse)
+    for _=1,8 do
+        if math.random(1,1000000)<=math.floor(chance*1000000) then criar() end
+    end
+    -- Garantia continua contando mortes, nao as oito rolagens da mesma morte.
+    if quantidade==0 and player and contador+1>=limite then criar() end
     if player then
-        if item then
+        if primeiro then
             player:setStorageValue(storage,0)
-            avisar(player,'Uma arma rara caiu no corpo: '..f.nomes[tier]..'. Confira o corpo ou o autoloot.')
+            avisar(player,quantidade..' arma(s) rara(s) cairam no corpo. Confira o corpo ou o autoloot.')
         else
             player:setStorageValue(storage,math.min(limite,contador+1))
-            avisar(player,'O corpo nao recebeu a arma rara; a garantia ficou guardada para o proximo abate.')
+            if contador+1>=limite then avisar(player,'O corpo nao recebeu a arma rara; a garantia ficou guardada para o proximo abate.') end
         end
     end
-    return item
+    if JV_LOOT_MULTIPLO then JV_LOOT_MULTIPLO.limpar(corpse) end
+    return primeiro
 end
 function A.sortear(corpse,hunt,indice,player)
     local chance=C.chances[indice]
@@ -167,7 +174,7 @@ function A.catalogo(player)
             linhas[#linhas+1]=f.nomes[n]..' - '..detalhes(f,n)..'\nEscolher: !arsenal resgatar, '..f.chave..', '..n
         end end
     end
-    linhas[#linhas+1]='\nUm fragmento por abate qualificado nas hunts do patamar; IV apenas no Soberano. Dupla proxima recebe para ambos. Fragmentos nao ocupam a mochila. Armas podem ser negociadas; os requisitos continuam valendo.'
+    linhas[#linhas+1]='\nUm fragmento por abate qualificado nas hunts do patamar; IV no Soberano e chefes finais. Dupla proxima recebe para ambos. Fragmentos nao ocupam a mochila. Armas podem ser negociadas; os requisitos continuam valendo.'
     player:showTextDialog(1950,table.concat(linhas,'\n'),false)
 end
 local comando=TalkAction('!arsenal')

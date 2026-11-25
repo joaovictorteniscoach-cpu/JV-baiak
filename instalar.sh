@@ -353,6 +353,9 @@ main() {
 	if [ "$MONSTROS_REGISTRADOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	if [ "$DROPS_CLASSICOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	touch "$AJUSTES"
+	LOOT_MULTIPLO="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_loot_multiplo.py" "$SRV/data")" \
+		|| falha "nao consegui registrar o loot 8x"
+	if [ "$LOOT_MULTIPLO" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	VAMPIRISMO="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_vampirismo.py" "$SRV/data")" \
 		|| falha "nao consegui registrar a magia Vampirismo"
 	if [ "$VAMPIRISMO" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi

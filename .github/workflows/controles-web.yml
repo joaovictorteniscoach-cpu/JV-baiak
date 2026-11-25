@@ -52,6 +52,7 @@ jobs:
           from pathlib import Path
           from lupa.lua51 import LuaRuntime
           LuaRuntime().execute(Path('testes/teste_jogabilidade.lua').read_text())
+          LuaRuntime().execute(Path('testes/teste_loot_multiplo.lua').read_text())
           LuaRuntime().execute(Path('testes/teste_caminho_otcv8.lua').read_text())
           LuaRuntime().execute(Path('testes/teste_toque_duplo.lua').read_text())
           LuaRuntime().execute(Path('testes/teste_venda_lista.lua').read_text())
