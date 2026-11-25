@@ -13,6 +13,7 @@ local bosses = {
 }
 local HUB_RAIO=17
 local QUANTIDADE_ANDAR={6,8,10,12,14}
+local BOSS_FINAL={"Rei das Cinzas","Lorde do Abismo","Imperador Infernal"}
 local placas={'Portal Infernal','Portal Abissal','Portal Ancestral','Portal Titas','Portal Soberano'}
 H.areas, H.slots, H.monstros = H.areas or {}, H.slots or {}, H.monstros or {}
 local function pos(t, dx, dy) return Position(t.x+(dx or 0), t.y+(dy or 0), t.z) end
@@ -140,7 +141,7 @@ function H.entrar(player, indice)
     if not destino or destino.x==0 or not Tile(destino) then mensagem(player,'Entrada ocupada; tente novamente.'); return false end
     if not player:teleportTo(destino) then mensagem(player,'Nao foi possivel viajar.'); return false end
     destino:sendMagicEffect(CONST_ME_TELEPORT)
-    mensagem(player,h.nome .. ' - andar 1/5. Direita: proximo andar. Esquerda: voltar ao templo.')
+    mensagem(player,h.nome .. ' - andar 1/'..(h.boss and 6 or 5)..'. Direita: proximo andar. Esquerda: voltar ao templo.')
     return true
 end
 
@@ -196,9 +197,10 @@ function passo.onStepIn(creature,item,position,fromPosition)
             mensagem(player,'Entrada ocupada; tente novamente.');player:teleportTo(fromPosition,true)
         else
             livre:sendMagicEffect(CONST_ME_TELEPORT)
-            local orientacao=transicao.andar==5 and 'Esquerda: andar anterior. Portal acima da entrada: templo.'
+            local total=h.boss and 6 or 5
+            local orientacao=transicao.andar==total and 'Esquerda: andar anterior. Portal acima da entrada: templo.'
                 or 'Direita: proximo andar. Esquerda: andar anterior. Portal acima da entrada: templo.'
-            mensagem(player,h.nome..' - andar '..transicao.andar..'/5. '..orientacao)
+            mensagem(player,h.nome..' - andar '..transicao.andar..'/'..total..'. '..orientacao)
         end
     elseif not H.entrar(player,aid-AID_HUNT+1) then
         player:teleportTo(fromPosition,true)
@@ -219,7 +221,7 @@ function comando.onSay(player,words,param)
         if perto or noHub then H.entrar(player,i) else mensagem(player,'Use o portal do templo ou volte ao templo para viajar.') end
     else
         local linhas={'HUNTS NOVAS: procure o portal azul HUNTS NOVAS junto ao templo.',
-            'Cada hunt tem cinco andares; a dificuldade aumenta ao avancar.',
+            'Cada hunt tem cinco andares; o Trono Infernal tem seis. A dificuldade aumenta ao avancar.',
             'Direita: proximo andar. Esquerda: andar anterior; no primeiro, volta ao templo.',
             'A partir do segundo andar, o portal acima da entrada tambem volta ao templo.',
             'Armas raras podem cair no corpo. Use !arsenal para ver a garantia e os requisitos.',
@@ -322,7 +324,8 @@ function inicio.onStartup()
         h.arsenalIndice=h.arsenalBase or i
         H.andares[i]={}
         local livres=H.hub
-        for andar=1,5 do
+        local total=h.boss and 6 or 5
+        for andar=1,total do
             -- Espaco entre andares evita que o teto de um obscureca o outro.
             local sala={x=h.x+(andar-1)*1000,y=h.y,z=h.z+andar-1}
             H.andares[i][andar]=sala
@@ -330,7 +333,7 @@ function inicio.onStartup()
         end
         if livres then
             local criadas=true
-            for andar=1,5 do if not H.criarSala(H.andares[i][andar],h.raio) then criadas=false;break end end
+            for andar=1,total do if not H.criarSala(H.andares[i][andar],h.raio) then criadas=false;break end end
             if criadas and portal(posPortal(i),AID_HUNT+i-1) then
                 H.areas[i]=true
                 local primeiroSlot=#H.slots
@@ -339,7 +342,7 @@ function inicio.onStartup()
                 if not Game.createNpc(placas[h.arsenalBase or i],modelo,false,false) then
                     print('[Ascensao] Nao foi possivel criar identificacao: '..placas[h.arsenalBase or i])
                 end
-                for andar=1,5 do
+                for andar=1,total do
                     local sala=H.andares[i][andar]
                     local esquerda=pos(sala,-h.raio+2,0)
                     if andar==1 then portaisOk=portal(esquerda,AID_VOLTA) and portaisOk
@@ -348,7 +351,7 @@ function inicio.onStartup()
                         H.transicoes[chave(esquerda)]={hunt=i,andar=andar-1,lado='direita'}
                         portaisOk=portal(pos(sala,-h.raio+2,-3),AID_VOLTA) and portaisOk
                     end
-                    if andar<5 then
+                    if andar<total then
                         local direita=pos(sala,h.raio-2,0);portaisOk=portal(direita,AID_ANDAR) and portaisOk
                         H.transicoes[chave(direita)]={hunt=i,andar=andar+1,lado='esquerda'}
                     end
@@ -360,19 +363,30 @@ function inicio.onStartup()
                     if h.boss and andar<5 then
                         nivel.tier=3;nivel.boss=false;nivel.respawn=50;nivel.chance=0.012*(0.6+0.1*(andar-1));nivel.arsenalIndice=4
                     end
-                    local nomes={h.monstro,h.variante,h.convidado}
-                    for _,nome in ipairs(nomes) do
-                        local variante=andar==5 and nome or nome..' A'..andar
-                        H.monstros[variante]=nivel
-                    end
-                    local quantidade=(h.boss and andar==5) and 1 or QUANTIDADE_ANDAR[andar]
-                    for n=1,quantidade do
-                        local col=(n-1)%5;local linha=math.floor((n-1)/5)
-                        local dx=(h.boss and andar==5) and (-h.raio+8) or (-h.raio+7+col*4)
-                        local dy=(h.boss and andar==5) and 0 or (-8+linha*3)
-                        local nome=(h.convidado and n%3==1) and h.convidado or ((h.variante and n%3==0) and h.variante or h.monstro)
-                        if andar<5 then nome=nome..' A'..andar end
-                        H.slots[#H.slots+1]={hunt=nivel,nome=nome,andar=andar,pos=pos(sala,dx,dy)}
+                    if h.boss and andar==6 then
+                        -- Espacados para permitir atrair um boss de cada vez.
+                        local pontos={{-4,-8},{7,0},{-4,8}}
+                        for n,nome in ipairs(BOSS_FINAL) do
+                            H.monstros[nome]=nivel
+                            H.slots[#H.slots+1]={hunt=nivel,nome=nome,andar=andar,pos=pos(sala,pontos[n][1],pontos[n][2])}
+                        end
+                    else
+                        local nomes={h.monstro,h.variante,h.convidado}
+                        for _,nome in ipairs(nomes) do
+                            local variante=andar==5 and nome or nome..' A'..andar
+                            H.monstros[variante]=nivel
+                        end
+                        if andar==5 and h.extra then for _,nome in ipairs(h.extra) do H.monstros[nome]=nivel end end
+                        local quantidade=(h.boss and andar==5) and 1 or QUANTIDADE_ANDAR[andar]
+                        for n=1,quantidade do
+                            local col=(n-1)%5;local linha=math.floor((n-1)/5)
+                            local dx=(h.boss and andar==5) and (-h.raio+8) or (-h.raio+7+col*4)
+                            local dy=(h.boss and andar==5) and 0 or (-8+linha*3)
+                            local nome=(h.convidado and n%3==1) and h.convidado or ((h.variante and n%3==0) and h.variante or h.monstro)
+                            if andar==5 and h.extra and n%5<=1 then nome=h.extra[n%5+1] end
+                            if andar<5 then nome=nome..' A'..andar end
+                            H.slots[#H.slots+1]={hunt=nivel,nome=nome,andar=andar,pos=pos(sala,dx,dy)}
+                        end
                     end
                 end
                 if not portaisOk then

@@ -37,15 +37,15 @@ return {
         {origem={1427,1316,8}, destino={1001,781,7}, monstro='Warlock Evoluido'},
     },
     hunts = {
-        {nome='Caverna Infernal', monstro='Demonio Ascendido', variante='Arauto das Brasas', convidado='Master Snoop', level=300, evo=1, tier=1, x=30100, y=30000, z=7, raio=12, quantidade=18, respawn=35, chance=0.005},
+        {nome='Caverna Infernal', monstro='Demonio Ascendido', variante='Arauto das Brasas', convidado='Master Snoop', extra={'Batedor das Cinzas','Carrasco das Cinzas'}, level=300, evo=1, tier=1, x=30100, y=30000, z=7, raio=12, quantidade=18, respawn=35, chance=0.005},
         {nome='Forja Abissal', monstro='Colosso Abissal', variante='Cavaleiro do Abismo', convidado='Dr Dre', level=600, evo=2, tier=2, x=30200, y=30000, z=7, raio=13, quantidade=21, respawn=40, chance=0.008},
         {nome='Cripta Ancestral', monstro='Guardiao Ancestral', variante='Vigia da Cripta', convidado='Mr 420', level=650, evo=2, tier=2, x=30300, y=30000, z=7, raio=15, quantidade=24, respawn=45, chance=0.01, dupla=true},
-        {nome='Covil dos Titas', monstro='Tita Profanado', variante='Dragao das Ruinas', convidado='O.G Chef', level=800, evo=3, tier=3, x=30400, y=30000, z=7, raio=16, quantidade=27, respawn=50, chance=0.012, dupla=true},
+        {nome='Covil dos Titas', monstro='Tita Profanado', variante='Dragao das Ruinas', convidado='O.G Chef', extra={'Guardiao das Ruinas','Devastador das Ruinas'}, level=800, evo=3, tier=3, x=30400, y=30000, z=7, raio=16, quantidade=27, respawn=50, chance=0.012, dupla=true},
         {nome='Trono Infernal', monstro='Soberano Infernal', level=1000, evo=4, tier=4, x=30500, y=30000, z=7, raio=13, quantidade=1, respawn=150, chance=0.15, boss=true},
         -- Spots independentes das mesmas familias e patamares, com a mesma garantia de loot.
-        {nome='Caverna Infernal - Spot 2', monstro='Demonio Ascendido', variante='Arauto das Brasas', convidado='Master Snoop', level=300, evo=1, tier=1, x=37000, y=30000, z=7, raio=12, respawn=35, chance=0.005, arsenalBase=1},
+        {nome='Caverna Infernal - Spot 2', monstro='Demonio Ascendido', variante='Arauto das Brasas', convidado='Master Snoop', extra={'Batedor das Cinzas','Carrasco das Cinzas'}, level=300, evo=1, tier=1, x=37000, y=30000, z=7, raio=12, respawn=35, chance=0.005, arsenalBase=1},
         {nome='Forja Abissal - Spot 2', monstro='Colosso Abissal', variante='Cavaleiro do Abismo', convidado='Dr Dre', level=600, evo=2, tier=2, x=37100, y=30000, z=7, raio=13, respawn=40, chance=0.008, arsenalBase=2},
         {nome='Cripta Ancestral - Spot 2', monstro='Guardiao Ancestral', variante='Vigia da Cripta', convidado='Mr 420', level=650, evo=2, tier=2, x=37200, y=30000, z=7, raio=15, respawn=45, chance=0.01, dupla=true, arsenalBase=3},
-        {nome='Covil dos Titas - Spot 2', monstro='Tita Profanado', variante='Dragao das Ruinas', convidado='O.G Chef', level=800, evo=3, tier=3, x=37300, y=30000, z=7, raio=16, respawn=50, chance=0.012, dupla=true, arsenalBase=4},
+        {nome='Covil dos Titas - Spot 2', monstro='Tita Profanado', variante='Dragao das Ruinas', convidado='O.G Chef', extra={'Guardiao das Ruinas','Devastador das Ruinas'}, level=800, evo=3, tier=3, x=37300, y=30000, z=7, raio=16, respawn=50, chance=0.012, dupla=true, arsenalBase=4},
     },
 }
