@@ -353,6 +353,9 @@ main() {
 	if [ "$MONSTROS_REGISTRADOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	if [ "$DROPS_CLASSICOS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	touch "$AJUSTES"
+	QUESTS_CORRIGIDAS="$(python3 "$BASE/servidor-imagem/ferramentas/corrigir_quests.py" "$SRV/data")" \
+		|| falha "nao consegui corrigir as quests; verifique os scripts personalizados"
+	if [ "$QUESTS_CORRIGIDAS" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
 	LOOT_MULTIPLO="$(python3 "$BASE/servidor-imagem/ferramentas/registrar_loot_multiplo.py" "$SRV/data")" \
 		|| falha "nao consegui registrar o loot 8x"
 	if [ "$LOOT_MULTIPLO" -gt 0 ]; then REINICIAR_SERVIDOR=1; fi
@@ -498,6 +501,8 @@ main() {
 		if [ "$DADOS_NOVOS" = 1 ]; then TIPO_DADOS=nova; fi
 		N_VIDA="$(python3 "$BASE/servidor-imagem/ferramentas/vida_monstros.py" "$SRV/data/monster" "$TIPO_DADOS")" \
 			|| falha "nao consegui aumentar a vida dos monstros"
+		N_REDUCAO="$(python3 "$BASE/servidor-imagem/ferramentas/reduzir_vida_monstros.py" "$SRV/data/monster")" \
+			|| falha "nao consegui reduzir a vida dos monstros"
 		MONSTROS_DEPOIS="$(cd "$SRV/data/monster" && find . -type f -name '*.xml' -print0 | sort -z | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1)"
 		if [ "$MONSTROS_ANTES" != "$MONSTROS_DEPOIS" ]; then
 			REINICIAR_SERVIDOR=1

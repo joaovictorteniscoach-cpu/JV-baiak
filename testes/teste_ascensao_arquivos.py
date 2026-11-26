@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from lupa.lua51 import LuaRuntime
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "servidor-imagem/ferramentas"))
 FONTE = Path(sys.argv.pop(1)) if len(sys.argv)>1 else Path('/tmp/servidor-progressao')
 spec = importlib.util.spec_from_file_location('registrar', ROOT/'servidor-imagem/ferramentas/registrar_ascensao.py')
 mod = importlib.util.module_from_spec(spec)
@@ -32,6 +33,30 @@ class DadosAscensao(unittest.TestCase):
             p=pasta/'events/scripts/monster.lua';p.write_bytes(b'script customizado')
             with self.assertRaises(ValueError):loot8.registrar(pasta)
             self.assertEqual(p.read_bytes(),b'script customizado')
+
+    def test_reducao_vida_uma_vez_e_preserva_restante(self):
+        import reduzir_vida_monstros as r
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/'animal.xml'
+            p.write_text('<monster name="Sheep"><health now="90" max="180"/><loot/></monster>')
+            self.assertEqual(r.atualizar(tmp),1)
+            self.assertIn('now="50" max="100"',p.read_text())
+            antes=p.read_bytes()
+            self.assertEqual(r.atualizar(tmp),0)
+            self.assertEqual(p.read_bytes(),antes)
+            self.assertEqual(r.reduzir(1),1)
+
+    def test_corrigir_quests_preserva_personalizacoes(self):
+        import corrigir_quests as c, shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            destino=Path(tmp)/'actions/scripts/quests';destino.mkdir(parents=True)
+            for nome in c.ORIGINAIS:
+                shutil.copyfile(FONTE/'data/actions/scripts/quests'/nome,destino/nome)
+            self.assertEqual(c.aplicar(tmp),3)
+            self.assertEqual(c.aplicar(tmp),0)
+            p=destino/'quests.lua';p.write_text('customizado')
+            with self.assertRaises(ValueError): c.aplicar(tmp)
+            self.assertEqual(p.read_text(),'customizado')
 
     def test_vida_10x_existente_nova_idempotente_e_limite(self):
         spec2=importlib.util.spec_from_file_location('vida',ROOT/'servidor-imagem/ferramentas/vida_monstros.py')
@@ -98,7 +123,7 @@ class DadosAscensao(unittest.TestCase):
                 for arquivo in arquivos:
                     for i in range(4):
                         raiz=ET.parse(data/'monster/Ascensao'/f'{arquivo}_andar{i+1}.xml').getroot()
-                        self.assertEqual(int(raiz.find('health').get('max')),vidas[i]*10)
+                        self.assertEqual(int(raiz.find('health').get('max')),andares.reduzir(vidas[i]*10))
                         self.assertIn('<!-- jv-vida-10x -->',(data/'monster/Ascensao'/f'{arquivo}_andar{i+1}.xml').read_text())
                         self.assertEqual(int(raiz.find('./attacks/attack').get('max')),-danos[i])
                         self.assertEqual(raiz.find('./script/event').get('name'),'JVAscensaoMorte')
@@ -108,7 +133,7 @@ class DadosAscensao(unittest.TestCase):
             for nomes,faixas in [(tuple(n for g,_,_ in andares.GRUPOS[:4] for n in g)+andares.EXTRAS,(6,7)),(andares.BOSSES,(7,8))]:
                 for nome in nomes:
                     base=ET.parse(data/'monster/Ascensao'/f'{nome}.xml').getroot()
-                    anterior=int(base.find('health').get('max'))*10
+                    anterior=andares.reduzir(int(base.find('health').get('max'))*10)
                     for n in faixas:
                         monstro=ET.parse(data/'monster/Ascensao'/f'{nome}_andar{n}.xml').getroot()
                         vida_atual=int(monstro.find('health').get('max'))
@@ -117,17 +142,20 @@ class DadosAscensao(unittest.TestCase):
                         anterior=vida_atual
             spec_vida=importlib.util.spec_from_file_location('vida_instalacao',ROOT/'servidor-imagem/ferramentas/vida_monstros.py')
             vida=importlib.util.module_from_spec(spec_vida);spec_vida.loader.exec_module(vida)
+            import reduzir_vida_monstros as reducao
             vida.atualizar(data/'monster')
+            reducao.atualizar(data/'monster')
             self.assertEqual(andares.gerar(data),0, 'regerou os andares ja aumentados')
             arquivos={p.name:p.read_bytes() for p in (data/'monster/Ascensao').glob('*.xml')}
             shutil.copytree(ROOT/'servidor-imagem/extras/data/monster/Ascensao',data/'monster/Ascensao',dirs_exist_ok=True)
             self.assertEqual(andares.gerar(data),0)
             vida.atualizar(data/'monster')
+            reducao.atualizar(data/'monster')
             self.assertEqual(arquivos,{p.name:p.read_bytes() for p in (data/'monster/Ascensao').glob('*.xml')},'segunda atualizacao alterou a vida')
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),118)
+            self.assertEqual(mod.registrar(data),122)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)

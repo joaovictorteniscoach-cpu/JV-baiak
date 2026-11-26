@@ -13,7 +13,7 @@ Esta atualização mantém os sprites, o mapa, os ícones e a organização da i
 - 4 níveis, **100.000 gold cada** (mochila e/ou banco), sem level mínimo: nível 1 = 2x, nível 2 = 4x, nível 3 = 7x, nível 4 = 10x.
 - **Ataque**: o dano que você (ou sua invocação) causa em monstros é multiplicado. Contra jogadores o ataque continua normal.
 - **Defesa**: todo dano recebido (monstro ou jogador, vida e mana) é dividido pelo mesmo número.
-- **Animais e monstros com 10× a vida anterior**; experiência por abate igual e loot com oito rolagens.
+- **Vida dos animais e monstros dividida por 1,8** em relação à atualização anterior; loot com oito rolagens.
 - `!evolucao` mostra o seu nível.
 
 ## Atualizar pelo SSH
@@ -54,3 +54,5 @@ node testes/teste_controles_web.cjs
 ```
 
 Os testes de jogabilidade executam os módulos Lua reais com dependências controladas. Não substituem a conferência no aparelho e no servidor depois da atualização.
+
+O personagem não é desconectado por inatividade e a tentativa de retorno automático continua disponível após mais de uma hora. O navegador ou o sistema do celular ainda pode suspender a página ou a rede: ao voltar, o cliente pode precisar reconectar. Sair manualmente continua encerrando a sessão.

@@ -6,7 +6,7 @@
 -- No celular, "Lembrar conta" e "Entrar automaticamente" vem marcados na primeira vez.
 JVVolta = JVVolta or {}
 local V = JVVolta
-local JANELA = 60 * 60 -- entra sozinho se esteve no jogo na ultima hora
+-- Permanece elegivel para retorno ate usar o botao de sair.
 
 local function modulo(nome)
     local m = modules.client_entergame
@@ -27,7 +27,7 @@ end
 
 local function deveVoltar()
     local ate = tonumber(g_settings.get('jvVoltaAte')) or 0
-    return ate > 0 and os.time() - ate <= JANELA
+    return ate > 0
 end
 
 -- No celular "Lembrar conta" e "Entrar automaticamente" ficam SEMPRE marcados: sem a senha
