@@ -1,6 +1,6 @@
 # Arsenal de Ascensão
 
-28 armas com nomes próprios, requisitos e atributos individuais, em sete famílias e quatro patamares. Cada etapa acompanha o título de Ascensão da classe. Os sprites, IDs 8.60, itens comuns e mapa existente continuam iguais. As armas novas são variantes nomeadas dos itens clássicos, reconhecidas pelo nome, descrição e atributos; não precisam de outro cliente.
+28 armas com nomes próprios, requisitos e atributos individuais, em sete famílias e quatro patamares. Cada etapa acompanha o título de Ascensão da classe. As armas usam imagens distintas por família e patamar, aproveitando desenhos existentes no cliente 8.60. O servidor preserva os IDs reais, os atributos das armas já obtidas e os itens clássicos; não é necessário outro pacote de sprites.
 
 ## Poder e requisitos
 
@@ -63,7 +63,7 @@ Cada abate qualificado também dá um fragmento individual do patamar da hunt. P
 
 `!arsenal` abre o catálogo nativo da própria classe, com saldo, requisitos, origem, poder e comando de cada arma. Exemplo: `!arsenal resgatar, cetro, 4`. Famílias: `espada`, `machado`, `martelo`, `arco`, `besta`, `cetro`, `bastao`. O resgate exige os fragmentos, requisitos e mochila equipada com espaço/capacidade; cobra somente após entregar a arma, sem jogá-la no chão. Assim há uma meta de conquista mesmo quando o drop não vem.
 
-O autoloot reconhece as armas como raras; a venda protege o patamar IV e variantes com marca antiga de raridade. A lista de ignorados prevalece. Como os sprites/IDs são compartilhados, filtros por ID e hotkeys identificam a família clássica, não distinguem cada nome/patamar. Para trocar a variante equipada, use a mochila normalmente.
+O autoloot reconhece as armas como raras; a venda protege o patamar IV e variantes com marca antiga de raridade. A lista de ignorados prevalece. Os filtros do servidor continuam usando o ID real da família. As hotkeys do cliente usam a imagem exibida: se houver na mochila um item clássico com a mesma imagem, a seleção por hotkey pode ser ambígua; mova a arma diretamente pela mochila nesses casos.
 
 ## Venda por lista
 

@@ -41,31 +41,33 @@ function onUse(player, item, fromPosition, target, toPosition, isHotkey)
 	end
 
 	if item.itemid == 1945 then
-		local players = {}
-		for i = 1, #config.oldPosition do
-			local tile = Tile(config.oldPosition[i])
-			local topPlayer = tile and tile:getTopCreature()
-			if not topPlayer or not topPlayer:isPlayer() then
-				player:sendCancelMessage("Seu time precisa de pelo menos ".. #config.oldPosition .. " players para fazer essa quest.")
-				return true
-			end
-			players[#players + 1] = topPlayer
-		end
-
-		if #players < #config.oldPosition then
-			player:sendCancelMessage("Seu time precisa de pelo menos ".. #config.oldPosition .. " players para fazer essa quest.")
-			player:getPosition():sendMagicEffect(CONST_ME_POFF)
-			for i = 1, #players do
-				players[i] = nil
-			end
-			return true
-		end
-
-		for i, targetPlayer in ipairs(players) do
-			Position(config.oldPosition[i]):sendMagicEffect(CONST_ME_POFF)
-			targetPlayer:teleportTo(config.newPosition[i], false)
-			targetPlayer:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
-		end
+        -- Um jogador ja pode entrar sozinho; ate cinco podem usar as casas juntas.
+        local players = {}
+        for i, origem in ipairs(config.oldPosition) do
+            local tile = Tile(origem)
+            local participante = tile and tile:getTopCreature()
+            if participante and participante:isPlayer() then
+                local destino = config.newPosition[i]
+                local alvo = Tile(destino)
+                if not alvo or alvo:queryAdd(participante) ~= RETURNVALUE_NOERROR then
+                    player:sendCancelMessage("A sala da quest esta ocupada. Tente novamente.")
+                    return true
+                end
+                players[#players + 1] = {jogador=participante, origem=origem, destino=destino}
+            end
+        end
+        if #players == 0 then
+            player:sendCancelMessage("Pise em uma das casas de entrada para iniciar a quest.")
+            return true
+        end
+        for _, entrada in ipairs(players) do
+            entrada.origem:sendMagicEffect(CONST_ME_POFF)
+            if not entrada.jogador:teleportTo(entrada.destino, false) then
+                player:sendCancelMessage("Nao foi possivel entrar na sala. Tente novamente.")
+                return true
+            end
+            entrada.jogador:getPosition():sendMagicEffect(CONST_ME_TELEPORT)
+        end
 
 		for v, c in ipairs(config.monsterSpawn) do
 			Game.createMonster(config.monsterName, c, false, true)

@@ -16,7 +16,7 @@ def preparar(destino):
     destino.mkdir(parents=True, exist_ok=True)
     commit = re.search(r'BAIAK_COMMIT="([a-f0-9]{40})"', (ROOT/'instalar.sh').read_text())[1]
     patches = sorted((ROOT/'servidor-imagem/patches').glob('*.patch'))
-    arquivos = {'data/items/items.xml', 'data/XML/outfits.xml',
+    arquivos = {'data/items/items.xml', 'data/items/items.otb', 'data/XML/outfits.xml',
                 'data/actions/scripts/quests/quests.lua',
                 'data/actions/scripts/quests/medusaAnihiPremio.lua',
                 'data/actions/scripts/quests/medusaAnihi.lua'}

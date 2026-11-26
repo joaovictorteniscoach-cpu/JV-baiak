@@ -1,0 +1,102 @@
+diff --git a/src/game.cpp b/src/game.cpp
+index be6462c..f7b76cc 100644
+--- a/src/game.cpp
++++ b/src/game.cpp
+@@ -314,7 +314,25 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
+ 			subType = -1;
+ 		}
+ 
+-		return findItemOfType(player, it.id, true, subType);
++		// A hotkey usa o ID visivel no cliente. Uma arma personalizada pode ter
++		// o mesmo ID real de outra, mas imagem diferente por instancia.
++		Item* original = findItemOfType(player, it.id, true, subType);
++		if (original && original->getClientID() == spriteId) { return original; }
++		std::vector<Container*> containers;
++		for (size_t i = player->getFirstIndex(), j = player->getLastIndex(); i < j; ++i) {
++			Thing* thing = player->getThing(i);
++			Item* item = thing ? thing->getItem() : nullptr;
++			if (!item) { continue; }
++			if ((item->getID() == it.id || item->hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) && item->getClientID() == spriteId && (subType == -1 || item->getSubType() == subType)) { return item; }
++			if (Container* container = item->getContainer()) { containers.push_back(container); }
++		}
++		for (size_t i = 0; i < containers.size(); ++i) {
++			for (Item* item : containers[i]->getItemList()) {
++				if ((item->getID() == it.id || item->hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) && item->getClientID() == spriteId && (subType == -1 || item->getSubType() == subType)) { return item; }
++				if (Container* container = item->getContainer()) { containers.push_back(container); }
++			}
++		}
++		return nullptr;
+ 	}
+ 
+ 	//inventory
+diff --git a/src/item.cpp b/src/item.cpp
+index ecec018..6467e08 100644
+--- a/src/item.cpp
++++ b/src/item.cpp
+@@ -1556,6 +1556,38 @@ std::string Item::getWeightDescription() const
+ 	return getWeightDescription(weight);
+ }
+ 
++// As armas de Ascensao conservam o ID real e os atributos. Somente a imagem
++// enviada ao cliente muda conforme a identidade ja salva em cada instancia.
++uint16_t Item::getClientID() const
++{
++    if (hasAttribute(ITEM_ATTRIBUTE_CUSTOM)) {
++        const auto* attr = const_cast<Item*>(this)->getCustomAttribute("jvarmaid");
++        const auto* tag = attr ? boost::get<std::string>(&attr->value) : nullptr;
++        if (tag && tag->size() >= 3 && (*tag)[tag->size() - 2] == ':'
++            && tag->back() >= '1' && tag->back() <= '4') {
++            struct Visual { const char* chave; uint16_t base; uint16_t ids[4]; };
++            static const Visual visuais[] = {
++                {"espada", 2400, {7383, 7417, 7418, 2400}},
++                {"machado", 8925, {2431, 7412, 7434, 8925}},
++                {"martelo", 2421, {7422, 7437, 7415, 2421}},
++                {"arco", 8854, {2456, 7438, 8857, 8854}},
++                {"besta", 8851, {2455, 8849, 8850, 8851}},
++                {"cetro", 8922, {2188, 2189, 8921, 8922}},
++                {"bastao", 2183, {2186, 8911, 8912, 2183}},
++            };
++            const std::string chave = tag->substr(0, tag->size() - 2);
++            for (const auto& visual : visuais) {
++                if (visual.base == id && chave == visual.chave) {
++                    const uint16_t clientId = items[visual.ids[tag->back() - '1']].clientId;
++                    if (clientId != 0) { return clientId; }
++                    break;
++                }
++            }
++        }
++    }
++    return items[id].clientId;
++}
++
+ void Item::setUniqueId(uint16_t n)
+ {
+ 	if (hasAttribute(ITEM_ATTRIBUTE_UNIQUEID)) {
+diff --git a/src/item.h b/src/item.h
+index 91400f7..afdfef6 100644
+--- a/src/item.h
++++ b/src/item.h
+@@ -821,9 +821,7 @@ class Item : virtual public Thing
+ 		uint16_t getID() const {
+ 			return id;
+ 		}
+-		uint16_t getClientID() const {
+-			return items[id].clientId;
+-		}
++		uint16_t getClientID() const;
+ 		void setID(uint16_t newid);
+ 
+ 		// Returns the player that is holding this item in his inventory
+diff --git a/src/networkmessage.cpp b/src/networkmessage.cpp
+index d7b7b19..7271363 100644
+--- a/src/networkmessage.cpp
++++ b/src/networkmessage.cpp
+@@ -155,7 +155,7 @@ void NetworkMessage::addItem(const Item* item, bool withDescription)
+ {
+ 	const ItemType& it = Item::items[item->getID()];
+ 
+-	add<uint16_t>(it.clientId);
++	add<uint16_t>(item->getClientID());
+ 
+ 	if (it.stackable) {
+ 		addByte(std::min<uint16_t>(0xFF, item->getItemCount()));
