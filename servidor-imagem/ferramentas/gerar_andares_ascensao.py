@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import sys
 import xml.etree.ElementTree as ET
+from reduzir_vida_monstros import reduzir
 
 # arquivo, vida por andar, dano maximo corpo a corpo por andar
 GRUPOS = [
@@ -23,8 +24,8 @@ BOSSES = ('rei_das_cinzas', 'lorde_do_abismo', 'imperador_infernal')
 
 
 def marcar(texto):
-    texto=texto.replace('<!-- jv-vida-10x -->','')
-    return texto.replace('<!-- jv-vida-2x -->','<!-- jv-vida-2x --><!-- jv-vida-10x -->',1)
+    texto=texto.replace('<!-- jv-vida-10x -->','').replace('<!-- jv-vida-div-1.8 -->','')
+    return texto.replace('<!-- jv-vida-2x -->','<!-- jv-vida-2x --><!-- jv-vida-10x --><!-- jv-vida-div-1.8 -->',1)
 
 
 def balancear(texto, nome, hp, dano, experiencia=None):
@@ -53,7 +54,7 @@ def gerar(data):
                 nome_andar=f'{nome} A{i+1}'
                 # A vida em GRUPOS e a anterior: variantes sao geradas ja com 10x
                 # e marcadas, para nao serem regravadas em toda atualizacao.
-                gerado=balancear(base,nome_andar,vidas[i]*10,danos[i],max(1,round(exp*(0.55+0.1*i))))
+                gerado=balancear(base,nome_andar,reduzir(vidas[i]*10),danos[i],max(1,round(exp*(0.55+0.1*i))))
                 gerado=marcar(gerado)
                 destino=pasta/(arquivo+f'_andar{i+1}.xml')
                 if not destino.exists() or destino.read_text(encoding='utf-8')!=gerado:
@@ -65,15 +66,16 @@ def gerar(data):
             base=(pasta/(arquivo+'.xml')).read_text(encoding='utf-8')
             raiz=ET.fromstring(base);nome=raiz.get('name');exp=int(raiz.get('experience'))
             hp=int(raiz.find('health').get('max'))
-            if '<!-- jv-vida-10x -->' in base:
-                if hp%10: raise ValueError('Vida ja aumentada nao divisivel por 10: '+nome)
-                hp//=10
+            if '<!-- jv-vida-10x -->' not in base:
+                hp *= 10
+            if '<!-- jv-vida-div-1.8 -->' not in base:
+                hp = reduzir(hp)
             melee=re.search(r'<attack\s+name="melee"[^>]*\bmax="-(\d+)"',base)
             if not melee: raise ValueError('Ataque corporal ausente: '+nome)
             dano=int(melee.group(1))
             for i,andar in enumerate(andares):
                 fator_vida=(120,140)[i];fator_ataque=(115,130)[i]
-                gerado=balancear(base,f'{nome} A{andar}',hp*10*fator_vida//100,
+                gerado=balancear(base,f'{nome} A{andar}',hp*fator_vida//100,
                                  dano*fator_ataque//100,exp*(110+10*i)//100)
                 gerado=marcar(gerado)
                 destino=pasta/(arquivo+f'_andar{andar}.xml')

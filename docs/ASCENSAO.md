@@ -40,11 +40,11 @@ Exemplo: um hit que causaria 1.000 contra o mesmo monstro passa a 2.000, 4.000, 
 
 | Hunt | Entrada | Principais criaturas | Vida do andar 1 ao 5 | Maior hit corporal do andar 1 ao 5 |
 |---|---|---|---|---|
-| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido, Arauto das Brasas e Master Snoop | 70.000 → 250.000 | 180 → 550 |
-| Forja Abissal | Lv 600, Evo II | Colosso Abissal, Cavaleiro do Abismo e Dr Dre | 140.000 → 500.000 | 350 → 1.000 |
-| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral, Vigia da Cripta e Mr 420 | 200.000 → 750.000 | 500 → 1.450 |
-| Covil dos Titãs | Lv 800, Evo III | Titã Profanado, Dragão das Ruínas e O.G Chef | 300.000 → 1.200.000 | 700 → 2.000 |
-| Trono Infernal | Lv 1.000, Evo IV | Guardas e Soberano Infernal | 400.000 → 3.000.000 | 900 → 2.600 |
+| Caverna Infernal | Lv 300, Evo I | Demônio Ascendido, Arauto das Brasas e Master Snoop | 38.889 → 138.889 | 180 → 550 |
+| Forja Abissal | Lv 600, Evo II | Colosso Abissal, Cavaleiro do Abismo e Dr Dre | 77.778 → 277.778 | 350 → 1.000 |
+| Cripta Ancestral | Lv 650, Evo II | Guardião Ancestral, Vigia da Cripta e Mr 420 | 111.111 → 416.667 | 500 → 1.450 |
+| Covil dos Titãs | Lv 800, Evo III | Titã Profanado, Dragão das Ruínas e O.G Chef | 166.667 → 666.667 | 700 → 2.000 |
+| Trono Infernal | Lv 1.000, Evo IV | Guardas e Soberano Infernal | 222.222 → 1.666.667 | 900 → 2.600 |
 
 As quatro hunts comuns têm sete andares. O sexto e o sétimo usam variantes mais fortes, com respectivamente 20% e 40% mais vida e 15% e 30% mais dano corporal que as versões do quinto andar. O Trono Infernal tem oito andares. Cada área foi calibrada para tentativa solo com a evolução exigida, também podendo ser feita em dupla. O dano real depende de equipamento, evolução e resistência; estes são valores iniciais para validar em jogo, não uma garantia de sobrevivência. Os sprites existentes não mudam.
 
@@ -103,12 +103,16 @@ Os spawns registrados de bosses do mapa e de Juggernaut também têm o intervalo
 
 ### Novas criaturas e andares finais
 
-A partir do quinto andar da Caverna Infernal e seu Spot 2 aparecem **Batedor das Cinzas** (180.000 de vida, hit corporal até 400) e **Carrasco das Cinzas** (325.000, até 700). A partir do quinto andar do Covil dos Titãs e seu Spot 2 aparecem **Guardião das Ruínas** (850.000, até 1.400) e **Devastador das Ruínas** (1.500.000, até 2.500). Esses valores são antes das defesas e da evolução.
+A partir do quinto andar da Caverna Infernal e seu Spot 2 aparecem **Batedor das Cinzas** (100.000 de vida, hit corporal até 400) e **Carrasco das Cinzas** (180.556, até 700). A partir do quinto andar do Covil dos Titãs e seu Spot 2 aparecem **Guardião das Ruínas** (472.222, até 1.400) e **Devastador das Ruínas** (833.333, até 2.500). Esses valores são antes das defesas e da evolução.
 
-No Trono Infernal, o portal da direita do quinto andar leva ao sexto: há dois **Reis das Cinzas** (3.900.000 de vida cada), dois **Lordes do Abismo** (4.200.000) e dois **Imperadores Infernais** (4.500.000). Os andares sete e oito têm versões com 20% e 40% mais vida e 15% e 30% mais dano corporal. Eles nascem separados e voltam após 150 segundos. Os portais avançam e retornam entre andares; acima da entrada há retorno ao templo. Entrada: level 1.000 e Evolução IV. A dificuldade solo precisa de observação em jogo.
+No Trono Infernal, o portal da direita do quinto andar leva ao sexto: há dois **Reis das Cinzas** (2.166.667 de vida cada), dois **Lordes do Abismo** (2.333.333) e dois **Imperadores Infernais** (2.500.000). Os andares sete e oito têm versões com 20% e 40% mais vida e 15% e 30% mais dano corporal. Eles nascem separados e voltam após 150 segundos. Os portais avançam e retornam entre andares; acima da entrada há retorno ao templo. Entrada: level 1.000 e Evolução IV. A dificuldade solo precisa de observação em jogo.
 
 As criaturas novas deixam somente moedas e peças valiosas no loot normal. Os bosses dos três últimos andares podem deixar Magic Plate Armor e Great Shield; as outras criaturas novas podem deixar Demon Armor e Demon Helmet. Os drops especiais e as garantias de armas de Ascensão continuam, independentes do loot global. As chances do loot normal variam com o rate e os bônus do servidor. A limpeza de itens inúteis aplica-se às criaturas novas; os itens possíveis nos drops anteriores foram preservados.
 
-A vida de animais e monstros foi multiplicada por 10 em relação ao valor que tinham antes desta atualização; o multiplicador de vida não altera dano nem experiência por abate. As novas variantes dos últimos andares recebem seus próprios bônus de dano e experiência. O aumento é aplicado uma única vez por arquivo e inclui as variantes geradas, as hunts e os bosses.
+Depois do aumento anterior de vida, a vida atual de animais e monstros foi dividida por 1,8 uma única vez; o multiplicador de vida não altera dano nem experiência por abate. As novas variantes dos últimos andares recebem seus próprios bônus de dano e experiência. O aumento é aplicado uma única vez por arquivo e inclui as variantes geradas, as hunts e os bosses.
 
 O loot normal e as recompensas dos bosses têm oito rolagens independentes por morte, usando as chances e os boosts já existentes. O resultado é em média oito vezes a quantidade anterior, não uma garantia de oito itens específicos em cada morte. Quando o corpo enche, bolsas dentro dele guardam o excedente; o autoloot continua respeitando as exclusões de cada item.
+
+### Hunts no mapa original
+
+Os portais **Groove Perdido** (level 600, Evolução II) e **Domínio da Fumaça** (level 1000, Evolução IV) ficam no salão de hunts. As áreas usam pisos do mapa original, com 12 monstros cada, retorno ao salão e loot de moedas e itens raros. Se a área ou o portal estiverem ocupados em um mapa personalizado, a hunt correspondente fica desativada e o motivo aparece no log.
