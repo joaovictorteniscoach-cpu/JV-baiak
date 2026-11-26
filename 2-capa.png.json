@@ -1,0 +1,35 @@
+{
+  "isolated": true,
+  "sharedMemory": "function",
+  "offscreen": "function",
+  "rect": {
+    "x": 0,
+    "y": 0,
+    "width": 844,
+    "height": 390
+  },
+  "buffer": {
+    "width": 300,
+    "height": 150
+  },
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "visualViewport": {
+    "width": 844,
+    "height": 390,
+    "scale": 1,
+    "offsetLeft": 0,
+    "offsetTop": 0
+  },
+  "runtime": {
+    "calledRun": false
+  },
+  "workers": [
+    "http://127.0.0.1:8080/otclient.js",
+    "http://127.0.0.1:8080/otclient.js",
+    "http://127.0.0.1:8080/otclient.js",
+    "http://127.0.0.1:8080/otclient.js"
+  ]
+}
