@@ -116,3 +116,7 @@ O loot normal e as recompensas dos bosses têm oito rolagens independentes por m
 ### Hunts no mapa original
 
 Os portais **Groove Perdido** (level 600, Evolução II) e **Domínio da Fumaça** (level 1000, Evolução IV) ficam no salão de hunts. As áreas usam pisos do mapa original, com 12 monstros cada, retorno ao salão e loot de moedas e itens raros. Se a área ou o portal estiverem ocupados em um mapa personalizado, a hunt correspondente fica desativada e o motivo aparece no log.
+
+### Baús antigos sem recompensa
+
+No mapa original, nove baús em torno de `1145–1167, 186–188, 7` tinham identificadores sem ação ou conteúdo. Um teleporte em `1124,180,7` leva à área, e o portal em `1170,190,7` leva para `403,1241,7`. Foram cadastradas recompensas **novas**, uma retirada por personagem e por baú: demon helmet, magic plate armor, great shield, magic sword, solar axe, thunder hammer, warsinger bow, wand of voodoo e hailstorm rod. O baú da cabana em `1101,1375,7` concede cinco crystal coins uma vez. As recompensas não foram recuperadas de um registro antigo: esse registro não existe nos arquivos examinados. Se faltar espaço ou capacidade, a retirada continua disponível. A alavanca da Annihilator da Medusa aceita de um a cinco jogadores nas posições de entrada e mantém o intervalo de quatro horas. O sistema verifica as coordenadas e não atribui esses prêmios a baús em outros lugares de mapas personalizados.

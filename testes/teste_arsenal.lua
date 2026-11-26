@@ -99,15 +99,14 @@ q.localidade=Position(p.localidade.x+30,p.localidade.y,7)
 T.eventos.JVAscensaoMorte.onDeath(morto,nil,p,p);assert(q.dados[k]==1,'personagem distante ganhou fragmento')
 morto.getMaster=function()return p end
 saldo=p.dados[k];T.eventos.JVAscensaoMorte.onDeath(morto,nil,p,p);assert(p.dados[k]==saldo,'farmou invocacao')
-local drops=0;local corpse={addItem=function(s,id) drops=drops+1;return T.item(id)end}
+local drops=0;local corpse={addItemEx=function(s,i) drops=drops+1;return RETURNVALUE_NOERROR end}
 assert(not A.sortear(corpse,hunt,5) and drops==0)
 math.random=function(a,b)return 1 end
 local item=A.sortear(corpse,hunt,5)
 assert(drops==8 and item:getCustomAttribute('jvarmaid')=='espada:4')
-local antigo=Game.createItem
-Game.createItem=function()error('drop sem espaco criou item virtual fora do corpo')end
-assert(not A.criar('cetro',4,{addItem=function()end}))
-Game.createItem=antigo
+local naoCoube
+local falha={addItemEx=function(_,i)naoCoube=i;return 1 end}
+assert(not A.criar('cetro',4,falha) and naoCoube.removido,'item nao foi removido apos falha')
 math.random=random
 print('OK: fragmentos por patamar, dupla, distancia, invocacoes e drop independente do rate global')
 
@@ -121,7 +120,7 @@ print('OK: novas armas protegidas da venda em lote; loot normal preservado')
 
 -- Demon e Juggernaut deixam as armas no corpo antes da coleta automatica.
 local sorte=math.random;local quantidade=0;local ultimo
-local corpo={addItem=function(_,id)quantidade=quantidade+1;ultimo=T.item(id);return ultimo end}
+local corpo={addItemEx=function(_,i)quantidade=quantidade+1;ultimo=i;return RETURNVALUE_NOERROR end}
 local atacante=T.player(1)
 local criatura={getName=function()return 'Demon' end,getMaster=function()end}
 math.random=function(a,b)return 1 end
@@ -141,13 +140,13 @@ print('OK: Demon e Juggernaut derrubam patamares corretos, sem farm de invocacao
 -- Mesmo com azar consecutivo, cada personagem recebe uma arma no limite.
 local azar=math.random;math.random=function(a,b)return b or a end
 local paciente=T.player(1);local n=0
-local espaco={addItem=function(_,id)n=n+1;return T.item(id)end}
+local espaco={addItemEx=function(_,i)n=n+1;return RETURNVALUE_NOERROR end}
 local piso={tier=1,andar=1,boss=false}
 for i=1,19 do assert(not A.sortear(espaco,piso,1,paciente)) end
 assert(n==0 and paciente:getStorageValue(79921)==19)
 assert(A.sortear(espaco,piso,1,paciente) and n==1 and paciente:getStorageValue(79921)==0,'garantia de hunt falhou')
 paciente:setStorageValue(79921,19)
-assert(not A.sortear({addItem=function()end},piso,1,paciente) and paciente:getStorageValue(79921)==20,'garantia perdida por corpo cheio')
+assert(not A.sortear({addItemEx=function()return 1 end},piso,1,paciente) and paciente:getStorageValue(79921)==20,'garantia perdida por corpo cheio')
 assert(A.sortear(espaco,piso,1,paciente) and paciente:getStorageValue(79921)==0,'garantia nao tentou novamente')
 local guarda={tier=3,andar=4,boss=false,garantiaIndice=6}
 paciente:setStorageValue(79926,19);paciente:setStorageValue(79925,3)

@@ -47,8 +47,9 @@ end
 function A.criar(chave,n,container)
     local f=familia(chave)
     if not f or type(n)~='number' or n~=math.floor(n) or n<1 or n>4 then return nil end
-    local item
-    if container then item=container:addItem(f.item,1) else item=Game.createItem(f.item,1) end
+    -- Marca o item antes de coloca-lo no corpo para que clientes com o corpo
+    -- aberto recebam a imagem correta desde a primeira atualizacao.
+    local item=Game.createItem(f.item,1)
     if not item then return nil end
     item:setAttribute(ITEM_ATTRIBUTE_NAME,f.nomes[n])
     item:setAttribute(ITEM_ATTRIBUTE_ARTICLE,f.artigo)
@@ -61,6 +62,10 @@ function A.criar(chave,n,container)
     item:setCustomAttribute('jvarmaevolucao',n)
     item:setCustomAttribute('jvarmaevostorage',C.evoStorage)
     item:setCustomAttribute('jvascensaotier',n) -- autoloot raro; patamar IV protegido na venda
+    if container and container:addItemEx(item)~=RETURNVALUE_NOERROR then
+        item:remove()
+        return nil
+    end
     return item
 end
 local function rolar(corpse,player,chance,tier,storage,limite)
