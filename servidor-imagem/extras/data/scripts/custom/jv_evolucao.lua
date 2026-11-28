@@ -129,6 +129,25 @@ function dano.onHealthChange(creature, attacker, primaryDamage, primaryType, sec
 end
 dano:register()
 
+-- O dano de cada monstro e calculado para o alvo atingido, nao para a party.
+-- Invocacoes de jogadores, dano ambiental e PvP nao recebem este ajuste.
+function E.escalaMonstro(player, atacante)
+    if not atacante or not atacante:isMonster() then return 1 end
+    local atual = atacante
+    for _=1,16 do
+        local mestre=atual:getMaster()
+        if not mestre then break end
+        if mestre:isPlayer() then return 1 end
+        atual=mestre
+    end
+    return 1 + math.min(2000, math.max(0,player:getLevel()-100))*0.0005
+end
+local function proteger(valor, tipo, multiplicador, escala)
+    if tipo == COMBAT_HEALING then return valor end
+    local sinal=valor<0 and -1 or 1
+    return dividir(sinal*math.min(2147483647,math.floor(math.abs(valor)*escala+0.5)), multiplicador)
+end
+
 -- defesa: ligada no jogador
 local defesa = CreatureEvent("JVEvolucaoDefesa")
 function defesa.onHealthChange(creature, attacker, primaryDamage, primaryType, secondaryDamage, secondaryType, origin)
@@ -138,7 +157,8 @@ function defesa.onHealthChange(creature, attacker, primaryDamage, primaryType, s
 	local m = E.multiplicador(creature)
 	local dono=jogadorDe(attacker)
 	if dono and JV_ARSENAL and not JV_ARSENAL.equipamentoValido(dono) then return 0,primaryType,0,secondaryType end
-	return dividir(primaryDamage, m), primaryType, dividir(secondaryDamage, m), secondaryType
+	local escala = E.escalaMonstro(creature, attacker)
+	return proteger(primaryDamage, primaryType, m, escala), primaryType, proteger(secondaryDamage, secondaryType, m, escala), secondaryType
 end
 defesa:register()
 
@@ -152,7 +172,8 @@ function defesaMana.onManaChange(creature, attacker, primaryDamage, primaryType,
 		return 0,primaryType,0,secondaryType
 	end
 	local m = E.multiplicador(creature)
-	return dividir(primaryDamage, m), primaryType, dividir(secondaryDamage, m), secondaryType
+	local escala = E.escalaMonstro(creature, attacker)
+	return proteger(primaryDamage, primaryType, m, escala), primaryType, proteger(secondaryDamage, secondaryType, m, escala), secondaryType
 end
 defesaMana:register()
 

@@ -115,8 +115,22 @@ O loot normal e as recompensas dos bosses têm oito rolagens independentes por m
 
 ### Hunts no mapa original
 
-Os portais **Groove Perdido** (level 600, Evolução II) e **Domínio da Fumaça** (level 1000, Evolução IV) ficam no salão de hunts. As áreas usam pisos do mapa original, com 12 monstros cada, retorno ao salão e loot de moedas e itens raros. Se a área ou o portal estiverem ocupados em um mapa personalizado, a hunt correspondente fica desativada e o motivo aparece no log.
+Os portais **Groove Perdido** (level 600, Evolução II) e **Domínio da Fumaça** (level 1000, Evolução IV) ficam no salão de hunts. As áreas usam pisos do mapa original, com 16 monstros no Groove e 15 no Domínio, retorno ao salão e loot de moedas e itens raros. Se a área ou o portal estiverem ocupados em um mapa personalizado, a hunt correspondente fica desativada e o motivo aparece no log.
 
 ### Baús antigos sem recompensa
 
 No mapa original, nove baús em torno de `1145–1167, 186–188, 7` tinham identificadores sem ação ou conteúdo. Um teleporte em `1124,180,7` leva à área, e o portal em `1170,190,7` leva para `403,1241,7`. Foram cadastradas recompensas **novas**, uma retirada por personagem e por baú: demon helmet, magic plate armor, great shield, magic sword, solar axe, thunder hammer, warsinger bow, wand of voodoo e hailstorm rod. O baú da cabana em `1101,1375,7` concede cinco crystal coins uma vez. As recompensas não foram recuperadas de um registro antigo: esse registro não existe nos arquivos examinados. Se faltar espaço ou capacidade, a retirada continua disponível. A alavanca da Annihilator da Medusa aceita de um a cinco jogadores nas posições de entrada e mantém o intervalo de quatro horas. O sistema verifica as coordenadas e não atribui esses prêmios a baús em outros lugares de mapas personalizados.
+
+### Dano por nível e desafios novos
+
+Monstros causam mais dano conforme o nível do personagem atingido: até o nível 100, 100% do dano; a partir daí, mais 5% a cada 100 níveis, até o limite de 200% no nível 2100. O cálculo é individual e precede a defesa da evolução. PvP e invocações de jogadores não recebem o aumento; danos ambientais sem atacante identificado não são ampliados. O valor final depende das defesas e resistências e deve ser observado em jogo.
+
+Os baús dos desafios ficam no salão de hunts, ou use `!desafios` e `!desafios resgatar, 1`, `2` ou `3`. Cada personagem recebe cada conjunto uma vez; se não houver espaço ou capacidade, poderá tentar novamente. Participantes vivos da party na mesma área recebem o progresso.
+
+| Desafio | Onde e entrada | Meta | Recompensa |
+|---|---|---|---|
+| Prova das Brasas | Groove Perdido; lv 600 e Evo II | 20 Guardiões das Brasas | Armadura das Brasas (arm 26) e Escudo das Brasas (def 48) |
+| Caçada Abissal | Groove Perdido; lv 600 e Evo II | 25 Caçadores Abissais | Armadura Abissal (arm 32) e Escudo Abissal (def 56) |
+| Julgamento Celestial | Domínio da Fumaça; lv 1000 e Evo IV | 30 Arautos Celestiais | Armadura Celestial (arm 40) e Escudo Celestial (def 65) |
+
+Os conjuntos são novos e têm nomes e atributos próprios; nesta versão usam desenhos clássicos que já existem no cliente 8.60. As artes conceituais criadas para esses conjuntos ainda precisam ser convertidas e integradas ao cliente antes de aparecerem no jogo.
