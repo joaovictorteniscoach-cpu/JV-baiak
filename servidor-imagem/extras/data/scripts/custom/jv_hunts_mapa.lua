@@ -3,8 +3,8 @@ local M={}
 local PORTAL, SAIDA = 48260,48270
 local hub=Position(30000,30000,7)
 local hunts={
-    {nome='Groove Perdido', centro=Position(456,984,7), entrada=Position(29994,30005,7), level=600,evo=2,tier=2,arsenalIndice=2,chance=0.008,respawn=45, monstros={'Sentinela do Groove','Guardiao do Groove'}},
-    {nome='Dominio da Fumaca', centro=Position(1400,1336,7), entrada=Position(30006,30005,7), level=1000,evo=4,tier=4,arsenalIndice=5,chance=0.03,respawn=60, monstros={'Guardiao da Fumaca','Soberano da Fumaca'}},
+    {nome='Groove Perdido', centro=Position(456,984,7), entrada=Position(29994,30005,7), level=600,evo=2,tier=2,arsenalIndice=2,chance=0.008,respawn=45, quantidade=16, monstros={'Sentinela do Groove','Guardiao do Groove','Guardiao das Brasas','Cacador Abissal'}},
+    {nome='Dominio da Fumaca', centro=Position(1400,1336,7), entrada=Position(30006,30005,7), level=1000,evo=4,tier=4,arsenalIndice=5,chance=0.03,respawn=60, quantidade=15, monstros={'Guardiao da Fumaca','Soberano da Fumaca','Arauto Celestial'}},
 }
 local function deslocar(p,x,y) return Position(p.x+x,p.y+y,p.z) end
 local function valido(t)
@@ -23,7 +23,8 @@ inicio:type('startup')
 function inicio.onStartup()
     if not JV_ASCENSAO or not JV_ASCENSAO.hub then print('[Hunts mapa] Sala de hunts indisponivel.'); return true end
     for i,h in ipairs(hunts) do
-        local seguro=MonsterType(h.monstros[1]) and MonsterType(h.monstros[2])
+        local seguro=true
+        for _,nome in ipairs(h.monstros) do if not MonsterType(nome) then seguro=false end end
         for x=-7,7 do for y=-7,7 do if not valido(Tile(deslocar(h.centro,x,y))) then seguro=false end end end
         local saida=deslocar(h.centro,-7,0)
         local portalSaida=seguro and novoPortal(saida,SAIDA+i)
@@ -31,9 +32,9 @@ function inicio.onStartup()
         if portalEntrada then
             M[i]=true
             for _,nome in ipairs(h.monstros) do JV_ASCENSAO.monstros[nome]=h end
-            for n=1,12 do
+            for n=1,h.quantidade do
                 local col=(n-1)%4; local linha=math.floor((n-1)/4)
-                JV_ASCENSAO.slots[#JV_ASCENSAO.slots+1]={hunt=h,nome=h.monstros[(n-1)%2+1],pos=deslocar(h.centro,-4+col*3,-5+linha*4)}
+                JV_ASCENSAO.slots[#JV_ASCENSAO.slots+1]={hunt=h,nome=h.monstros[(n-1)%#h.monstros+1],pos=deslocar(h.centro,-4+col*3,-5+linha*4)}
             end
         else
             if portalSaida then portalSaida:remove() end

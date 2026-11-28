@@ -158,7 +158,7 @@ class DadosAscensao(unittest.TestCase):
             xml = data/'monster/monsters.xml'
             original = '<monsters><monster name="Demon" file="Demons/demon.xml"/></monsters>'
             xml.write_text(original)
-            self.assertEqual(mod.registrar(data),122)
+            self.assertEqual(mod.registrar(data),125)
             primeira = xml.read_bytes()
             self.assertEqual(mod.registrar(data),0)
             self.assertEqual(xml.read_bytes(),primeira)

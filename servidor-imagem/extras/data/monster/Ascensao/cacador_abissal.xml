@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<monster name="Cacador Abissal" nameDescription="Cacador Abissal" race="fire" experience="40000" speed="280" manacost="0">
+ <health now="90000" max="90000"/><!-- jv-vida-2x -->
+ <look type="245" corpse="5995"/>
+ <targetchange interval="5000" chance="10"/>
+ <flags><flag attackable="1"/><flag hostile="1"/><flag summonable="0"/><flag convinceable="0"/><flag illusionable="0"/><flag pushable="0"/><flag canpushitems="1"/><flag canpushcreatures="0"/><flag targetdistance="1"/><flag staticattack="90"/><flag runonhealth="0"/></flags>
+ <attacks>
+  <attack name="melee" interval="2200" min="-675" max="-1350"/>
+  <attack name="fire" interval="4000" chance="25" range="7" radius="1" target="1" min="-325" max="-650"><attribute key="shootEffect" value="fire"/><attribute key="areaEffect" value="firearea"/></attack>
+ </attacks>
+ <defenses armor="50" defense="55"/>
+ <immunities><immunity paralyze="1"/></immunities>
+ <loot><item id="2160" countmax="25" chance="100000"/><item id="2494" chance="250"/><item id="2520" chance="150"/></loot>
+ <script><event name="JVAscensaoMorte"/></script>
+</monster>
